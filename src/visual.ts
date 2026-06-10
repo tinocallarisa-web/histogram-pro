@@ -237,11 +237,21 @@ export class Visual implements IVisual {
             ? Math.max(2, Math.min(100, settings.bins || DEFAULTS.bins))
             : FREE_MAX_BINS;
 
-        // Extract raw values
+        // Extract raw values + build selection IDs per row
         const raw: number[] = [];
+        const rawWithIds: Array<{ value: number; selId: powerbi.extensibility.ISelectionId }> = [];
         const rawValues = dataView.categorical.values[0].values;
-        for (const v of rawValues) {
-            if (v != null && isFinite(+v)) raw.push(+v);
+        const categories = dataView.categorical.categories?.[0];
+
+        for (let i = 0; i < rawValues.length; i++) {
+            const v = rawValues[i];
+            if (v != null && isFinite(+v)) {
+                const builder = this.host.createSelectionIdBuilder();
+                if (categories) builder.withCategory(categories, i);
+                const selId = builder.createSelectionId();
+                raw.push(+v);
+                rawWithIds.push({ value: +v, selId });
+            }
         }
         if (raw.length < 2) return;
 
@@ -287,6 +297,13 @@ export class Visual implements IVisual {
             .thresholds(d3.range(xDomain[0], xDomain[1], (xDomain[1] - xDomain[0]) / effectiveBins));
         const bins = binner(data);
         const maxCount = d3.max(bins, (b) => b.length) || 1;
+
+        // Map each bin to its selection IDs (for filter-out)
+        const binSelectionIds: powerbi.extensibility.ISelectionId[][] = bins.map(bin =>
+            rawWithIds
+                .filter(d => d.value >= (bin.x0 ?? -Infinity) && d.value < (bin.x1 ?? Infinity))
+                .map(d => d.selId)
+        );
         const yScale = d3.scaleLinear().domain([0, maxCount]).range([plotH, 0]).nice();
 
         // SVG group
@@ -321,14 +338,21 @@ export class Visual implements IVisual {
         const borderColor = this.isPro ? settings.borderColor : DEFAULTS.borderColor;
         const borderWidth = this.isPro ? settings.borderWidth : DEFAULTS.borderWidth;
 
+        // Click on empty space clears selection
+        this.svg.on("click", () => {
+            this.selectionManager.clear();
+        });
+
         const barsG = g.append("g").attr("class", "bars");
-        bins.forEach((bin) => {
+        bins.forEach((bin, binIndex) => {
             if (bin.x0 == null || bin.x1 == null) return;
             const bx = xScale(bin.x0) + gap / 2;
             const bw = Math.max(0, xScale(bin.x1) - xScale(bin.x0) - gap);
             const by = yScale(bin.length);
             const bh = plotH - yScale(bin.length);
             if (bw <= 0 || bh <= 0) return;
+
+            const ids = binSelectionIds[binIndex] || [];
 
             barsG
                 .append("rect")
@@ -340,15 +364,31 @@ export class Visual implements IVisual {
                 .attr("fill-opacity", barOpacity)
                 .attr("stroke", borderColor)
                 .attr("stroke-width", borderWidth)
+                .style("cursor", "pointer")
+                .on("click", (event: MouseEvent) => {
+                    event.stopPropagation();
+                    this.selectionManager.select(ids, (event as MouseEvent).ctrlKey);
+                })
+                .on("contextmenu", (event: MouseEvent) => {
+                    event.preventDefault();
+                    const contextMenu = (this.host as any).contextMenuService;
+                    if (contextMenu) {
+                        contextMenu.show({
+                            dataItems: ids.length > 0 ? [{ displayName: "Range", value: `${fmtNum(bin.x0!)} – ${fmtNum(bin.x1!)}` }] : [],
+                            identities: ids,
+                            coordinates: [event.clientX, event.clientY],
+                            isTouchEvent: false,
+                        });
+                    }
+                })
                 .on("mouseover", (event: MouseEvent) => {
-                    const label = `${fmtNum(bin.x0!)} – ${fmtNum(bin.x1!)}\nCount: ${bin.length}`;
                     this.tooltipService.show({
                         dataItems: [
                             { displayName: "Range", value: `${fmtNum(bin.x0!)} – ${fmtNum(bin.x1!)}` },
                             { displayName: "Count", value: String(bin.length) },
                             { displayName: "% of total", value: `${((bin.length / nFiltered) * 100).toFixed(1)}%` },
                         ],
-                        identities: [],
+                        identities: ids,
                         coordinates: [event.clientX, event.clientY],
                         isTouchEvent: false,
                     });
@@ -357,7 +397,7 @@ export class Visual implements IVisual {
                     this.tooltipService.move({
                         coordinates: [event.clientX, event.clientY],
                         isTouchEvent: false,
-                        identities: [],
+                        identities: ids,
                     });
                 })
                 .on("mouseout", () => {
