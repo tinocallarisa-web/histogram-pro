@@ -237,10 +237,13 @@ export class Visual implements IVisual {
             ? Math.max(2, Math.min(100, settings.bins || DEFAULTS.bins))
             : FREE_MAX_BINS;
 
-        // Extract raw values + build selection IDs per row
+        // Extract raw values + highlights + selection IDs per row
         const raw: number[] = [];
         const rawWithIds: Array<{ value: number; selId: powerbi.extensibility.ISelectionId }> = [];
         const rawValues = dataView.categorical.values[0].values;
+        const highlightValues = dataView.categorical.values[0].highlights;
+        const hasHighlights = highlightValues != null;
+        const highlightedRaw: number[] = [];
         const categories = dataView.categorical.categories?.[0];
 
         for (let i = 0; i < rawValues.length; i++) {
@@ -251,6 +254,10 @@ export class Visual implements IVisual {
                 const selId = builder.createSelectionId();
                 raw.push(+v);
                 rawWithIds.push({ value: +v, selId });
+                // Track highlighted values for filter-in
+                if (hasHighlights && highlightValues[i] != null && isFinite(+highlightValues[i])) {
+                    highlightedRaw.push(+v);
+                }
             }
         }
         if (raw.length < 2) return;
@@ -270,6 +277,7 @@ export class Visual implements IVisual {
 
         const data = raw.filter((v) => v >= loVal && v <= hiVal);
         if (data.length < 2) return;
+        const highlightedData = highlightedRaw.filter((v) => v >= loVal && v <= hiVal);
 
         const nFiltered = data.length;
         const mean = data.reduce((s, v) => s + v, 0) / nFiltered;
@@ -304,6 +312,12 @@ export class Visual implements IVisual {
                 .filter(d => d.value >= (bin.x0 ?? -Infinity) && d.value < (bin.x1 ?? Infinity))
                 .map(d => d.selId)
         );
+
+        // Highlighted bins for filter-in
+        const highlightBinner = d3.bin()
+            .domain(xDomain as [number, number])
+            .thresholds(d3.range(xDomain[0], xDomain[1], (xDomain[1] - xDomain[0]) / effectiveBins));
+        const highlightBins = hasHighlights ? highlightBinner(highlightedData) : [];
         const yScale = d3.scaleLinear().domain([0, maxCount]).range([plotH, 0]).nice();
 
         // SVG group
@@ -338,9 +352,21 @@ export class Visual implements IVisual {
         const borderColor = this.isPro ? settings.borderColor : DEFAULTS.borderColor;
         const borderWidth = this.isPro ? settings.borderWidth : DEFAULTS.borderWidth;
 
-        // Click on empty space clears selection
+        // Click and right-click on empty space
         this.svg.on("click", () => {
             this.selectionManager.clear();
+        });
+        this.svg.on("contextmenu", (event: MouseEvent) => {
+            event.preventDefault();
+            const ctxMenu = (this.host as any).contextMenuService;
+            if (ctxMenu) {
+                ctxMenu.show({
+                    dataItems: [],
+                    identities: [],
+                    coordinates: [event.clientX, event.clientY],
+                    isTouchEvent: false,
+                });
+            }
         });
 
         const barsG = g.append("g").attr("class", "bars");
@@ -354,6 +380,9 @@ export class Visual implements IVisual {
 
             const ids = binSelectionIds[binIndex] || [];
 
+            // Filter-in: dim bars when highlights active
+            const dimmedOpacity = hasHighlights ? barOpacity * 0.25 : barOpacity;
+
             barsG
                 .append("rect")
                 .attr("x", bx)
@@ -361,7 +390,7 @@ export class Visual implements IVisual {
                 .attr("width", bw)
                 .attr("height", bh)
                 .attr("fill", barColor)
-                .attr("fill-opacity", barOpacity)
+                .attr("fill-opacity", dimmedOpacity)
                 .attr("stroke", borderColor)
                 .attr("stroke-width", borderWidth)
                 .style("cursor", "pointer")
@@ -371,10 +400,11 @@ export class Visual implements IVisual {
                 })
                 .on("contextmenu", (event: MouseEvent) => {
                     event.preventDefault();
-                    const contextMenu = (this.host as any).contextMenuService;
-                    if (contextMenu) {
-                        contextMenu.show({
-                            dataItems: ids.length > 0 ? [{ displayName: "Range", value: `${fmtNum(bin.x0!)} – ${fmtNum(bin.x1!)}` }] : [],
+                    event.stopPropagation();
+                    const ctxMenu = (this.host as any).contextMenuService;
+                    if (ctxMenu) {
+                        ctxMenu.show({
+                            dataItems: [{ displayName: "Range", value: `${fmtNum(bin.x0!)} – ${fmtNum(bin.x1!)}` }],
                             identities: ids,
                             coordinates: [event.clientX, event.clientY],
                             isTouchEvent: false,
@@ -419,6 +449,29 @@ export class Visual implements IVisual {
                     .text(labelVal);
             }
         });
+
+        // Filter-in: overlay highlighted bars at full opacity
+        if (hasHighlights) {
+            highlightBins.forEach((hbin) => {
+                if (hbin.x0 == null || hbin.x1 == null || hbin.length === 0) return;
+                const bx = xScale(hbin.x0) + gap / 2;
+                const bw = Math.max(0, xScale(hbin.x1) - xScale(hbin.x0) - gap);
+                const by = yScale(hbin.length);
+                const bh = plotH - yScale(hbin.length);
+                if (bw <= 0 || bh <= 0) return;
+                barsG
+                    .append("rect")
+                    .attr("x", bx)
+                    .attr("y", by)
+                    .attr("width", bw)
+                    .attr("height", bh)
+                    .attr("fill", barColor)
+                    .attr("fill-opacity", barOpacity)
+                    .attr("stroke", borderColor)
+                    .attr("stroke-width", borderWidth)
+                    .style("pointer-events", "none");
+            });
+        }
 
         // X axis
         g.append("g")
