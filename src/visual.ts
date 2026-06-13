@@ -260,8 +260,7 @@ export class Visual implements IVisual {
         this.svg.on("click", () => { this.selectionManager.clear(); });
         this.svg.on("contextmenu", (event: MouseEvent) => {
             event.preventDefault();
-            const ctxMenu = (this.host as any).contextMenuService;
-            if (ctxMenu) ctxMenu.show({ dataItems: [], identities: [], coordinates: [event.clientX, event.clientY], isTouchEvent: false });
+            this.selectionManager.showContextMenu(null, { x: event.clientX, y: event.clientY });
         });
 
         // Bars
@@ -289,13 +288,8 @@ export class Visual implements IVisual {
                 .on("contextmenu", (event: MouseEvent) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    const ctxMenu = (this.host as any).contextMenuService;
-                    if (ctxMenu) ctxMenu.show({
-                        dataItems: [{ displayName: "Range", value: `${fmtNum(bin.x0!)} – ${fmtNum(bin.x1!)}` }],
-                        identities: ids,
-                        coordinates: [event.clientX, event.clientY],
-                        isTouchEvent: false,
-                    });
+                    const selId = ids.length > 0 ? ids[0] : null;
+                    this.selectionManager.showContextMenu(selId, { x: event.clientX, y: event.clientY });
                 })
                 .on("mouseover", (event: MouseEvent) => {
                     this.tooltipService.show({
