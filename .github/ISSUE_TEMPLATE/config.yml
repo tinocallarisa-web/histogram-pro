@@ -3,6 +3,9 @@ contact_links:
   - name: Documentation & Support
     url: https://tinocallarisa-web.github.io/histogram-pro/support.html
     about: Quick start, field wells, format pane reference and FAQ
+  - name: Case Study — retail sales distribution
+    url: https://tinocallarisa-web.github.io/histogram-pro/use-case.html
+    about: A worked example of reading a distribution end to end
   - name: Changelog
     url: https://github.com/tinocallarisa-web/histogram-pro/blob/main/CHANGELOG.md
     about: See what changed in each version

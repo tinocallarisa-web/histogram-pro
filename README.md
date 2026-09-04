@@ -9,6 +9,7 @@ line and a normal curve.
 
 [Product page](https://tcviz.com/product/histogram-pro/) ·
 [Documentation](https://tinocallarisa-web.github.io/histogram-pro/support.html) ·
+[Case study](https://tinocallarisa-web.github.io/histogram-pro/use-case.html) ·
 [Changelog](CHANGELOG.md) ·
 [Video](https://www.youtube.com/watch?v=qL9luDsg3h8) ·
 [Report an issue](https://github.com/tinocallarisa-web/histogram-pro/issues)
@@ -131,6 +132,7 @@ Every install starts with a 30-day Pro trial. No card required.
 ## Documentation and support
 
 - **[Full documentation](https://tinocallarisa-web.github.io/histogram-pro/support.html)** — quick start, field wells, format pane reference and FAQ.
+- **[Case study](https://tinocallarisa-web.github.io/histogram-pro/use-case.html)** — reading a retail sales distribution end to end, from raw spread to the outliers that explained it.
 - **[Video walkthrough](https://www.youtube.com/watch?v=qL9luDsg3h8)**.
 - **[Issues](https://github.com/tinocallarisa-web/histogram-pro/issues)** — please use the templates; they ask for the bin count, value range and row count, which is what makes a distribution bug reproducible.
 - **[Discussions](https://github.com/tinocallarisa-web/histogram-pro/discussions)** — questions and ideas.
