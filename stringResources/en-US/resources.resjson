@@ -1,0 +1,16 @@
+{
+    "locale": "en-US",
+    "values": {
+        "Visual_Display_Name": "Histogram Pro",
+        "Visual_Description": "Professional histogram with configurable bins, outlier trimming, statistical overlays, and full style controls.",
+        "Role_DisplayName_measure": "Values",
+        "Role_DisplayName_category": "Detail (rows)",
+        "Role_Description_measure": "Numeric field to plot as histogram",
+        "Role_Description_category": "Optional category for row-level data and drilldown",
+        "Objects_Histogram_DisplayName": "Histogram",
+        "Objects_Axes_DisplayName": "Axes",
+        "Objects_Statistics_DisplayName": "Statistics",
+        "Objects_ValueLabels_DisplayName": "Value labels",
+        "Objects_Benchmark_DisplayName": "Benchmark"
+    }
+}

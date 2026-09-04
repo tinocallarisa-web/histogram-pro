@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study — Histogram Pro</title>
+<style>
+  body { font-family: Segoe UI, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.7; }
+  h1 { color: #1a1a2e; } h2 { color: #16213e; margin-top: 2em; }
+  .lead { font-size: 1.1em; color: #555; }
+  .highlight { background: #f0f7ff; border-left: 4px solid #0078d4; padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 1.2em 0; }
+  .steps { counter-reset: step; }
+  .step { counter-increment: step; padding-left: 2.5em; position: relative; margin-bottom: 1.2em; }
+  .step::before { content: counter(step); position: absolute; left: 0; top: 0; background: #0078d4; color: #fff; width: 1.7em; height: 1.7em; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85em; }
+  a { color: #0078d4; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th { background: #f0f7ff; } th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+  .tag { display: inline-block; background: #e8f4fd; color: #0078d4; border-radius: 4px; padding: 1px 7px; font-size: 0.82em; }
+</style>
+</head>
+<body>
+
+<p><a href="support.html">← Back to Support</a></p>
+
+<h1>Identifying Sales Performance Outliers with Histogram Pro</h1>
+<p class="lead">How a retail analytics team used distribution analysis to uncover hidden revenue gaps — and took action in under a week.</p>
+
+<h2>The Challenge</h2>
+<p>A regional retail company had 4,200 sales representatives across 12 countries. Their standard Power BI dashboard showed average deal size, total revenue, and YoY growth — but the averages masked a serious problem: a small group of reps was generating disproportionate revenue while the majority underperformed.</p>
+<p>The analytics team suspected the distribution was skewed, but their existing bar charts showed only totals per region, not the underlying spread of individual deal sizes.</p>
+
+<div class="highlight">
+  <strong>Key question:</strong> "What does the distribution of individual deal sizes actually look like — and where is the cutoff between our top performers and the rest?"
+</div>
+
+<h2>Solution: Histogram Pro in Power BI</h2>
+
+<div class="steps">
+  <div class="step">
+    <strong>Add the visual.</strong> Import Histogram Pro from AppSource. Drag the <em>Deal Size (USD)</em> measure into the Values field well, and the <em>Sales Rep ID</em> dimension into Detail (rows).
+  </div>
+  <div class="step">
+    <strong>Set meaningful bins.</strong> With a Pro license, increase bin count to 30 to reveal the long tail of high-value deals that was invisible at 10 bins.
+  </div>
+  <div class="step">
+    <strong>Enable the statistics panel.</strong> Turn on the Stats Panel (Pro) to instantly see n, mean, median, and σ. The team immediately noticed the median ($4,200) was 40% below the mean ($7,100) — a clear sign of right skew driven by outliers.
+  </div>
+  <div class="step">
+    <strong>Trim outliers to focus on the core.</strong> Apply a 5% upper trim to exclude the top performers and study the distribution of the remaining 95% — the group with the most room to improve.
+  </div>
+  <div class="step">
+    <strong>Overlay a normal curve.</strong> Enable the Normal Curve (Pro) to visualize how far the actual distribution deviates from normal. The right-side gap confirmed that a training or territory assignment issue was suppressing mid-tier performance.
+  </div>
+  <div class="step">
+    <strong>Cross-filter with region slicer.</strong> Click any bar to cross-filter the rest of the report. The team discovered that the problematic distribution was concentrated in two specific regions.
+  </div>
+</div>
+
+<h2>Results</h2>
+
+<table>
+  <thead>
+    <tr><th>Metric</th><th>Before</th><th>After (3 months)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Mid-tier rep average deal size</td><td>$4,200</td><td>$5,800</td></tr>
+    <tr><td>% of reps above $5K threshold</td><td>31%</td><td>48%</td></tr>
+    <tr><td>Revenue concentration (top 10%)</td><td>61%</td><td>47%</td></tr>
+  </tbody>
+</table>
+
+<p>By identifying the distribution gap early, the team reallocated coaching resources to the two underperforming regions and adjusted territory assignments — yielding a 38% improvement in mid-tier deal size within one quarter.</p>
+
+<h2>Features Used</h2>
+<p>
+  <span class="tag">Custom bins (30)</span>
+  <span class="tag">Outlier trim</span>
+  <span class="tag">Stats panel</span>
+  <span class="tag">Normal curve</span>
+  <span class="tag">Cross-filtering</span>
+  <span class="tag">Drilldown by region</span>
+</p>
+
+<h2>Try It Yourself</h2>
+<p>Download the sample <code>.pbix</code> file from the <a href="https://github.com/tinocallarisa-web/histogram-pro">GitHub repository</a> and reproduce this analysis with your own data.</p>
+<p>Questions? <a href="mailto:tinocallarisa@tcviz.com">tinocallarisa@tcviz.com</a></p>
+
+</body>
+</html>

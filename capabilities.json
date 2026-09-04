@@ -11,6 +11,12 @@
             "name": "category",
             "kind": "Grouping",
             "description": "Optional category for row-level data"
+        },
+        {
+            "displayName": "Tooltips",
+            "name": "tooltips",
+            "kind": "Measure",
+            "description": "Optional measures shown in the tooltip (displayed as average per bin)"
         }
     ],
     "dataViewMappings": [
@@ -31,6 +37,11 @@
                         {
                             "bind": {
                                 "to": "measure"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "tooltips"
                             }
                         }
                     ]
@@ -123,6 +134,33 @@
                     "displayName": "Median line color",
                     "type": { "fill": { "solid": { "color": true } } }
                 },
+                "showP25": {
+                    "displayName": "Show P25 line",
+                    "description": "Show the 25th percentile (Q1) marker.",
+                    "type": { "bool": true }
+                },
+                "p25Color": {
+                    "displayName": "P25 line color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "showP75": {
+                    "displayName": "Show P75 line",
+                    "description": "Show the 75th percentile (Q3) marker.",
+                    "type": { "bool": true }
+                },
+                "p75Color": {
+                    "displayName": "P75 line color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "showIQR": {
+                    "displayName": "Show IQR range",
+                    "description": "Shade the interquartile range (Q1–Q3) behind the bars.",
+                    "type": { "bool": true }
+                },
+                "iqrColor": {
+                    "displayName": "IQR fill color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
                 "showNormal": {
                     "displayName": "Normal curve (Pro)",
                     "description": "Overlay a normal distribution curve. Pro only.",
@@ -139,6 +177,55 @@
                 },
                 "statsColor": {
                     "displayName": "Stats text color (Pro)",
+                    "type": { "fill": { "solid": { "color": true } } }
+                }
+            }
+        },
+        "legend": {
+            "displayName": "Legend",
+            "properties": {
+                "show": {
+                    "displayName": "Show legend",
+                    "description": "Show a legend for all active reference lines.",
+                    "type": { "bool": true }
+                },
+                "bottom": {
+                    "displayName": "Position: bottom",
+                    "description": "Off = top of chart, On = bottom of chart.",
+                    "type": { "bool": true }
+                },
+                "meanLabel":   { "displayName": "Mean label",   "type": { "text": true } },
+                "medianLabel": { "displayName": "Median label", "type": { "text": true } },
+                "p25Label":    { "displayName": "P25 label",    "type": { "text": true } },
+                "p75Label":    { "displayName": "P75 label",    "type": { "text": true } },
+                "normalLabel": { "displayName": "Normal label", "type": { "text": true } }
+            }
+        },
+        "ibcs": {
+            "displayName": "IBCS",
+            "properties": {
+                "mode": {
+                    "displayName": "IBCS mode",
+                    "description": "Apply International Business Communication Standards colors and styling.",
+                    "type": { "bool": true }
+                }
+            }
+        },
+        "benchmark": {
+            "displayName": "Benchmark",
+            "properties": {
+                "show": {
+                    "displayName": "Show benchmark line",
+                    "description": "Show a vertical reference line at a user-defined value.",
+                    "type": { "bool": true }
+                },
+                "value": {
+                    "displayName": "Benchmark value",
+                    "description": "Position of the benchmark line on the X axis.",
+                    "type": { "numeric": true }
+                },
+                "color": {
+                    "displayName": "Line color",
                     "type": { "fill": { "solid": { "color": true } } }
                 }
             }
@@ -170,6 +257,16 @@
     "supportsLandingPage": true,
     "supportsKeyboardFocus": true,
     "supportsMultiVisualSelection": true,
+    "tooltips": {
+        "supportedTypes": {
+            "default": true,
+            "canvas": true
+        },
+        "roles": []
+    },
+    "drilldown": {
+        "roles": ["category"]
+    },
     "sorting": {
         "default": {}
     },

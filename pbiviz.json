@@ -4,20 +4,21 @@
         "displayName": "Histogram Pro",
         "guid": "HistogramPro38A7C1D94E2B4F6D8A0E5B3C9F1D2E4A",
         "visualClassName": "Visual",
-        "version": "1.0.0.6",
+        "version": "1.1.0.0",
         "description": "Professional histogram with configurable bins, outlier trimming, statistical overlays (mean, median, normal curve), and full style controls. Free tier includes 10 bins; Pro unlocks unlimited bins and advanced features.",
         "supportUrl": "https://tinocallarisa-web.github.io/histogram-pro/support.html",
         "gitHubUrl": "https://github.com/tinocallarisa-web/histogram-pro"
     },
     "author": {
         "name": "TCViz",
-        "email": "tinocallarisa@gmail.com"
+        "email": "tinocallarisa@tcviz.com"
     },
     "apiVersion": "5.10.0",
     "assets": {
         "icon": "assets/icon.png"
     },
     "externalJS": [],
+    "stringResources": ["stringResources/en-US"],
     "style": "style/visual.less",
     "capabilities": "capabilities.json",
     "privacyTerms": {
