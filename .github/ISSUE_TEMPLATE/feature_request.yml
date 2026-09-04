@@ -1,0 +1,35 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the problem, not the solution
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - "Binning & trimming"
+        - "Statistical overlays (mean, median, quartiles, IQR)"
+        - "Benchmark line"
+        - "Normal curve"
+        - "Statistics panel"
+        - "Axes, labels & legend"
+        - "IBCS mode"
+        - "Filtering / interaction / drilldown"
+        - "Accessibility"
+        - "Performance"
+        - "Other"
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current Workaround (if any)

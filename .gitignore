@@ -1,6 +1,16 @@
 node_modules/
 dist/
 .tmp/
-webpack.statistics.prod.html
+webpack.statistics.*.html
 package-lock.json
 *.pbiviz
+
+# Infografía: se regenera desde docs/infographic.html, no se versiona el render
+assets/Infograma.pdf
+assets/Infograma.png
+docs/generate_pdf.py
+docs/generate_png.py
+
+# Capturas de trabajo (Screenshot_1 y _2 sí están versionadas: son las de AppSource)
+assets/Screenshot_3.png
+assets/Screenshot_4.png

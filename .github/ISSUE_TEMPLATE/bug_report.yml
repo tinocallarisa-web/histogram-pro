@@ -1,0 +1,56 @@
+name: Bug Report
+description: Report a bug in Histogram Pro by TCViz
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: tier
+    attributes:
+      label: License Tier
+      options: ["Free", "Pro (trial)", "Pro (paid)"]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Visual Version
+      description: Shown in the visual's information panel, or in Format → About
+      placeholder: "e.g. 1.1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: env
+    attributes:
+      label: Environment
+      options: ["Power BI Desktop", "Power BI Service", "Both"]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Data shape
+      description: >
+        Row count, the range of the numeric field, bin count in use, and whether
+        trimming is enabled. Distribution bugs almost always depend on these.
+      placeholder: "e.g. ~40k rows, values 0–950 with a few above 20,000, 25 bins, upper trim 2%"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes (screenshots, console errors, etc.)

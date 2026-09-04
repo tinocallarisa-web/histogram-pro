@@ -15,7 +15,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`allowInteractions` capability** — registered so Power BI correctly enables mouse interactions in all report modes
 
 ### Changed
-- Support page contact email updated to `tinocallarisa@tcviz.com`
+- Support page contact email updated to `support@tcviz.com`
 - Support page now includes demo video embed and links to case study and issue tracker
 
 ### Documentation

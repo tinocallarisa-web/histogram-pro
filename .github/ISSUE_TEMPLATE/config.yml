@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation & Support
+    url: https://tinocallarisa-web.github.io/histogram-pro/support.html
+    about: Quick start, field wells, format pane reference and FAQ
+  - name: Changelog
+    url: https://github.com/tinocallarisa-web/histogram-pro/blob/main/CHANGELOG.md
+    about: See what changed in each version
+  - name: Questions & Ideas
+    url: https://github.com/tinocallarisa-web/histogram-pro/discussions
+    about: Ask a question or discuss an idea with other users
+  - name: License & Billing Questions
+    url: mailto:support@tcviz.com
+    about: Questions about Pro licenses, the trial or billing

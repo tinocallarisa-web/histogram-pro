@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Histogram Pro — Visual Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+@media print {
+  @page { size: A4 landscape; margin: 0; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#888;margin:0;padding:0;}
+#infographic{font-family:'Segoe UI',system-ui,sans-serif;background:#FAF9F5;color:#3D3929;width:1366px;overflow:hidden;}
+
+.header{background:#EDE9DE;border-bottom:3px solid #C96442;padding:1.1rem 2rem;display:grid;grid-template-columns:auto 1fr auto;gap:1.5rem;align-items:center;}
+.header-title h1{font-size:32px;font-weight:800;color:#3D3929;line-height:1.05;letter-spacing:-0.5px;}
+.header-title h1 span{color:#C96442}
+.header-title p{font-size:12px;color:#535146;margin-top:5px;line-height:1.5;}
+.header-title p strong{color:#C96442}
+
+.use-cases{background:#F5F3ED;padding:0.65rem 2rem;border-bottom:1px solid #DAD9D4;display:flex;align-items:center;gap:0;}
+.uc-label{font-size:10px;font-weight:700;color:#83827D;text-transform:uppercase;letter-spacing:1.5px;white-space:nowrap;margin-right:1rem;flex-shrink:0;}
+.uc-grid{display:flex;flex:1}
+.uc-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 16px;border-right:1px solid #DAD9D4;flex:1;}
+.uc-item:last-child{border-right:none}
+.uc-item i{font-size:18px;color:#C96442}
+.uc-item span{font-size:10px;color:#83827D}
+.uc-callout{flex-shrink:0;margin-left:1rem;background:#fff;border:1px solid #DAD9D4;border-left:3px solid #C96442;border-radius:0 7px 7px 0;padding:6px 10px;max-width:190px;font-size:10.5px;color:#535146;line-height:1.4;}
+.uc-callout strong{color:#C96442;display:block;margin-bottom:2px;font-size:10.5px}
+
+.main{display:grid;grid-template-columns:1fr 200px 1fr;gap:0;padding:0 2rem;margin:1.1rem 0 0.8rem;}
+.col-left,.col-right{display:flex;flex-direction:column;gap:10px}
+
+.step{background:#fff;border:1px solid #DAD9D4;border-radius:9px;padding:0.7rem 0.9rem;}
+.step-accent{border-left:3px solid #C96442;background:#FFFDF9}
+.step-purple{border-left:3px solid #9C87F5;background:#FDFCFF}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#C96442;color:#fff;font-size:9px;font-weight:800;margin-bottom:5px;}
+.step h3{font-size:12.5px;font-weight:700;color:#3D3929;margin-bottom:4px;line-height:1.2}
+.step p{font-size:11px;color:#535146;line-height:1.5}
+.step p strong{color:#3D3929}
+.step ul{list-style:none;margin-top:6px;display:flex;flex-direction:column;gap:4px}
+.step ul li{font-size:11px;color:#535146;display:flex;align-items:flex-start;gap:6px;line-height:1.3}
+.step ul li i{font-size:12px;flex-shrink:0;margin-top:0}
+.step ul li i.ok{color:#C96442}
+.step ul li i.bad{color:#9C87F5}
+.step-label{font-size:9.5px;font-weight:700;color:#C96442;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.step-label.purple{color:#9C87F5}
+.formula{background:#FBF9F6;border:1px solid #DAD9D4;border-radius:6px;padding:5px 8px;margin:6px 0 0;font-size:11px;color:#C96442;text-align:center;font-weight:600;}
+
+.center{display:flex;flex-direction:column;align-items:center;padding:0 0.75rem;gap:9px;}
+.center-circle{width:148px;height:148px;border-radius:50%;border:2px solid #C96442;background:linear-gradient(135deg,rgba(201,100,66,0.06),rgba(156,135,245,0.06));display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;}
+.center-circle .big{font-size:40px;font-weight:800;color:#C96442;line-height:1}
+.center-circle .small{font-size:9.5px;color:#83827D;text-transform:uppercase;letter-spacing:0.8px;line-height:1.4;max-width:100px}
+.stat-pill{background:#fff;border:1px solid #DAD9D4;border-radius:7px;padding:5px 10px;width:100%;text-align:center;}
+.stat-pill .label{font-size:9px;color:#83827D;text-transform:uppercase;letter-spacing:0.5px}
+.stat-pill .value{font-size:18px;font-weight:700;color:#C96442;line-height:1.15}
+.stat-pill .value.purple{color:#9C87F5}
+.stat-pill .desc{font-size:9px;color:#83827D;margin-top:1px}
+.connector-line{width:2px;height:10px;background:#DAD9D4;margin:0 auto}
+
+.flow-section{padding:0 2rem 0.9rem}
+.flow-title{font-size:9.5px;font-weight:700;color:#83827D;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px}
+.flow{display:flex;align-items:center;background:#fff;border:1px solid #DAD9D4;border-radius:9px;padding:0.7rem 1.25rem;}
+.flow-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.flow-step i{font-size:20px;color:#C96442}
+.flow-step span{font-size:10px;color:#535146;text-align:center;line-height:1.25}
+.flow-arrow{color:#DAD9D4;font-size:15px;margin:0 2px;flex-shrink:0}
+.flow-tagline{text-align:center;font-size:11px;color:#83827D;margin-top:7px;font-style:italic}
+
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:0 2rem 1.5rem;}
+.bottom-card{background:#fff;border:1px solid #DAD9D4;border-radius:9px;padding:0.8rem 1rem;}
+.section-title{font-size:10px;font-weight:700;color:#C96442;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #EDE9DE;}
+.benefit{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #F0EEE8}
+.benefit:last-child{border-bottom:none}
+.benefit i{font-size:17px;color:#C96442;flex-shrink:0;margin-top:1px}
+.benefit-name{font-size:11.5px;font-weight:600;color:#3D3929}
+.benefit-desc{font-size:10px;color:#83827D;line-height:1.35;margin-top:1px}
+.tip{display:flex;align-items:flex-start;gap:7px;padding:4.5px 0;border-bottom:1px solid #F0EEE8;font-size:11px;color:#535146;line-height:1.4}
+.tip:last-child{border-bottom:none}
+.tip i{font-size:12px;color:#C96442;flex-shrink:0;margin-top:2px}
+.tip-cta{margin-top:8px;background:#FBF8F5;border:1px solid #DAD9D4;border-left:3px solid #C96442;border-radius:0 7px 7px 0;padding:7px 10px;font-size:10.5px;color:#535146;line-height:1.4;}
+.tip-cta strong{display:block;color:#C96442;font-size:11px;margin-bottom:2px}
+
+.footer{background:#EDE9DE;border-top:1px solid #DAD9D4;padding:0.65rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+.footer-links{display:flex;gap:1.25rem}
+.footer-links a{font-size:11px;color:#83827D;text-decoration:none}
+.footer-links a:hover{color:#C96442}
+</style>
+</head>
+<body>
+
+<!-- DOWNLOAD BUTTON -->
+<div id="dl-bar" style="position:fixed;top:10px;left:10px;z-index:9999;">
+  <button id="dl-btn" onclick="downloadPNG()" style="background:#C96442;color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.18);">
+    ⬇ Download PNG (1366×768)
+  </button>
+</div>
+<script>
+async function downloadPNG() {
+  const btn = document.getElementById('dl-btn');
+  const bar = document.getElementById('dl-bar');
+  btn.textContent = 'Generating…';
+  btn.disabled = true;
+  bar.style.display = 'none';
+  await new Promise(r => setTimeout(r, 300));
+  const el = document.getElementById('infographic');
+  const canvas = await html2canvas(el, {
+    width: 1366,
+    height: 768,
+    scale: 1,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#FAF9F5',
+    x: 0, y: 0
+  });
+  bar.style.display = '';
+  btn.textContent = '⬇ Download PNG (1366×768)';
+  btn.disabled = false;
+  const link = document.createElement('a');
+  link.download = 'histogram-pro-infographic.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+</script>
+
+<div id="infographic">
+<!-- HEADER -->
+<div class="header">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="160" height="70" aria-label="TCViz">
+    <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#B05730"/><stop offset="0.55" stop-color="#C96442"/><stop offset="1" stop-color="#9C87F5"/>
+    </linearGradient></defs>
+    <g transform="translate(40,46)">
+      <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#g)" stroke-width="11"/>
+      <g fill="url(#g)">
+        <rect x="42" y="110" width="20" height="58" rx="5"/><rect x="70" y="86" width="20" height="82" rx="5"/>
+        <rect x="98" y="62" width="20" height="106" rx="5"/><rect x="126" y="38" width="20" height="130" rx="5"/>
+      </g>
+    </g>
+    <text x="258" y="246" font-family="Poppins,sans-serif" font-weight="700" font-size="196" letter-spacing="-4">
+      <tspan fill="url(#g)">tc</tspan><tspan fill="#3D3929">viz</tspan>
+    </text>
+    <text x="264" y="306" font-family="Poppins,sans-serif" font-weight="500" font-size="31" letter-spacing="6.5" fill="#83827D">VISUALS TO POWER BI</text>
+  </svg>
+
+  <div class="header-title">
+    <h1>HISTOGRAM PRO <span>FOR POWER BI</span></h1>
+    <p>The complete guide to analyzing distributions, detecting outliers, and presenting statistics with impact.<br>
+    From <strong>raw data</strong> to <strong>statistical insight</strong> in seconds.</p>
+  </div>
+
+  <svg width="190" height="100" viewBox="0 0 190 100" aria-hidden="true">
+    <defs><linearGradient id="bargrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#B05730"/><stop offset="1" stop-color="#C96442"/>
+    </linearGradient></defs>
+    <rect x="2"   y="72" width="22" height="24" rx="3" fill="rgba(201,100,66,0.22)" stroke="#DAD9D4" stroke-width="0.8"/>
+    <rect x="26"  y="56" width="22" height="40" rx="3" fill="rgba(201,100,66,0.38)" stroke="#DAD9D4" stroke-width="0.8"/>
+    <rect x="50"  y="36" width="22" height="60" rx="3" fill="rgba(201,100,66,0.6)"  stroke="#C96442" stroke-width="0.8"/>
+    <rect x="74"  y="12" width="22" height="84" rx="3" fill="url(#bargrad)"         stroke="#B05730" stroke-width="0.8"/>
+    <rect x="98"  y="28" width="22" height="68" rx="3" fill="rgba(201,100,66,0.6)"  stroke="#C96442" stroke-width="0.8"/>
+    <rect x="122" y="50" width="22" height="46" rx="3" fill="rgba(201,100,66,0.38)" stroke="#DAD9D4" stroke-width="0.8"/>
+    <rect x="146" y="68" width="22" height="28" rx="3" fill="rgba(201,100,66,0.22)" stroke="#DAD9D4" stroke-width="0.8"/>
+    <path d="M2,96 Q22,76 50,50 Q72,10 85,10 Q98,10 108,28 Q132,64 160,88 Q172,94 190,96" fill="none" stroke="#9C87F5" stroke-width="1.8"/>
+    <line x1="85" y1="4"  x2="85"  y2="96" stroke="#C96442" stroke-width="1.5" stroke-dasharray="3,2"/>
+    <line x1="74" y1="4"  x2="74"  y2="96" stroke="#9C87F5" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="87" y="11" font-size="9" fill="#C96442" font-family="monospace">μ</text>
+    <text x="64" y="11" font-size="9" fill="#9C87F5" font-family="monospace">M</text>
+    <line x1="0" y1="96" x2="190" y2="96" stroke="#DAD9D4" stroke-width="0.8"/>
+  </svg>
+</div>
+
+<!-- USE CASES -->
+<div class="use-cases">
+  <div class="uc-label">Use cases</div>
+  <div class="uc-grid">
+    <div class="uc-item"><i class="ti ti-currency-dollar" aria-hidden="true"></i><span>Sales</span></div>
+    <div class="uc-item"><i class="ti ti-clock" aria-hidden="true"></i><span>Lead times</span></div>
+    <div class="uc-item"><i class="ti ti-star" aria-hidden="true"></i><span>Scores / NPS</span></div>
+    <div class="uc-item"><i class="ti ti-users" aria-hidden="true"></i><span>Age groups</span></div>
+    <div class="uc-item"><i class="ti ti-package" aria-hidden="true"></i><span>Inventory</span></div>
+    <div class="uc-item"><i class="ti ti-trending-up" aria-hidden="true"></i><span>Margins</span></div>
+    <div class="uc-item"><i class="ti ti-bolt" aria-hidden="true"></i><span>Performance</span></div>
+    <div class="uc-item"><i class="ti ti-activity" aria-hidden="true"></i><span>KPIs</span></div>
+  </div>
+  <div class="uc-callout">
+    <strong>Shift your mindset:</strong>
+    A histogram is a statistical X-ray of your data — not just a bar chart.
+  </div>
+</div>
+
+<!-- MAIN 3-COL -->
+<div class="main">
+  <div class="col-left">
+    <div class="step step-accent">
+      <div class="step-num">1</div>
+      <div class="step-label">0–1 min</div>
+      <h3>Get started in seconds</h3>
+      <p>Drag any numeric field into the <strong>Values</strong> field well. The histogram renders instantly with 10 bins, mean, and median lines.</p>
+      <ul>
+        <li><i class="ti ti-check ok"></i>Numeric field in Values</li>
+        <li><i class="ti ti-check ok"></i>Category (optional) for cross-filtering</li>
+        <li><i class="ti ti-check ok"></i>Tooltips (optional) for extra measures per bin</li>
+      </ul>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-label">1–3 min</div>
+      <h3>Read the shape of your distribution</h3>
+      <p>The gap between <strong style="color:#C96442">μ (mean)</strong> and <strong style="color:#9C87F5">M (median)</strong> reveals skewness. Close together = symmetric.</p>
+      <div class="formula">μ ≈ M → Symmetric &nbsp;|&nbsp; μ &gt; M → Right-skewed</div>
+    </div>
+    <div class="step step-purple">
+      <div class="step-num" style="background:#9C87F5">3</div>
+      <div class="step-label purple">3–5 min · Pro</div>
+      <h3>Tune the bin count for more detail</h3>
+      <p>With a Pro license, set bins from <strong>2 to 100</strong> to control resolution.</p>
+      <ul>
+        <li><i class="ti ti-arrow-right ok"></i>Fewer bins → overall trend</li>
+        <li><i class="ti ti-arrow-right ok"></i>More bins → micropatterns and gaps</li>
+        <li><i class="ti ti-arrow-right ok"></i>Rule of thumb: √n bins for n rows</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="center">
+    <div class="center-circle">
+      <span class="big">Pro</span>
+      <span class="small">advanced analysis features</span>
+    </div>
+    <div class="connector-line"></div>
+    <div class="stat-pill">
+      <div class="label">Configurable bins</div>
+      <div class="value">2–100</div>
+      <div class="desc">instead of 10 fixed</div>
+    </div>
+    <div class="stat-pill">
+      <div class="label">Live statistics</div>
+      <div class="value">6</div>
+      <div class="desc">n · μ · M · σ · min · max</div>
+    </div>
+    <div class="stat-pill">
+      <div class="label">Reference lines</div>
+      <div class="value purple">5</div>
+      <div class="desc">mean · median · Q1 · Q3 · target</div>
+    </div>
+    <div class="stat-pill">
+      <div class="label">Outlier trimming</div>
+      <div class="value">%</div>
+      <div class="desc">without deleting data</div>
+    </div>
+  </div>
+
+  <div class="col-right">
+    <div class="step step-purple">
+      <div class="step-num" style="background:#9C87F5">4</div>
+      <div class="step-label purple">5–8 min · Pro</div>
+      <h3>Detect and handle outliers</h3>
+      <p>Use <strong>Lower / Upper trim %</strong> to exclude extremes without touching the data model.</p>
+      <ul>
+        <li><i class="ti ti-check ok"></i>Trim 2% on each end for sales data</li>
+        <li><i class="ti ti-check ok"></i>"n trimmed" counter appears in the stats panel</li>
+        <li><i class="ti ti-check ok"></i>Original data is never modified</li>
+      </ul>
+    </div>
+    <div class="step step-accent">
+      <div class="step-num">5</div>
+      <div class="step-label">8–12 min · Pro</div>
+      <h3>Validate normality with the curve</h3>
+      <p>Enable the <strong style="color:#9C87F5">normal curve</strong> to overlay the theoretical distribution. Do the bars follow it?</p>
+      <ul>
+        <li><i class="ti ti-check ok"></i>Good fit → statistical models are valid</li>
+        <li><i class="ti ti-check ok"></i>Bimodal → two distinct segments in your data</li>
+        <li><i class="ti ti-check ok"></i>Long tail → significant outliers present</li>
+      </ul>
+    </div>
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-label">12–15 min</div>
+      <h3>Avoid common mistakes</h3>
+      <ul>
+        <li><i class="ti ti-x bad"></i>Too many bins with a small dataset</li>
+        <li><i class="ti ti-x bad"></i>Ignoring the gap between μ and M</li>
+        <li><i class="ti ti-x bad"></i>Not trimming when extreme outliers are present</li>
+        <li style="margin-top:3px"><i class="ti ti-check ok"></i>Enable the stats panel for full context</li>
+        <li><i class="ti ti-check ok"></i>Add a benchmark line for your SLA or target</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- FLOW -->
+<div class="flow-section">
+  <div class="flow-title">Analysis workflow with Histogram Pro</div>
+  <div class="flow">
+    <div class="flow-step"><i class="ti ti-database"></i><span>Connect<br>your data</span></div>
+    <span class="flow-arrow">›</span>
+    <div class="flow-step"><i class="ti ti-chart-histogram"></i><span>Visualize<br>distribution</span></div>
+    <span class="flow-arrow">›</span>
+    <div class="flow-step"><i class="ti ti-adjustments"></i><span>Tune bins<br>&amp; trim</span></div>
+    <span class="flow-arrow">›</span>
+    <div class="flow-step"><i class="ti ti-wave-sine"></i><span>Validate<br>normality</span></div>
+    <span class="flow-arrow">›</span>
+    <div class="flow-step"><i class="ti ti-target"></i><span>Add<br>benchmark</span></div>
+    <span class="flow-arrow">›</span>
+    <div class="flow-step"><i class="ti ti-presentation"></i><span>Present<br>with impact</span></div>
+    <span class="flow-arrow">›</span>
+    <div class="flow-step"><i class="ti ti-repeat"></i><span>Iterate and<br>reuse</span></div>
+  </div>
+  <div class="flow-tagline">Histograms reveal what averages hide.</div>
+</div>
+
+<!-- BOTTOM 3-COL -->
+<div class="bottom-grid">
+  <div class="bottom-card">
+    <div class="section-title">Key benefits</div>
+    <div class="benefit"><i class="ti ti-clock" aria-hidden="true"></i>
+      <div><div class="benefit-name">Instant analysis</div>
+      <div class="benefit-desc">From a numeric field to a full distribution with statistics in seconds — no extra DAX needed.</div></div>
+    </div>
+    <div class="benefit"><i class="ti ti-search" aria-hidden="true"></i>
+      <div><div class="benefit-name">See what averages hide</div>
+      <div class="benefit-desc">Bimodality, long tails, and outliers that a mean value would never reveal.</div></div>
+    </div>
+    <div class="benefit"><i class="ti ti-filter" aria-hidden="true"></i>
+      <div><div class="benefit-name">Native cross-filtering</div>
+      <div class="benefit-desc">Click a bar to filter the entire report page. Full Power BI integration.</div></div>
+    </div>
+    <div class="benefit"><i class="ti ti-certificate" aria-hidden="true"></i>
+      <div><div class="benefit-name">Executive-ready</div>
+      <div class="benefit-desc">IBCS mode for financial reporting. Value labels for presentations without hovering.</div></div>
+    </div>
+  </div>
+
+  <div class="bottom-card">
+    <div class="section-title">Key takeaways</div>
+    <div class="tip"><i class="ti ti-check"></i>Always add the Category field if you want cross-filtering to work with other visuals.</div>
+    <div class="tip"><i class="ti ti-check"></i>If μ and M are far apart, check for outliers before drawing conclusions.</div>
+    <div class="tip"><i class="ti ti-check"></i>Use Lower/Upper trim % to present the core distribution without distorting extremes.</div>
+    <div class="tip"><i class="ti ti-check"></i>Combine the normal curve with the stats panel (σ) to validate statistical assumptions.</div>
+    <div class="tip"><i class="ti ti-check"></i>Add a Benchmark line with your SLA or target value for immediate context.</div>
+    <div class="tip-cta">
+      <strong>Learn the pattern once. Apply it to any metric.</strong>
+      Works equally well for sales, lead times, scores, or margins.
+    </div>
+  </div>
+
+  <div class="bottom-card">
+    <div class="section-title">Format pane — quick reference</div>
+    <div class="tip"><i class="ti ti-adjustments-horizontal"></i><span><strong style="color:#3D3929">Histogram</strong> — Bins (2–100 Pro), Lower/Upper trim %, bar color &amp; style</span></div>
+    <div class="tip"><i class="ti ti-calculator"></i><span><strong style="color:#3D3929">Statistics</strong> — Mean, median, P25, P75, IQR shading, normal curve, stats panel</span></div>
+    <div class="tip"><i class="ti ti-target"></i><span><strong style="color:#3D3929">Benchmark</strong> — Custom target line with value, color, and label</span></div>
+    <div class="tip"><i class="ti ti-tag"></i><span><strong style="color:#3D3929">Value labels</strong> (Pro) — Show count or % above each bar</span></div>
+    <div class="tip"><i class="ti ti-certificate"></i><span><strong style="color:#3D3929">IBCS mode</strong> — Black-and-white style for financial reports</span></div>
+    <div class="tip"><i class="ti ti-list"></i><span><strong style="color:#3D3929">Legend</strong> — Custom labels for reference lines, top or bottom position</span></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div style="display:flex;align-items:center;gap:10px">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="70" height="30" aria-label="TCViz">
+      <defs><linearGradient id="gf" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0" stop-color="#B05730"/><stop offset="0.55" stop-color="#C96442"/><stop offset="1" stop-color="#9C87F5"/>
+      </linearGradient></defs>
+      <g transform="translate(40,46)">
+        <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#gf)" stroke-width="11"/>
+        <g fill="url(#gf)">
+          <rect x="42" y="110" width="20" height="58" rx="5"/><rect x="70" y="86" width="20" height="82" rx="5"/>
+          <rect x="98" y="62" width="20" height="106" rx="5"/><rect x="126" y="38" width="20" height="130" rx="5"/>
+        </g>
+      </g>
+      <text x="258" y="246" font-family="Poppins,sans-serif" font-weight="700" font-size="196" letter-spacing="-4">
+        <tspan fill="url(#gf)">tc</tspan><tspan fill="#3D3929">viz</tspan>
+      </text>
+      <text x="264" y="306" font-family="Poppins,sans-serif" font-weight="500" font-size="31" letter-spacing="6.5" fill="#83827D">VISUALS TO POWER BI</text>
+    </svg>
+    <span style="color:#83827D;font-size:11px">Histogram Pro · Power BI Custom Visual</span>
+  </div>
+  <div class="footer-links">
+    <a href="support.html">Support</a>
+    <a href="privacy.html">Privacy policy</a>
+    <a href="terms.html">Terms of use</a>
+    <a href="https://github.com/tinocallarisa-web/histogram-pro">GitHub</a>
+  </div>
+</div>
+
+</div><!-- /#infographic -->
+</body>
+</html>
