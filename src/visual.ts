@@ -184,6 +184,13 @@ export class Visual implements IVisual {
     private tooltipService: ITooltipService;
     private selectionManager: ISelectionManager;
     private isPro: boolean = false;
+    private licenseResolved: boolean = false;
+    private licenseEnvSupported: boolean = true;
+    private licenseInfoAvailable: boolean = true;
+    private licenseNoticeShown: boolean = false;
+    private notifiedFeatures: string = "";
+    private lastOptions: VisualUpdateOptions | null = null;
+    private lastDataView: DataView | null = null;
     private currentSettings: Settings = { ...DEFAULTS } as Settings;
 
     constructor(options: VisualConstructorOptions) {
@@ -203,24 +210,155 @@ export class Visual implements IVisual {
 
     // ── License ───────────────────────────────────────────────────────────────
 
+    /**
+     * Resolves the licence and repaints if the answer changes what is drawn.
+     *
+     * The repaint is the point. Resolution is asynchronous and lands after the
+     * first paint, so without it a customer who has paid sees the Free chart —
+     * ten fixed bins, no statistics — until Power BI happens to call update()
+     * again. In a report that renders once, that is for ever.
+     */
     private async checkLicense(): Promise<void> {
-        if (this.isPro) return; // dev override — skip license check when isPro is hardcoded true
+        if (this.isPro) { this.licenseResolved = true; return; } // test build
         try {
             const lm = this.host.licenseManager;
-            if (!lm) { this.isPro = false; return; }
-            const result = await lm.getAvailableServicePlans();
+            if (!lm) { this.licenseResolved = true; return; }
+
+            const result: any = await lm.getAvailableServicePlans();
+
+            // The plan identifier has to match: any other active plan the user
+            // holds belongs to a different visual.
+            //
+            // Warning is a payment grace period. Per the licensing API "only the
+            // active and warning states represent a usable license", so a paying
+            // customer keeps their features while a billing problem is resolved.
             this.isPro = result?.plans?.some(
-                p => p.spIdentifier === PLAN_ID && p.state === ServicePlanState.Active
+                p => p.spIdentifier === PLAN_ID &&
+                     (p.state === ServicePlanState.Active ||
+                      p.state === ServicePlanState.Warning)
             ) ?? false;
-        } catch { this.isPro = false; }
+
+            // Publish to Web, embedded, national clouds, PDF/PPT export, offline
+            // or signed out: the licence cannot be resolved and a Pro customer
+            // reads as Free. Render the free experience there, but never ask them
+            // to buy what they may already own.
+            this.licenseEnvSupported  = !result?.isLicenseUnsupportedEnv;
+            this.licenseInfoAvailable = result?.isLicenseInfoAvailable !== false;
+        } catch {
+            this.isPro = false;
+        } finally {
+            this.licenseResolved = true;
+            if (this.isPro && this.lastOptions) this.render(this.lastOptions);
+            this.applyLicenseNotifications();
+        }
+    }
+
+    /** Pro properties the user has actually set, by format-pane card. */
+    private static readonly PRO_PROPS: ReadonlyArray<[string, string, string]> = [
+        ["histogram",   "bins",        "bin count"],
+        ["histogram",   "trimLower",   "outlier trimming"],
+        ["histogram",   "trimUpper",   "outlier trimming"],
+        ["histogram",   "barColor",    "bar styling"],
+        ["histogram",   "barOpacity",  "bar styling"],
+        ["histogram",   "borderColor", "bar styling"],
+        ["histogram",   "borderWidth", "bar styling"],
+        ["histogram",   "barGap",      "bar styling"],
+        ["statistics",  "showStats",   "statistics panel"],
+        ["statistics",  "showNormal",  "normal curve"],
+        ["valueLabels", "show",        "value labels"],
+    ];
+
+    /**
+     * Which Pro features the user has reached for.
+     *
+     * Read from `metadata.objects`, which carries only properties the user set
+     * explicitly — defaults are absent — so the banner never fires on a report
+     * nobody has touched.
+     */
+    private attemptedProFeatures(): string[] {
+        const obj: any = this.lastDataView?.metadata?.objects;
+        if (!obj) return [];
+        const found = new Set<string>();
+        for (const [card, prop, label] of Visual.PRO_PROPS) {
+            if (obj[card] && obj[card][prop] !== undefined) found.add(label);
+        }
+        return [...found];
+    }
+
+    /**
+     * Power BI's own notifications, which carry the purchase path. The visual
+     * draws no licensing UI of its own: Microsoft's guidance is explicit that a
+     * visual "shouldn't display its own licensing UX, instead use one of Power
+     * BI supported predefined notifications".
+     */
+    private applyLicenseNotifications(): void {
+        const lm: any = this.host.licenseManager;
+        if (!lm) return;
+
+        // Nothing is notified until the licence resolves: isPro is false at
+        // start for a licensed customer too, and notifying then would ask a
+        // paying user to buy what they already have.
+        if (!this.licenseResolved) return;
+
+        if (this.isPro || !this.licenseEnvSupported || !this.licenseInfoAvailable) {
+            if (this.licenseNoticeShown) {
+                try { lm.clearLicenseNotification(); } catch { /* older host */ }
+                this.licenseNoticeShown = false;
+            }
+            this.notifiedFeatures = "";
+            return;
+        }
+
+        const attempted = this.attemptedProFeatures();
+        if (!attempted.length) {
+            if (this.licenseNoticeShown) {
+                try { lm.clearLicenseNotification(); } catch { /* older host */ }
+                this.licenseNoticeShown = false;
+            }
+            this.notifiedFeatures = "";
+            return;
+        }
+
+        // notifyFeatureBlocked fires once per distinct set of features, when the
+        // user reaches for one.
+        const key = attempted.sort().join("|");
+        if (key !== this.notifiedFeatures) {
+            this.notifiedFeatures = key;
+            try { lm.notifyFeatureBlocked(attempted.join(", ")); } catch { /* older host */ }
+        }
+
+        // notifyLicenseRequired stays up while Pro settings are stored without a
+        // licence. It covers the lapsed trial, where the user changes nothing and
+        // the chart quietly reverts to ten bins with no statistics: the settings
+        // are still saved, so it reads as the visual breaking rather than as a
+        // licence expiring. The banner alone does not cover that, since it only
+        // fires when a setting is changed.
+        if (!this.licenseNoticeShown) {
+            try {
+                lm.notifyLicenseRequired(0 /* LicenseNotificationType.General */);
+                this.licenseNoticeShown = true;
+            } catch { /* older host */ }
+        }
+    }
+
+    /**
+     * Power BI pone allowInteractions a false al exportar y en algunos modos
+     * de lectura. Seleccionar entonces cambiaria el informe a espaldas del
+     * usuario, asi que la seleccion y el menu contextual se comprueban antes.
+     */
+    private get canInteract(): boolean {
+        return (this.host as any).allowInteractions !== false;
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
 
     public update(options: VisualUpdateOptions): void {
         this.events.renderingStarted(options);
+        this.lastOptions = options;
+        this.lastDataView = options.dataViews?.[0] ?? null;
         try {
             this.render(options);
+            this.applyLicenseNotifications();
             this.events.renderingFinished(options);
         } catch (e) {
             this.events.renderingFailed(options, String(e));
@@ -382,9 +520,13 @@ export class Visual implements IVisual {
         }
 
         // Context menu on empty space
-        this.svg.on("click", () => { this.selectionManager.clear(); });
+        this.svg.on("click", () => {
+            if (!this.canInteract) return;
+            this.selectionManager.clear();
+        });
         this.svg.on("contextmenu", (event: MouseEvent) => {
             event.preventDefault();
+            if (!this.canInteract) return;
             this.selectionManager.showContextMenu(null, { x: event.clientX, y: event.clientY });
         });
 
@@ -412,18 +554,22 @@ export class Visual implements IVisual {
                 .on("keydown", (event: KeyboardEvent) => {
                     if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
+                        if (!this.canInteract) return;
                         this.selectionManager.select(ids, event.ctrlKey);
                     } else if (event.key === "Escape") {
+                        if (!this.canInteract) return;
                         this.selectionManager.clear();
                     }
                 })
                 .on("click", (event: MouseEvent) => {
                     event.stopPropagation();
+                    if (!this.canInteract) return;
                     this.selectionManager.select(ids, (event as MouseEvent).ctrlKey);
                 })
                 .on("contextmenu", (event: MouseEvent) => {
                     event.preventDefault();
                     event.stopPropagation();
+                    if (!this.canInteract) return;
                     const selId = ids.length > 0 ? ids[0] : null;
                     this.selectionManager.showContextMenu(selId, { x: event.clientX, y: event.clientY });
                 })
@@ -682,13 +828,11 @@ export class Visual implements IVisual {
             }
         }
 
-        // Free badge
-        if (!this.isPro) {
-            this.svg.append("rect").attr("x", 0).attr("y", height - 18).attr("width", width).attr("height", 18).attr("fill", "rgba(0,0,0,0.45)");
-            this.svg.append("text").attr("x", width / 2).attr("y", height - 5)
-                .attr("text-anchor", "middle").attr("fill", "#00E5FF").attr("font-size", 10).attr("font-family", "Segoe UI, sans-serif")
-                .text("⬆ Unlock Pro: custom bins, outlier trim, stats, normal curve");
-        }
+        // No Free badge is drawn. It was licensing UI of the visual's own, which
+        // Microsoft's guidance advises against, and it behaved as a watermark on
+        // the free tier while offering nothing to click. Power BI's predefined
+        // notifications carry the purchase path instead - see
+        // applyLicenseNotifications().
     }
 
     // ── Landing page ──────────────────────────────────────────────────────────
