@@ -16,6 +16,19 @@ import DataView = powerbi.DataView;
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const FREE_MAX_BINS = 10;
+// Un BasicFilter se convierte en un IN() de DAX y el coste crece con el numero
+// de valores. Medido en Pareto Chart Pro sobre un modelo de 500.000 entidades
+// en el Servicio, con claves enteras: 10.000 va fluido en importado y lento
+// pero usable en conexion viva; 25.000 es inusable; 50.000 cuelga el informe.
+// El tope sigue la cifra de conexion viva, que es la lenta y la que usan los
+// despliegues reales. Las claves de texto pesan mas por valor, asi que su techo
+// real es aun menor.
+//
+// Filtrar un subconjunto en su lugar seria una respuesta silenciosamente falsa,
+// asi que a partir de aqui el visual declina y dice que palanca lo arregla.
+const MAX_FILTER_VALUES = 10000;
+// Solo en el camino de respaldo: los selection IDs son pesados, asi que pocos.
+const MAX_SEL_IDS_PER_BIN = 100;
 const PLAN_ID = "histogram-pro-tcviz";
 
 const DEFAULTS = {
@@ -231,6 +244,8 @@ export class Visual implements IVisual {
     private fetchRounds = 0;
     private truncatedAt = 0;
     private axisClamped = false;
+    /** Filas del ultimo bin que era demasiado grande para filtrar. */
+    private oversizedSelection = 0;
     private readonly MAX_FETCH_ROUNDS = 60;   // 60 x 30k pasa del techo de filas de Power BI
     private readonly isDesktop: boolean = navigator.userAgent.indexOf("Electron") !== -1;
     private currentSettings: Settings = { ...DEFAULTS } as Settings;
@@ -551,13 +566,69 @@ export class Visual implements IVisual {
     private selectBin(indices: number[], ids: powerbi.extensibility.ISelectionId[], multi: boolean): void {
         if (!this.canInteract) return;
 
+        // Freno antes de construir nada. Sin esto, un bin de un histograma sesgado
+        // -donde el primero se lleva la mayoria de las filas- genera un IN() de
+        // cientos de miles de valores y bloquea el informe al pulsarlo.
+        const distinct = this.countDistinct(indices, MAX_FILTER_VALUES);
+        if (distinct > MAX_FILTER_VALUES) {
+            this.oversizedSelection = distinct;
+            this.renderOversizedNotice();
+            return;
+        }
+        this.oversizedSelection = 0;
+
         const filter = this.buildBinFilter(indices);
         if (filter) {
             this.filterApplied = true;
             this.host.applyJsonFilter(filter, "general", "filter", this.FILTER_MERGE);
             return;
         }
-        this.selectionManager.select(ids, multi);
+        // Respaldo: el modelo no da un objetivo tabla.columna. Los selection IDs
+        // siguen funcionando, con tope.
+        this.selectionManager.select(ids.slice(0, MAX_SEL_IDS_PER_BIN), multi);
+    }
+
+    /**
+     * Valores distintos del bin, con salida temprana.
+     *
+     * Cuenta hasta cap+1 y para. Contarlos todos significaria recorrer las
+     * 500.000 filas y construir el Set que precisamente queremos evitar.
+     */
+    private countDistinct(indices: number[], cap: number): number {
+        const cat = this.lastCatCol;
+        if (!cat) return 0;
+        const seen = new Set<string>();
+        for (const i of indices) {
+            const v = cat.values[i];
+            if (v === null || v === undefined) continue;
+            seen.add(String(v));
+            if (seen.size > cap) return seen.size;
+        }
+        return seen.size;
+    }
+
+    /** Dice por que el clic no ha hecho nada, y que palanca lo arregla. */
+    private renderOversizedNotice(): void {
+        this.container.selectAll(".oversized-notice").remove();
+        const n = this.oversizedSelection.toLocaleString();
+        const cap = MAX_FILTER_VALUES.toLocaleString();
+
+        const note = this.container.append("div")
+            .classed("oversized-notice", true)
+            .style("position", "absolute").style("left", "0").style("right", "0")
+            .style("bottom", "0").style("padding", "8px 12px")
+            .style("background", "#FDF3E7").style("border-top", "1px solid #E8A020")
+            .style("font-size", "11px").style("color", "#7A4E12")
+            .style("line-height", "1.4");
+
+        note.append("div").text(
+            `This bin holds over ${n} distinct values — more than the ${cap} Power BI can cross-filter at once.`);
+        note.append("div").text(
+            this.isPro
+                ? "Raise the bin count (Histogram → Bins) so each bar covers fewer rows, or trim the outliers."
+                : "Pro lets you raise the bin count so each bar covers fewer rows.");
+
+        setTimeout(() => this.container.selectAll(".oversized-notice").remove(), 6000);
     }
 
     /** Clears whichever mechanism is in force. */
