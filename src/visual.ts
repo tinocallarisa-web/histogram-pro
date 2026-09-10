@@ -191,6 +191,8 @@ export class Visual implements IVisual {
     private notifiedFeatures: string = "";
     private lastOptions: VisualUpdateOptions | null = null;
     private lastDataView: DataView | null = null;
+    private lastCatCol: powerbi.DataViewCategoryColumn | null = null;
+    private filterApplied: boolean = false;
     private currentSettings: Settings = { ...DEFAULTS } as Settings;
 
     constructor(options: VisualConstructorOptions) {
@@ -350,12 +352,108 @@ export class Visual implements IVisual {
         return (this.host as any).allowInteractions !== false;
     }
 
+    // ── Cross-filtering ───────────────────────────────────────────────────────
+
+    /**
+     * A BasicFilter over every row that falls in the given bin.
+     *
+     * This is what makes bin filtering exact. `selectionManager.select()` needs
+     * one selection ID per row, each carrying a full scope identity, so a bin
+     * holding 8,000 rows either builds 8,000 heavy objects or gets capped and
+     * filters a subset — the report then shows numbers that do not match the bar
+     * the user clicked. A BasicFilter carries plain scalars instead, which is the
+     * same mechanism native slicers use for large value lists, so there is no cap.
+     *
+     * It matters here more than anywhere: the data reduction allows 30,000 rows,
+     * and a ten-bin histogram of a normal-ish distribution puts several thousand
+     * of them in the middle bins.
+     *
+     * Returns null when the category's queryName cannot be split into a
+     * table/column target — drilldown levels and some model shapes do not expose
+     * one. The caller falls back to selection IDs, so behaviour degrades to the
+     * previous mechanism rather than breaking.
+     */
+    private buildBinFilter(indices: number[]): powerbi.IFilter | null {
+        const cat = this.lastCatCol;
+        if (!cat || !indices.length) return null;
+
+        // Exactly one dot. "table.column" is a usable target; a hierarchy level
+        // arrives as "table.hierarchy.level", and splitting that on the first dot
+        // would build a target for a column that does not exist — a wrong filter
+        // rather than no filter.
+        const queryName = cat.source?.queryName ?? "";
+        const parts = queryName.split(".");
+        if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+        const dot = parts[0].length;
+
+        const values: powerbi.PrimitiveValue[] = [];
+        const seen = new Set<string>();
+        for (const i of indices) {
+            const v = cat.values[i];
+            if (v === null || v === undefined) continue;
+            const key = String(v);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            values.push(v);
+        }
+        if (!values.length) return null;
+
+        return {
+            $schema: "https://powerbi.com/product/schema#basic",
+            filterType: 1,                    // FilterType.Basic
+            target: {
+                table: queryName.slice(0, dot),
+                column: queryName.slice(dot + 1),
+            },
+            operator: "In",
+            values,
+        } as unknown as powerbi.IFilter;
+    }
+
+    /** FilterAction is a const enum — the literals are required at runtime. */
+    private readonly FILTER_MERGE = 0;
+    private readonly FILTER_REMOVE = 1;
+
+    /**
+     * Filters the report by a bin. Prefers the exact filter; falls back to
+     * selection IDs when the model gives no usable target.
+     */
+    private selectBin(indices: number[], ids: powerbi.extensibility.ISelectionId[], multi: boolean): void {
+        if (!this.canInteract) return;
+
+        const filter = this.buildBinFilter(indices);
+        if (filter) {
+            this.filterApplied = true;
+            this.host.applyJsonFilter(filter, "general", "filter", this.FILTER_MERGE);
+            return;
+        }
+        this.selectionManager.select(ids, multi);
+    }
+
+    /** Clears whichever mechanism is in force. */
+    private clearSelection(): void {
+        if (!this.canInteract) return;
+        if (this.filterApplied) {
+            this.filterApplied = false;
+            this.host.applyJsonFilter(null, "general", "filter", this.FILTER_REMOVE);
+        }
+        this.selectionManager.clear();
+    }
+
     // ── Update ────────────────────────────────────────────────────────────────
 
     public update(options: VisualUpdateOptions): void {
         this.events.renderingStarted(options);
         this.lastOptions = options;
         this.lastDataView = options.dataViews?.[0] ?? null;
+
+        // filterApplied es estado de instancia y no sobrevive a una recarga ni a
+        // un bookmark aplicado desde fuera. Power BI si lo sabe, asi que se lee
+        // de lo que llega: sin esto, "borrar" no quitaria un filtro que sigue
+        // vivo en el informe.
+        this.filterApplied =
+            (options.jsonFilters?.length ?? 0) > 0 ||
+            !!(this.lastDataView?.metadata?.objects?.["general"]?.["filter"]);
         try {
             this.render(options);
             this.applyLicenseNotifications();
@@ -399,6 +497,7 @@ export class Visual implements IVisual {
         const hasHighlights = highlightValues != null;
         const highlightedRaw: number[] = [];
         const categories = dataView.categorical.categories?.[0];
+        this.lastCatCol = categories ?? null;
 
         for (let i = 0; i < rawValues.length; i++) {
             const v = rawValues[i];
@@ -453,10 +552,13 @@ export class Visual implements IVisual {
         const maxCount = d3.max(bins, b => b.length) || 1;
         const yScale = d3.scaleLinear().domain([0, maxCount]).range([plotH, 0]).nice();
 
-        // Selection IDs per bin
-        const binSelectionIds: powerbi.extensibility.ISelectionId[][] = bins.map(bin =>
-            rawWithIds.filter(d => d.value >= (bin.x0 ?? -Infinity) && d.value < (bin.x1 ?? Infinity)).map(d => d.selId)
+        // Per bin: the rows it holds. The indices drive the exact filter; the
+        // selection IDs are the fallback for models with no usable filter target.
+        const binRows = bins.map(bin =>
+            rawWithIds.filter(d => d.value >= (bin.x0 ?? -Infinity) && d.value < (bin.x1 ?? Infinity))
         );
+        const binSelectionIds: powerbi.extensibility.ISelectionId[][] = binRows.map(rows => rows.map(d => d.selId));
+        const binIndices: number[][] = binRows.map(rows => rows.map(d => d.origIndex));
 
         // Highlighted bins for filter-in
         const highlightBinner = d3.bin()
@@ -520,10 +622,7 @@ export class Visual implements IVisual {
         }
 
         // Context menu on empty space
-        this.svg.on("click", () => {
-            if (!this.canInteract) return;
-            this.selectionManager.clear();
-        });
+        this.svg.on("click", () => { this.clearSelection(); });
         this.svg.on("contextmenu", (event: MouseEvent) => {
             event.preventDefault();
             if (!this.canInteract) return;
@@ -541,6 +640,7 @@ export class Visual implements IVisual {
             if (bw <= 0 || bh <= 0) return;
 
             const ids = binSelectionIds[binIndex] || [];
+            const rowIdx = binIndices[binIndex] || [];
             const dimmedOpacity = hasHighlights ? barOpacity * 0.25 : barOpacity;
 
             barsG.append("rect")
@@ -554,17 +654,14 @@ export class Visual implements IVisual {
                 .on("keydown", (event: KeyboardEvent) => {
                     if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        if (!this.canInteract) return;
-                        this.selectionManager.select(ids, event.ctrlKey);
+                        this.selectBin(rowIdx, ids, event.ctrlKey);
                     } else if (event.key === "Escape") {
-                        if (!this.canInteract) return;
-                        this.selectionManager.clear();
+                        this.clearSelection();
                     }
                 })
                 .on("click", (event: MouseEvent) => {
                     event.stopPropagation();
-                    if (!this.canInteract) return;
-                    this.selectionManager.select(ids, (event as MouseEvent).ctrlKey);
+                    this.selectBin(rowIdx, ids, (event as MouseEvent).ctrlKey);
                 })
                 .on("contextmenu", (event: MouseEvent) => {
                     event.preventDefault();
