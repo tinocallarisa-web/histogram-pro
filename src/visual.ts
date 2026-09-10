@@ -142,6 +142,39 @@ function percentile(sorted: number[], p: number): number {
     return lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
 }
 
+/**
+ * Eje resistente a colas largas, por las vallas de Tukey.
+ *
+ * El dominio iba de min a max. En una distribucion sesgada -importes, tiempos de
+ * respuesta, consumos: casi todo lo que se mide en negocio- un solo valor
+ * extremo estira el eje y hunde el resto de las filas en el primer bin. El
+ * grafico no parece sesgado, parece roto.
+ *
+ * Q1 - 1.5*IQR y Q3 + 1.5*IQR son la regla habitual para esto. Se aplica solo
+ * cuando cambia algo de verdad: si las vallas no recortan nada, se usa el rango
+ * completo y no hay nada que explicar.
+ *
+ * Los valores de fuera NO se tiran: el llamante los mete en el bin del extremo.
+ * Recortar el eje es una decision de presentacion; perder filas cambiaria las
+ * cuentas, la media y la desviacion, que es justo lo que un histograma no puede
+ * permitirse.
+ */
+function robustDomain(sorted: number[]): { lo: number; hi: number; clamped: boolean } {
+    const lo0 = sorted[0], hi0 = sorted[sorted.length - 1];
+    const q1 = percentile(sorted, 25);
+    const q3 = percentile(sorted, 75);
+    const iqr = q3 - q1;
+    if (!(iqr > 0)) return { lo: lo0, hi: hi0, clamped: false };
+
+    const lo = Math.max(lo0, q1 - 1.5 * iqr);
+    const hi = Math.min(hi0, q3 + 1.5 * iqr);
+    if (!(hi > lo)) return { lo: lo0, hi: hi0, clamped: false };
+
+    // Si las vallas apenas recortan, el rango completo ya era legible.
+    const clamped = (lo > lo0) || (hi < hi0);
+    return { lo, hi, clamped };
+}
+
 function fmtNum(v: number): string {
     const a = Math.abs(v);
     if (a >= 1e9) return (v / 1e9).toFixed(1) + "B";
@@ -197,6 +230,7 @@ export class Visual implements IVisual {
     private lastFetchCount = 0;
     private fetchRounds = 0;
     private truncatedAt = 0;
+    private axisClamped = false;
     private readonly MAX_FETCH_ROUNDS = 60;   // 60 x 30k pasa del techo de filas de Power BI
     private readonly isDesktop: boolean = navigator.userAgent.indexOf("Electron") !== -1;
     private currentSettings: Settings = { ...DEFAULTS } as Settings;
@@ -417,6 +451,23 @@ export class Visual implements IVisual {
      * median, the standard deviation and the normal curve are all computed over
      * whatever arrived.
      */
+    /**
+     * Dice que el eje esta recortado y que la ultima barra acumula la cola.
+     *
+     * Sin esto la ultima barra se lee como "hay muchisimos casos justo ahi",
+     * cuando lo que dice es "todo lo que hay de aqui en adelante".
+     */
+    private renderClampNotice(width: number, height: number, hiLabel: string): void {
+        if (!this.axisClamped) return;
+        this.svg.append("text")
+            .attr("x", width - 6).attr("y", height - 4)
+            .attr("text-anchor", "end")
+            .attr("fill", "#90A4AE")
+            .attr("font-size", 9)
+            .attr("font-family", "Segoe UI, sans-serif")
+            .text(`Eje recortado a la cola larga · la ultima barra acumula todo lo que supera ${hiLabel}`);
+    }
+
     private renderTruncationNotice(width: number): void {
         if (!this.truncatedAt) return;
         const txt = this.isDesktop
@@ -629,13 +680,24 @@ export class Visual implements IVisual {
         const plotW = Math.max(20, width - marginL - marginR);
         const plotH = Math.max(20, height - marginT - marginB);
 
-        const xScale = d3.scaleLinear().domain([dMin, dMax]).range([0, plotW]).nice();
+        // Con recorte manual de outliers (Pro) manda el usuario; si no, el eje se
+        // calcula de forma resistente a colas largas.
+        const manualTrim = this.isPro && (settings.trimLower > 0 || settings.trimUpper > 0);
+        const rd = manualTrim ? { lo: dMin, hi: dMax, clamped: false } : robustDomain(data);
+        this.axisClamped = rd.clamped;
+
+        const xScale = d3.scaleLinear().domain([rd.lo, rd.hi]).range([0, plotW]).nice();
         const xDomain = xScale.domain();
+
+        // Los valores de fuera del eje caen en el bin del extremo. Asi las alturas
+        // suman el total de filas: el eje se recorta, los datos no.
+        const clampToAxis = (v: number) =>
+            Math.min(xDomain[1], Math.max(xDomain[0], v));
 
         const binner = d3.bin()
             .domain(xDomain as [number, number])
             .thresholds(d3.range(xDomain[0], xDomain[1], (xDomain[1] - xDomain[0]) / effectiveBins));
-        const bins = binner(data);
+        const bins = binner(data.map(clampToAxis));
         const maxCount = d3.max(bins, b => b.length) || 1;
         const yScale = d3.scaleLinear().domain([0, maxCount]).range([plotH, 0]).nice();
 
@@ -651,7 +713,7 @@ export class Visual implements IVisual {
         const highlightBinner = d3.bin()
             .domain(xDomain as [number, number])
             .thresholds(d3.range(xDomain[0], xDomain[1], (xDomain[1] - xDomain[0]) / effectiveBins));
-        const highlightBins = hasHighlights ? highlightBinner(highlightedData) : [];
+        const highlightBins = hasHighlights ? highlightBinner(highlightedData.map(clampToAxis)) : [];
 
         // Effective colors: user settings → IBCS override → high contrast override
         const isHighContrast = this.host.colorPalette.isHighContrast;
@@ -1012,6 +1074,7 @@ export class Visual implements IVisual {
             }
         }
 
+        this.renderClampNotice(width, height, fmtNum(xDomain[1]));
         this.renderTruncationNotice(width);
 
         // No Free badge is drawn. It was licensing UI of the visual's own, which
