@@ -193,6 +193,12 @@ export class Visual implements IVisual {
     private lastDataView: DataView | null = null;
     private lastCatCol: powerbi.DataViewCategoryColumn | null = null;
     private filterApplied: boolean = false;
+    /** Guardas del streaming de segmentos — ver streamSegments(). */
+    private lastFetchCount = 0;
+    private fetchRounds = 0;
+    private truncatedAt = 0;
+    private readonly MAX_FETCH_ROUNDS = 60;   // 60 x 30k pasa del techo de filas de Power BI
+    private readonly isDesktop: boolean = navigator.userAgent.indexOf("Electron") !== -1;
     private currentSettings: Settings = { ...DEFAULTS } as Settings;
 
     constructor(options: VisualConstructorOptions) {
@@ -352,6 +358,79 @@ export class Visual implements IVisual {
         return (this.host as any).allowInteractions !== false;
     }
 
+    // ── Segment streaming ─────────────────────────────────────────────────────
+
+    /**
+     * Asks Power BI for the next data segment, and says so when it cannot.
+     *
+     * The data reduction hands over 30,000 rows at a time. For a histogram that
+     * ceiling is not a cosmetic limit: the shape of the distribution *is* the
+     * product, and a distribution drawn from part of the rows looks exactly as
+     * plausible as one drawn from all of them. There is nothing on screen to
+     * suggest anything is missing, which is why the truncation notice exists.
+     *
+     * Returns true when a fetch was requested, and the caller must return
+     * without rendering — Power BI will call update() again with more rows.
+     *
+     * Three independent brakes. Requesting more data and returning without
+     * rendering is only safe while more data is actually arriving; when it is
+     * not, this loops for ever and takes the host down with it:
+     *
+     *   - Desktop runs inside Electron and cannot stream segments at all, so it
+     *     stops at the first 30,000 whatever we do here.
+     *   - No growth since the previous round means we are being handed the same
+     *     rows again. This is the brake that matters, because it does not depend
+     *     on sniffing the user agent.
+     *   - A round ceiling, as a last resort.
+     */
+    private streamSegments(options: VisualUpdateOptions, dv: DataView): boolean {
+        // operationKind 1 = Append, a segment continuation. Anything else is a
+        // fresh query, so the guards start over.
+        if ((options as any).operationKind !== 1) {
+            this.lastFetchCount = 0;
+            this.fetchRounds = 0;
+        }
+
+        this.truncatedAt = 0;
+        if (!dv.metadata?.segment) return false;   // Power BI gave us everything
+
+        const loaded = dv.categorical?.values?.[0]?.values?.length ?? 0;
+        const grew = loaded > this.lastFetchCount;
+        const canStream = !this.isDesktop && grew && this.fetchRounds < this.MAX_FETCH_ROUNDS;
+
+        if (canStream && loaded >= 30000) {
+            this.lastFetchCount = loaded;
+            this.fetchRounds++;
+            // aggregateSegments = true: Power BI combines the chunks and calls
+            // update() again with the lot.
+            if (this.host.fetchMoreData(true)) return true;
+        }
+
+        this.truncatedAt = loaded;
+        return false;
+    }
+
+    /**
+     * Says, on the chart, that it is drawn from part of the data.
+     *
+     * Without this the histogram is silently wrong: bin heights, the mean, the
+     * median, the standard deviation and the normal curve are all computed over
+     * whatever arrived.
+     */
+    private renderTruncationNotice(width: number): void {
+        if (!this.truncatedAt) return;
+        const txt = this.isDesktop
+            ? `Showing the first ${this.truncatedAt.toLocaleString()} rows — Desktop cannot load more. Publish to the Service for the full distribution.`
+            : `Showing the first ${this.truncatedAt.toLocaleString()} rows — the dataset is larger than Power BI will hand to a visual.`;
+        this.svg.append("text")
+            .attr("x", width - 6).attr("y", 12)
+            .attr("text-anchor", "end")
+            .attr("fill", "#FFB300")
+            .attr("font-size", 10)
+            .attr("font-family", "Segoe UI, sans-serif")
+            .text(txt);
+    }
+
     // ── Cross-filtering ───────────────────────────────────────────────────────
 
     /**
@@ -455,6 +534,14 @@ export class Visual implements IVisual {
             (options.jsonFilters?.length ?? 0) > 0 ||
             !!(this.lastDataView?.metadata?.objects?.["general"]?.["filter"]);
         try {
+            const dv = options.dataViews?.[0];
+            if (dv && this.streamSegments(options, dv)) {
+                // Se ha pedido otro segmento: Power BI volvera a llamar a update()
+                // con mas filas. Pintar ahora seria dibujar una distribucion
+                // parcial que se reemplaza en cuanto llegue el resto.
+                this.events.renderingFinished(options);
+                return;
+            }
             this.render(options);
             this.applyLicenseNotifications();
             this.events.renderingFinished(options);
@@ -924,6 +1011,8 @@ export class Visual implements IVisual {
                 });
             }
         }
+
+        this.renderTruncationNotice(width);
 
         // No Free badge is drawn. It was licensing UI of the visual's own, which
         // Microsoft's guidance advises against, and it behaved as a watermark on
