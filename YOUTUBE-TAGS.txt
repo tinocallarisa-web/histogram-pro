@@ -1,0 +1,26 @@
+=========================================================
+HISTOGRAM PRO — YouTube Tags (v1.2.0.0)
+Video: https://www.youtube.com/watch?v=qL9luDsg3h8
+=========================================================
+
+--- MAIN TAG BLOCK (476 chars, YouTube's limit is 500) ---
+
+power bi,power bi custom visual,power bi histogram,histogram,distribution chart,power bi distribution,frequency distribution,power bi statistics,mean median,quartiles,standard deviation,normal distribution,outliers,power bi no dax,data distribution analysis,power bi appsource,power bi visuals,data visualization,business intelligence,microsoft power bi,statistical analysis,tcviz
+
+Notes on the choices:
+
+- "power bi histogram" and "histogram" carry the search. Everything else is context.
+- "power bi no dax" is deliberate: the DAX binning workaround is what people find first
+  when they look for this, so it is the query with the clearest buying intent.
+- "distribution chart" and "frequency distribution" catch the people who do not know the
+  chart is called a histogram, which is a real share of the audience.
+- No "tutorial" tags: this is a product demo, and that queue is owned by training
+  channels, which costs click-through rather than gaining reach.
+
+--- VARIANT: statistics / analysis angle ---
+
+power bi statistics,statistical analysis power bi,distribution analysis,outlier detection,skewed data,normal curve,iqr,percentiles,box plot alternative,data profiling
+
+--- VARIANT: problem-first angle ---
+
+power bi no native histogram,dax binning,calculated column bins,power bi workaround,average is misleading,data spread,long tail analysis

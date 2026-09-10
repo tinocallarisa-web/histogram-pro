@@ -1,0 +1,102 @@
+=========================================================
+HISTOGRAM PRO — YouTube Description (v1.2.0.0)
+Video: https://www.youtube.com/watch?v=qL9luDsg3h8
+=========================================================
+
+--- TITLE ---
+
+The published title is "Histogram Pro", which says nothing about what the video shows and
+competes for no search at all. Nobody looks for a product they have not heard of; they
+look for the problem. Suggested replacements:
+
+1. How to Build a Histogram in Power BI — No DAX Required          <- recommended
+2. Power BI Has No Histogram. Here's the One I Use.
+3. Distribution, Mean, Median and Quartiles in One Power BI Visual
+4. Stop Averaging: See the Shape of Your Data in Power BI
+5. Histogram Pro for Power BI — Distribution Analysis Without DAX
+
+Option 1 mirrors the Pareto video's title, which follows the same "how to X in Power BI —
+no DAX" pattern, and matches how people actually search.
+
+
+--- LONG DESCRIPTION (main video) ---
+
+Every other visual on your page tells you how much. A histogram tells you how it is
+spread — where the mass sits, how far the tail runs, and whether there are two
+populations hiding inside what looks like one.
+
+Power BI has no native histogram. The usual workaround is a calculated column of bins in
+DAX: it fixes the bin count at design time, has to be rewritten to change it, and gives
+you no mean, no median and no quartiles. Histogram Pro is two field wells and no
+formulas.
+
+WHAT YOU SEE IN THIS VIDEO
+Setting it up on a real dataset, choosing a bin count, reading a skewed distribution, and
+the reference lines that make it interpretable — mean, median, quartiles, a benchmark and
+the normal curve.
+
+WHAT IT DOES
+• The distribution over your whole table, not a sample — verified at 500,000 rows
+• Mean and median lines, quartiles and IQR shading, without a line of DAX
+• An axis built for skewed data: it focuses on where the data lives instead of following
+  a single extreme value, and every row is still counted
+• A benchmark line for a target or SLA
+• IBCS monochrome mode for standards-based reporting
+• One click filters the report by every row behind the bar
+• Drill-down, report page tooltips, keyboard navigation and high contrast
+
+FREE vs PRO
+The free tier is the histogram itself, over your whole dataset, with no watermark and no
+row limit of ours.
+
+Free:
+• The distribution, over the whole table
+• Mean and median lines, quartiles and IQR shading
+• Benchmark line, legend and IBCS mode
+• Cross-filtering, drill-down, keyboard and high contrast
+
+Pro:
+• Bin count anywhere from 2 to 100, instead of a fixed 10
+• Outlier trimming, when you want to set the range yourself
+• The statistics panel: n, mean, median, standard deviation, min and max
+• Normal curve overlay
+• Value labels on the bars
+• Bar colour, opacity, border and gap
+
+Every paid setting says (Pro) in the format pane and is never hidden. Turn one on without
+a licence and Power BI shows its own notification with the link to obtain one — the
+setting is kept and applies as soon as the licence is active.
+
+30-day free trial on AppSource. No card required.
+
+PRIVACY
+No network calls of any kind: no telemetry, no analytics, no CDN, no endpoints. All
+calculation happens inside Power BI.
+
+LINKS
+Get it on Microsoft AppSource: https://marketplace.microsoft.com/en-us/product/tino_callarisa.histogram-pro-tcviz
+Support & documentation: https://tinocallarisa-web.github.io/histogram-pro/support.html
+Case study: https://tinocallarisa-web.github.io/histogram-pro/use-case.html
+Privacy policy: https://tinocallarisa-web.github.io/histogram-pro/privacy.html
+Terms of use: https://tinocallarisa-web.github.io/histogram-pro/terms.html
+GitHub / issues: https://github.com/tinocallarisa-web/histogram-pro
+
+#PowerBI #PowerBIVisuals #CustomVisual #DataVisualization #BusinessIntelligence #Statistics
+
+
+--- CHAPTERS ---
+
+Not written: the timestamps have to come from the published video, and a wrong chapter is
+worse than none. YouTube needs one at 0:00 and at least three of ten seconds or more, or
+it shows none of them.
+
+
+-----------------------------------------------------------
+--- SHORT DESCRIPTION (Shorts / LinkedIn / social) ---
+-----------------------------------------------------------
+
+An average is one number standing in for thousands of rows, and it hides the long tail,
+the second peak and the cluster of near-zeros. Histogram Pro shows the shape instead —
+mean, median and quartiles included, no DAX.
+Watch it: https://www.youtube.com/watch?v=qL9luDsg3h8
+#PowerBI #PowerBIVisuals #DataVisualization

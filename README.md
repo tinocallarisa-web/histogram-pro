@@ -111,12 +111,34 @@ Bookmarks are not supported yet.
 
 ---
 
+## What it handles
+
+| | |
+|---|---|
+| Rows | **Your whole table.** Power BI hands a visual 30,000 rows at a time; the visual asks for the following segments and combines them. Verified at 500,000. |
+| Bins | 10 in Free, **2 to 100** with Pro |
+| Cross-filter | **Up to 10,000 distinct values in one click** |
+| Tooltips | Up to 10 measures |
+
+Power BI Desktop is the exception on row count: it runs inside Electron and cannot stream
+data segments, so it draws the first 30,000 and says so on the chart. Publish to the
+Service for the full distribution.
+
+**The axis is built for skewed data.** Amounts, response times and consumption have long
+tails, and an axis running from the minimum to the maximum pushes every other row into the
+first bar. The axis focuses on where the data lives instead — and every row is still
+counted, with values beyond it going into the end bar and a note saying so.
+
+---
+
 ## Free and Pro
 
-The **free tier** renders a 10-bin histogram with mean and median lines — enough to read
-the shape of a distribution and see its skew.
+The **free tier** is the histogram itself, over your whole dataset, with no watermark and
+no row limit of ours: the distribution, mean and median lines, quartiles and IQR shading,
+the benchmark line, the legend, IBCS mode, axis controls, cross-filtering, keyboard
+navigation and high contrast.
 
-**Pro** unlocks the analytical controls:
+**Pro** adds the analytical controls:
 
 - Configurable bins, 2 to 100
 - Outlier trimming, lower and upper
