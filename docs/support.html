@@ -38,9 +38,9 @@
 </div>
 
 <h2>Free vs Pro</h2>
-<p>The Free tier renders a 10-bin histogram with mean and median lines. The Pro tier (via AppSource subscription) unlocks:</p>
+<p>The Free tier is the histogram itself: ten bins, mean and median lines, quartiles and IQR shading, the benchmark line, the legend, IBCS mode, axis controls, cross-filtering, keyboard navigation and high contrast — over your whole dataset, with no row limit of ours and no watermark. The Pro tier (via AppSource subscription) adds the analysis:</p>
 <ul>
-  <li>Configurable bins (2–100)</li>
+  <li>Bin count anywhere from 2 to 100</li>
   <li>Outlier trimming (lower/upper %)</li>
   <li>Normal distribution curve overlay</li>
   <li>Full statistics panel (n, μ, M, σ, min, max)</li>
@@ -50,16 +50,28 @@
 
 <h2>Common Questions</h2>
 <div class="card">
+  <p><strong>Q: Why does the x-axis stop before my largest value?</strong><br>
+  A: So that you can see your data. With a long-tailed distribution — amounts, response times, consumption — a single extreme value stretches the axis and pushes every other row into the first bar. The axis therefore focuses on where the data actually lives, using Tukey's fences (Q1&nbsp;&minus;&nbsp;1.5&middot;IQR to Q3&nbsp;+&nbsp;1.5&middot;IQR), and only when that changes anything. <strong>Every row is still counted:</strong> values beyond the axis go into the end bar, and a note says so, so the totals, the mean and the standard deviation are exact. With Pro you can set the range yourself through <em>Exclude top / bottom&nbsp;%</em>.</p>
+</div>
+<div class="card">
+  <p><strong>Q: How much can one click cross-filter?</strong><br>
+  A: Clicking a bar filters the report by <strong>every row behind it</strong>, up to 10,000 distinct values in a single click — measured as the practical ceiling for a Power BI filter over a live connection to a semantic model. Most bars are far below that. When a bar holds more, the visual says so instead of filtering part of it: filtering a subset would leave the rest of the report showing figures that do not match the bar you clicked, and nothing on screen would reveal it. Raising the bin count (Pro) puts fewer rows in each bar.</p>
+</div>
+<div class="card">
+  <p><strong>Q: How large a dataset can it draw?</strong><br>
+  A: The whole of it. Power BI hands a visual 30,000 rows at a time; Histogram Pro requests the following segments and combines them, so the distribution is computed over every row — <strong>verified at 500,000</strong>, and the ceiling from there is Power BI's own. The one exception is Power BI Desktop, which runs inside Electron and cannot stream segments: there it draws the first 30,000 and says so on the chart. Publish the report to the Service for the full distribution.</p>
+</div>
+<div class="card">
   <p><strong>Q: The visual shows "Add a numeric field to get started"</strong><br>
   A: Drag a numeric measure or column into the <em>Values</em> field well on the left panel.</p>
 </div>
 <div class="card">
   <p><strong>Q: The bins setting doesn't change anything</strong><br>
-  A: Bin count is locked at 10 in the Free tier. Upgrade to Pro to unlock custom bin counts (2–100).</p>
+  A: Bin count is fixed at 10 in the Free tier. When you change it without a licence, Power BI shows its own notification with the link to obtain one — the setting is kept and applies as soon as the licence is active.</p>
 </div>
 <div class="card">
-  <p><strong>Q: The normal curve option is greyed out</strong><br>
-  A: The normal distribution curve is a Pro feature. Activate your Pro license via AppSource.</p>
+  <p><strong>Q: The normal curve is a Pro feature</strong><br>
+  A: Every setting that needs a licence says <em>(Pro)</em> in the format pane, and it is never hidden: you can see what the paid tier offers before deciding. Turning one on without a licence leaves the free result on screen and raises Power BI's own notification, with the link to obtain one.</p>
 </div>
 <div class="card">
   <p><strong>Q: How do drilldown and cross-filtering work?</strong><br>

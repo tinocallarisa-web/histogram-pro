@@ -1,0 +1,46 @@
+Histogram Pro 1.2.0.0. Full notes: CERTIFICATION-NOTES.md in the repo.
+
+Correctness. The reduction was "top": with a measure bound it selects the highest N, so
+past 30,000 rows only the upper tail was drawn. Now "window" plus segment streaming via
+fetchMoreData - the full distribution, verified at 500,000 rows. The x-axis ran min..max,
+so one extreme value buried every row in the first bin; it now uses Tukey's fences, only
+when they narrow the range. No rows are dropped: values beyond the axis are counted in the
+end bar and the chart says so.
+
+Licensing. checkLicense() resolved async and never repainted, so a paying customer could
+keep the free tier in a report that renders once. Fixed. Warning accepted alongside Active
+(grace period). isLicenseUnsupportedEnv and isLicenseInfoAvailable honoured: Publish to
+Web, embedding and PDF export no longer read a Pro customer as Free.
+
+Purchase path. The Free caption inside the chart is gone: own licensing UI, a watermark
+with nothing to click. Replaced by notifyFeatureBlocked and notifyLicenseRequired, which
+carry the link. Intent read from metadata.objects: only what the user set.
+
+Cross-filtering. A BasicFilter over the rows in the bin: up to 10,000 distinct values in
+one click, the practical ceiling over a live connection. Above that it declines and names
+the lever, rather than filtering a subset and giving a silently wrong answer.
+
+allowInteractions is checked before selecting, clearing and the menu.
+
+LICENCE
+Official IVisualLicenseManager only, async, never blocks render. No licence server, no external
+auth, no payment in the visual. No watermark, no artificial free limits.
+
+DATA
+Only the categorical dataView (Values, Detail rows, Tooltips). No fetch, no XHR, no
+local file access.
+
+TIERS
+Free: the histogram with 10 bins, mean and median, quartiles and IQR, benchmark,
+legend, IBCS mode, axes, cross-filtering, keyboard, high contrast.
+Pro: bins 2-100, outlier trimming, statistics panel, normal curve, value labels, bar
+styling.
+
+TEST
+Bind a numeric measure to Values and the row-level field to Detail (rows). Without a
+licence, change the bin count or turn on the statistics panel: the free result stays and
+Power BI raises its notification with the purchase link. Remove it and it clears.
+Right-click a bar and empty space: context menu on both.
+
+URLs: https://tinocallarisa-web.github.io/histogram-pro/ + privacy.html / terms.html /
+support.html - Repo https://github.com/tinocallarisa-web/histogram-pro (certification)
