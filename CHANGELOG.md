@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.1.0] — 2026-09-14
+
+### Fixed
+
+- **A paying customer could stay on Free.** `getAvailableServicePlans()` returns each plan's
+  `spIdentifier` as the full Partner Center **Service ID** (`publisher.offer.plan`), as the
+  licensing API documentation states. The visual compared it with the bare plan ID
+  `histogram-pro-tcviz` using `===`, which never matches the full Service ID. It now accepts a
+  Service ID ending in `.histogram-pro-tcviz`, and the bare plan ID as well.
+- **A failed licence lookup could ask a paying customer to buy.** When
+  `getAvailableServicePlans()` threw, the visual fell back to Free but still treated the licence
+  information as available, so purchase notifications could appear. It now marks the licence as
+  unreadable and shows no purchase prompt, as it already did when Power BI reports the
+  information unavailable.
+
+---
+
 ## [1.2.0.0] — 2026-09-10
 
 ### Fixed

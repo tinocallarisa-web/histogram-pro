@@ -1,4 +1,4 @@
-# Histogram Pro — Tips & Hints (v1.2.0.0)
+# Histogram Pro — Tips & Hints (v1.2.1.0)
 
 A histogram answers one question: **where does my data actually sit?** Not the total, not
 the ranking — the shape. This page is the short version of everything worth knowing.

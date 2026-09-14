@@ -31,6 +31,17 @@ const MAX_FILTER_VALUES = 10000;
 const MAX_SEL_IDS_PER_BIN = 100;
 const PLAN_ID = "histogram-pro-tcviz";
 
+/**
+ * spIdentifier es el Service ID completo que genera Partner Center para el plan
+ * ("editor.oferta.plan", p.ej. "tino_callarisa.<oferta>.histogram-pro-tcviz"), no el Plan ID
+ * corto: lo dice la documentacion de la licensing API. Comparar con === PLAN_ID dejaba en
+ * Free a quien pagaba. Se acepta el Service ID que termina en ".<plan>" y tambien el Plan ID.
+ */
+function matchesPlan(spIdentifier: unknown, planId: string): boolean {
+    const sp = String(spIdentifier ?? "");
+    return sp === planId || sp.endsWith("." + planId);
+}
+
 const DEFAULTS = {
     bins: 10, trimLower: 0, trimUpper: 0,
     barColor: "#00E5FF", barOpacity: 80, borderColor: "#0B1437", borderWidth: 1, barGap: 2,
@@ -290,7 +301,7 @@ export class Visual implements IVisual {
             // active and warning states represent a usable license", so a paying
             // customer keeps their features while a billing problem is resolved.
             this.isPro = result?.plans?.some(
-                p => p.spIdentifier === PLAN_ID &&
+                p => matchesPlan(p.spIdentifier, PLAN_ID) &&
                      (p.state === ServicePlanState.Active ||
                       p.state === ServicePlanState.Warning)
             ) ?? false;
@@ -302,7 +313,9 @@ export class Visual implements IVisual {
             this.licenseEnvSupported  = !result?.isLicenseUnsupportedEnv;
             this.licenseInfoAvailable = result?.isLicenseInfoAvailable !== false;
         } catch {
+            // Si no se pudo leer la licencia no sabemos si ya pago: Free, y sin avisos de compra.
             this.isPro = false;
+            this.licenseInfoAvailable = false;
         } finally {
             this.licenseResolved = true;
             if (this.isPro && this.lastOptions) this.render(this.lastOptions);

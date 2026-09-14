@@ -1,4 +1,4 @@
-# Certification Notes — Histogram Pro v1.2.0.0
+# Certification Notes — Histogram Pro v1.2.1.0
 
 The short version to paste into Partner Center is
 [`CERTIFICATION-NOTES-SHORT.txt`](./CERTIFICATION-NOTES-SHORT.txt), written to fit the

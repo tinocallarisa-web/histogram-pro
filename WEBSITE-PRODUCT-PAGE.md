@@ -1,6 +1,6 @@
 # Histogram Pro — TCViz Web Product Page Content
 
-Content for the four tabs of the TCViz product page. Current version: **1.2.0.0**.
+Content for the four tabs of the TCViz product page. Current version: **1.2.1.0**.
 
 **Source of truth:** this file is the draft. What tcviz.com actually serves lives in
 `src/data.jsx` of the `tcviz-web` repository — **the `.jsx`, not the `.js`**, which is
