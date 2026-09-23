@@ -241,6 +241,13 @@ export class Visual implements IVisual {
     private tooltipService: ITooltipService;
     private selectionManager: ISelectionManager;
     private isPro: boolean = false;
+    /** Editando sin licencia y con la licencia resuelta: se dibuja lo Pro con marca. */
+    private proPreview: boolean = false;
+    private editing: boolean = false;
+    /** Funciones Pro que el usuario ha tocado en esta sesion de edicion. */
+    private attemptedPro: string[] = [];
+    /** Temporizador que deja la barra de Upgrade cuando el banner termina. */
+    private licenseIconTimer: number | null = null;
     private licenseResolved: boolean = false;
     private licenseEnvSupported: boolean = true;
     private licenseInfoAvailable: boolean = true;
@@ -318,9 +325,44 @@ export class Visual implements IVisual {
             this.licenseInfoAvailable = false;
         } finally {
             this.licenseResolved = true;
-            if (this.isPro && this.lastOptions) this.render(this.lastOptions);
+            // Repintar TAMBIEN en la rama gratuita. El primer render ocurre antes de que
+            // la licencia resuelva, asi que computePreview() daba false y la vista previa
+            // no llegaba a dibujarse nunca; Power BI recrea el visual al cambiar de pagina,
+            // asi que el usuario veia la previa desaparecer al volver. Costo una version
+            // en KPI Card Pro por no repintar aqui.
+            this.attemptedPro = this.isPro ? [] : this.attemptedProFeatures();
+            this.proPreview = this.computePreview();
+            if (this.lastOptions) {
+                try { this.render(this.lastOptions); } catch { /* el render ya reporta */ }
+            }
             this.applyLicenseNotifications();
         }
+    }
+
+    /**
+     * Vista previa Pro.
+     *
+     * Solo con la licencia ya resuelta y en un entorno donde se puede leer: al arrancar,
+     * isPro es false tambien para un cliente de pago, y donde la licencia no se resuelve
+     * -Publicar en la web, incrustado, exportacion- un cliente Pro se lee como gratuito.
+     * Dibujar la marca ahi seria ponersela a quien ya pago.
+     */
+    private computePreview(): boolean {
+        return !this.isPro && this.editing && this.licenseResolved
+            && this.licenseEnvSupported && this.licenseInfoAvailable;
+    }
+
+    /**
+     * Si una funcion concreta se dibuja.
+     *
+     * Por FUNCION, no en bloque: conceder la previa entera repartiria los valores Pro por
+     * defecto en cuanto se inserta el visual, sin que nadie haya pedido nada. Se compara
+     * la etiqueta exacta, no por prefijo -"bar styling" no debe activar otra cosa-.
+     */
+    private allow(feature: string): boolean {
+        if (this.isPro) return true;
+        if (!this.proPreview) return false;
+        return this.attemptedPro.indexOf(feature) >= 0;
     }
 
     /** Pro properties the user has actually set, by format-pane card. */
@@ -350,9 +392,28 @@ export class Visual implements IVisual {
         if (!obj) return [];
         const found = new Set<string>();
         for (const [card, prop, label] of Visual.PRO_PROPS) {
-            if (obj[card] && obj[card][prop] !== undefined) found.add(label);
+            if (!obj[card]) continue;
+            const v = obj[card][prop];
+            if (v === undefined) continue;
+            // Comparar el VALOR, no la mera presencia. Power BI deja la propiedad escrita
+            // para siempre una vez tocada, asi que mirar si existe dejaba la marca de agua
+            // puesta aunque el usuario devolviera el ajuste a su valor gratuito.
+            if (this.esValorPorDefecto(prop, v)) continue;
+            found.add(label);
         }
         return [...found];
+    }
+
+    /** Si un valor guardado coincide con el que da el tier gratuito. */
+    private esValorPorDefecto(prop: string, v: any): boolean {
+        const def: any = (DEFAULTS as any)[prop === "show" ? "showValueLabels" : prop];
+        if (def === undefined) return false;
+        // Los colores llegan envueltos: { solid: { color: "#RRGGBB" } }
+        const val = (v && typeof v === "object" && v.solid) ? v.solid.color : v;
+        if (typeof def === "string" && typeof val === "string") {
+            return def.toLowerCase() === val.toLowerCase();
+        }
+        return def === val;
     }
 
     /**
@@ -371,6 +432,7 @@ export class Visual implements IVisual {
         if (!this.licenseResolved) return;
 
         if (this.isPro || !this.licenseEnvSupported || !this.licenseInfoAvailable) {
+            this.cancelLicenseIcon();
             if (this.licenseNoticeShown) {
                 try { lm.clearLicenseNotification(); } catch { /* older host */ }
                 this.licenseNoticeShown = false;
@@ -381,6 +443,7 @@ export class Visual implements IVisual {
 
         const attempted = this.attemptedProFeatures();
         if (!attempted.length) {
+            this.cancelLicenseIcon();
             if (this.licenseNoticeShown) {
                 try { lm.clearLicenseNotification(); } catch { /* older host */ }
                 this.licenseNoticeShown = false;
@@ -403,11 +466,27 @@ export class Visual implements IVisual {
         // are still saved, so it reads as the visual breaking rather than as a
         // licence expiring. The banner alone does not cover that, since it only
         // fires when a setting is changed.
-        if (!this.licenseNoticeShown) {
-            try {
-                lm.notifyLicenseRequired(0 /* LicenseNotificationType.General */);
-                this.licenseNoticeShown = true;
-            } catch { /* older host */ }
+        //
+        // Va DESPUES del banner, no a la vez. Power BI muestra un aviso cada vez y el
+        // ultimo pisa al anterior: llamando seguido, la barra borraba el banner y el
+        // usuario nunca llegaba a leer que funcion habia tocado.
+        if (!this.licenseNoticeShown && this.licenseIconTimer === null) {
+            this.licenseIconTimer = window.setTimeout(() => {
+                this.licenseIconTimer = null;
+                if (this.isPro) return;
+                try {
+                    lm.notifyLicenseRequired(0 /* LicenseNotificationType.General */);
+                    this.licenseNoticeShown = true;
+                } catch { /* older host */ }
+            }, 10500);
+        }
+    }
+
+    /** Cancela la barra de Upgrade pendiente. */
+    private cancelLicenseIcon(): void {
+        if (this.licenseIconTimer !== null) {
+            window.clearTimeout(this.licenseIconTimer);
+            this.licenseIconTimer = null;
         }
     }
 
@@ -660,6 +739,11 @@ export class Visual implements IVisual {
         this.events.renderingStarted(options);
         this.lastOptions = options;
         this.lastDataView = options.dataViews?.[0] ?? null;
+        // viewMode 0 es vista de lectura. La previa es cosa de quien edita: un informe
+        // publicado nunca debe usar una funcion que no se ha pagado.
+        this.editing = (options as any).viewMode !== 0;
+        this.attemptedPro = this.isPro ? [] : this.attemptedProFeatures();
+        this.proPreview = this.computePreview();
 
         // filterApplied es estado de instancia y no sobrevive a una recarga ni a
         // un bookmark aplicado desde fuera. Power BI si lo sabe, asi que se lee
@@ -705,7 +789,7 @@ export class Visual implements IVisual {
         // Dynamic format string — read from the measure's Power BI format setting
         const formatStr = dataView.categorical.values[0].source.format ?? "";
 
-        const effectiveBins = this.isPro
+        const effectiveBins = this.allow("bin count")
             ? Math.max(2, Math.min(100, settings.bins || DEFAULTS.bins))
             : FREE_MAX_BINS;
 
@@ -739,8 +823,9 @@ export class Visual implements IVisual {
         raw.sort((a, b) => a - b);
         const n = raw.length;
 
-        const loVal = this.isPro && settings.trimLower > 0 ? percentile(raw, settings.trimLower) : raw[0];
-        const hiVal = this.isPro && settings.trimUpper > 0 ? percentile(raw, 100 - settings.trimUpper) : raw[n - 1];
+        const trimOk = this.allow("outlier trimming");
+        const loVal = trimOk && settings.trimLower > 0 ? percentile(raw, settings.trimLower) : raw[0];
+        const hiVal = trimOk && settings.trimUpper > 0 ? percentile(raw, 100 - settings.trimUpper) : raw[n - 1];
 
         const data = raw.filter(v => v >= loVal && v <= hiVal);
         if (data.length < 2) return;
@@ -766,7 +851,7 @@ export class Visual implements IVisual {
 
         // Con recorte manual de outliers (Pro) manda el usuario; si no, el eje se
         // calcula de forma resistente a colas largas.
-        const manualTrim = this.isPro && (settings.trimLower > 0 || settings.trimUpper > 0);
+        const manualTrim = trimOk && (settings.trimLower > 0 || settings.trimUpper > 0);
         const rd = manualTrim ? { lo: dMin, hi: dMax, clamped: false } : robustDomain(data);
         this.axisClamped = rd.clamped;
 
@@ -803,8 +888,9 @@ export class Visual implements IVisual {
         const isHighContrast = this.host.colorPalette.isHighContrast;
         const ibcs = settings.ibcsMode;
 
-        const _userBarColor    = this.isPro ? settings.barColor    : DEFAULTS.barColor;
-        const _userBorderColor = this.isPro ? settings.borderColor : DEFAULTS.borderColor;
+        const estiloOk = this.allow("bar styling");
+        const _userBarColor    = estiloOk ? settings.barColor    : DEFAULTS.barColor;
+        const _userBorderColor = estiloOk ? settings.borderColor : DEFAULTS.borderColor;
 
         const barColor = isHighContrast
             ? (this.host.colorPalette.foreground?.value ?? _userBarColor)
@@ -812,7 +898,7 @@ export class Visual implements IVisual {
         const borderColor = isHighContrast
             ? (this.host.colorPalette.foregroundSelected?.value ?? _userBorderColor)
             : (ibcs ? IBCS.bar : _userBorderColor);
-        const borderWidth = ibcs ? 0 : (this.isPro ? settings.borderWidth : DEFAULTS.borderWidth);
+        const borderWidth = ibcs ? 0 : (estiloOk ? settings.borderWidth : DEFAULTS.borderWidth);
         const effectiveAxisColor = isHighContrast
             ? (this.host.colorPalette.foreground?.value ?? settings.axisColor)
             : (ibcs ? IBCS.axis : settings.axisColor);
@@ -825,7 +911,7 @@ export class Visual implements IVisual {
             ? (this.host.colorPalette.foregroundSelected?.value ?? settings.benchmarkColor)
             : (ibcs ? IBCS.benchmark : settings.benchmarkColor);
 
-        const gap = this.isPro ? Math.max(0, settings.barGap) : 1;
+        const gap = estiloOk ? Math.max(0, settings.barGap) : 1;
         const barOpacity = (this.isPro ? Math.min(100, Math.max(0, settings.barOpacity)) : 80) / 100;
 
         const g = this.svg.append("g").attr("transform", `translate(${marginL},${marginT})`);
@@ -942,7 +1028,7 @@ export class Visual implements IVisual {
                 });
 
             // Value labels (Pro only)
-            if (this.isPro && settings.showValueLabels && bh > 14) {
+            if (this.allow("value labels") && settings.showValueLabels && bh > 14) {
                 const labelVal = settings.vlShowPercent ? `${((bin.length / nFiltered) * 100).toFixed(1)}%` : String(bin.length);
                 barsG.append("text")
                     .attr("x", bx + bw / 2).attr("y", by - 3)
@@ -1058,7 +1144,7 @@ export class Visual implements IVisual {
         }
 
         // Normal curve (Pro only)
-        if (this.isPro && settings.showNormal && std > 0) {
+        if (this.allow("normal curve") && settings.showNormal && std > 0) {
             const normalLine = d3.line<number>()
                 .x(d => xScale(d))
                 .y(d => {
@@ -1072,7 +1158,7 @@ export class Visual implements IVisual {
         }
 
         // Stats panel (Pro only)
-        if (this.isPro && settings.showStats) {
+        if (this.allow("statistics panel") && settings.showStats) {
             const lines = [
                 `n = ${nFiltered}${n > nFiltered ? ` (${n - nFiltered} trimmed)` : ""}`,
                 `μ = ${formatValue(mean, formatStr)}`, `M = ${formatValue(median, formatStr)}`,
@@ -1160,12 +1246,56 @@ export class Visual implements IVisual {
 
         this.renderClampNotice(width, height, fmtNum(xDomain[1]));
         this.renderTruncationNotice(width);
+        this.renderWatermark(width, height);
 
         // No Free badge is drawn. It was licensing UI of the visual's own, which
         // Microsoft's guidance advises against, and it behaved as a watermark on
         // the free tier while offering nothing to click. Power BI's predefined
         // notifications carry the purchase path instead - see
         // applyLicenseNotifications().
+    }
+
+    /**
+     * "Pro preview" sobre el lienzo, y debajo las funciones que la han encendido.
+     *
+     * Solo mientras se edita sin licencia y con una funcion Pro activa: en vista de
+     * lectura no se dibuja, porque ahi tampoco se dibuja la funcion. Blanco con contorno
+     * oscuro -SVG no tiene text-shadow, asi que se hace con stroke y paint-order- para que
+     * se lea igual sobre barras claras y oscuras.
+     */
+    private renderWatermark(width: number, height: number): void {
+        if (!this.proPreview || this.attemptedPro.length === 0) return;
+
+        const cx = width / 2, cy = height / 2;
+        const fs = Math.round(Math.max(24, Math.min(88, width / 7.5, height / 3.5)));
+
+        const g = this.svg.append("g")
+            .attr("class", "pro-watermark")
+            .attr("transform", `rotate(-20 ${cx} ${cy})`)
+            .attr("aria-hidden", "true")
+            .attr("pointer-events", "none")
+            .attr("opacity", 0.72);
+
+        const comun = (sel: any, size: number, peso: string) => sel
+            .attr("x", cx).attr("text-anchor", "middle").attr("dominant-baseline", "middle")
+            .style("font-family", "'Segoe UI', sans-serif")
+            .style("font-size", `${size}px`).style("font-weight", peso)
+            .style("letter-spacing", "0.06em")
+            .style("fill", "#FFFFFF")
+            .style("stroke", "#0B1437").style("stroke-width", Math.max(2, size / 14))
+            .style("paint-order", "stroke");
+
+        // Con mas de dos, la lista tapa el grafico que se quiere ensenar.
+        const etiquetas = this.attemptedPro.length <= 2
+            ? this.attemptedPro
+            : this.attemptedPro.slice(0, 2).concat([`+${this.attemptedPro.length - 2}`]);
+
+        comun(g.append("text"), fs, "700")
+            .attr("y", cy - fs * 0.22)
+            .text("Pro preview");
+        comun(g.append("text"), Math.round(fs * 0.32), "600")
+            .attr("y", cy + fs * 0.45)
+            .text(etiquetas.join(" · "));
     }
 
     // ── Landing page ──────────────────────────────────────────────────────────
@@ -1285,5 +1415,10 @@ export class Visual implements IVisual {
 
     // ── Destroy ───────────────────────────────────────────────────────────────
 
-    public destroy(): void { this.container.remove(); }
+    public destroy(): void {
+        // Power BI recrea el visual al cambiar de pagina: un temporizador vivo levantaria
+        // la barra de Upgrade sobre un visual que ya no existe.
+        this.cancelLicenseIcon();
+        this.container.remove();
+    }
 }

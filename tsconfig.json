@@ -4,7 +4,7 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "target": "ES2019",
-        "module": "commonjs",
+        "module": "esnext",
         "strict": false,
         "noImplicitAny": false,
         "lib": ["ES2019", "DOM"],

@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0.0] — 2026-09-23
+
+### Added
+
+- **Pro preview.** Until now a free user who turned on the statistics panel, the normal curve, value labels, a custom bin count, outlier trimming or bar styling saw **nothing happen**: the setting was silently reverted to its default and the chart carried on as before. That does not read as "there is something here to buy", it reads as a visual that ignores you. The feature is now drawn *working*, under a "Pro preview" watermark that names it, while you edit a report without a licence. In reading view — and anywhere the licence cannot be read, such as Publish to Web, embedding or export — the free result renders with no watermark and no prompt, so a published report never uses a feature nobody paid for. The preview is granted **per feature**, never in bulk: inserting the visual hands out nothing, because nothing has been asked for yet.
+
+### Fixed
+
+- **The banner naming the Pro feature was never readable.** Power BI shows one notification at a time and the last call replaces the previous one; `notifyFeatureBlocked` and `notifyLicenseRequired` were raised back to back, so the persistent Upgrade bar wiped out the banner immediately. The banner now comes first and the Upgrade bar follows 10.5 seconds later, once the banner has gone. The timer is cancelled in `destroy()`, because Power BI recreates the visual on every page change.
+- **The notice never cleared.** Whether a Pro feature had been "attempted" was read from the *presence* of the property in `metadata.objects`. Power BI keeps a property there forever once it has been written — even after the user returns the setting to its free value — so the prompt stayed up for good. It now compares the **value** against the free default. A legitimate value can never be a sentinel.
+- **The preview never appeared, and vanished on returning to the page.** The visual only repainted when the licence resolved to Pro. The first render happens before the licence resolves, so on the free branch the preview was computed as false and never drawn again. It now repaints on both branches.
+
+### Changed
+
+- **Four `fetch` calls were being shipped inside the package.** They come from `d3-fetch`, which the visual never calls: `tsconfig.json` had `module: "commonjs"`, which turns the imports into `require()` and defeats webpack's tree-shaking, so all of d3 was bundled. With `module: "esnext"` the dead code never enters. This matters beyond housekeeping — accessing external services is the first thing on the certification "not allowed" list, and `pbiviz package --certification-audit` now reports no external requests where it previously reported four. Fixing the build is the right answer here rather than `--certification-fix`, which only strips the calls from the output.
+- **The toolchain was failing certification requirements.** Lint had no configuration in the format `pbiviz` expects, so every build skipped it silently — and that is where the certification rules are checked. Tools are now 7.2.1, the API 5.11.1, TypeScript 5.5.4 with `@types/node` pinned to 22, plus the `qs`/`uuid` overrides: `npm audit` reports 0 vulnerabilities and lint runs clean.
+
+---
+
 ## [1.2.1.0] — 2026-09-14
 
 ### Fixed
