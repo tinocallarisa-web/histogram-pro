@@ -572,7 +572,7 @@ export class Visual implements IVisual {
             .attr("fill", "#90A4AE")
             .attr("font-size", 9)
             .attr("font-family", "Segoe UI, sans-serif")
-            .text(`Eje recortado a la cola larga · la ultima barra acumula todo lo que supera ${hiLabel}`);
+            .text(`Axis clipped to the long tail · the last bar holds everything above ${hiLabel}`);
     }
 
     private renderTruncationNotice(width: number): void {

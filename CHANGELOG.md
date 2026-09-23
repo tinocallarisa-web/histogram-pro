@@ -19,6 +19,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **The clipped-axis notice is in English.** It was the only Spanish string the visual drew — in a visual whose format pane and every other label are in English — and it had no accents either. It now reads *"Axis clipped to the long tail · the last bar holds everything above X"*.
 - **Four `fetch` calls were being shipped inside the package.** They come from `d3-fetch`, which the visual never calls: `tsconfig.json` had `module: "commonjs"`, which turns the imports into `require()` and defeats webpack's tree-shaking, so all of d3 was bundled. With `module: "esnext"` the dead code never enters. This matters beyond housekeeping — accessing external services is the first thing on the certification "not allowed" list, and `pbiviz package --certification-audit` now reports no external requests where it previously reported four. Fixing the build is the right answer here rather than `--certification-fix`, which only strips the calls from the output.
 - **The toolchain was failing certification requirements.** Lint had no configuration in the format `pbiviz` expects, so every build skipped it silently — and that is where the certification rules are checked. Tools are now 7.2.1, the API 5.11.1, TypeScript 5.5.4 with `@types/node` pinned to 22, plus the `qs`/`uuid` overrides: `npm audit` reports 0 vulnerabilities and lint runs clean.
 
