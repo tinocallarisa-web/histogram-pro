@@ -1,39 +1,42 @@
 Histogram Pro 1.3.0.0 - GUID HistogramPro38A7C1D94E2B4F6D8A0E5B3C9F1D2E4A
+
+SOURCE CODE
+github.com/tinocallarisa-web/histogram-pro, branch "certification".
+PUBLIC: no credentials needed, none included here.
+
+TESTING THE PREMIUM FEATURES - NO KEY NEEDED
+There is no activation key: Pro is granted by the AppSource plan through
+IVisualLicenseManager, so none exists outside the marketplace. You do not need one.
+The submitted package already renders every premium feature: import this .pbiviz and
+open a report in EDIT mode without a licence. Turn on any Pro setting and it is drawn
+WORKING under a "Pro preview" watermark naming it - same code, same data, nothing
+hidden or stubbed, granted per feature. Reading view, and anywhere the licence cannot
+be read (Publish to Web, embed, export), shows the free result with no watermark.
+Without the watermark: npm install, then node build-test.js (isPro forced true, GUID +
+"_test"). Never submitted: it patches, packages and restores.
+
+WHAT TO CHECK
+Bind a numeric measure: the histogram renders with 10 bins. Editing, turn on Statistics
+> Show statistics: the panel draws under the watermark, a banner names the feature, and
+the Upgrade bar follows about 10 s later. Return a Pro setting to its default value:
+watermark and notice clear. Reading view: no watermark, no panel, no prompt. Publish to
+Web or export: the same.
+
 WHAT CHANGED IN 1.3.0.0
-1. PRO PREVIEW. A free user who turned on a Pro setting saw NOTHING happen: it was silently
-   reverted. That reads as a broken visual, not as something to buy. Now, editing without a
-   licence and once it has resolved, the feature is drawn WORKING under a "Pro preview"
-   watermark naming it, granted per feature, never in bulk. In reading view, before the
-   licence resolves, and where it cannot be read (Publish to Web, embed, export): free
-   result, no watermark.
-2. The Upgrade bar no longer wipes out the feature banner: Power BI shows one notification
-   at a time and both were raised back to back. The banner comes first and the Upgrade bar
-   10.5 s later. Cancelled in destroy().
-3. Fixed: the notice never cleared. Whether a feature was "attempted" was read from the
-   presence of the property in metadata.objects, which Power BI keeps forever once written,
-   even after returning it to its free value. It now compares the VALUE.
-4. Fixed: no repaint once the licence resolved to Free, so the preview never appeared and
-   vanished on returning to the page.
-5. BUILD: four fetch calls from d3-fetch were bundled. tsconfig had module=commonjs, which
-   defeats tree-shaking, so all of d3 came in although the visual calls none of it. Now
-   module=esnext and --certification-audit reports none. Toolchain current (tools 7.2.1,
-   API 5.11.1), npm audit 0, lint clean - it was being skipped.
+Pro preview: a free user turning on a Pro setting saw NOTHING happen, silently
+reverted, which reads as broken rather than as something to buy. The Upgrade bar no
+longer wipes out the banner naming the feature: both were raised back to back and Power
+BI shows one at a time, so the banner comes first and the bar 10.5 s later, cancelled
+in destroy(). Build: four d3-fetch calls were bundled because tsconfig had commonjs,
+defeating tree-shaking; now esnext and --certification-audit reports none. npm audit 0,
+lint clean - it was being skipped. Full detail in CHANGELOG.md of that branch.
 
 PRIVACY: no network calls, no telemetry, no storage. Only the dataView. privileges [].
 
 FREE VS PRO
-Free: the histogram with 10 bins, mean, median, percentile and IQR markers, benchmark line,
-axes, legend, IBCS mode, tooltips, cross-filtering, high contrast.
-Pro: bin count, outlier trimming, bar styling, statistics panel, normal curve, value labels.
-
-TEST - FREE (no plan)
-1. Bind a numeric measure: the histogram renders with 10 bins.
-2. Editing, turn on Statistics > Show statistics: the panel draws under a "Pro preview"
-   watermark, a banner names it, and ten seconds later the Upgrade bar appears.
-3. Turn it off, or return a Pro setting to its default value: watermark and notice clear.
-4. Reading view: no watermark, no panel, no prompt. Publish to Web or export: the same.
-
-TEST - PRO: the same features render, no watermark, no notification.
+Free: the histogram with 10 bins, mean, median, percentile and IQR markers, benchmark
+line, axes, legend, IBCS mode, tooltips, cross-filtering, high contrast.
+Pro: bin count, outlier trimming, bar styling, statistics panel, normal curve, labels.
 
 Rendering events on every path of update().
 Support: tinocallarisa-web.github.io/histogram-pro/
