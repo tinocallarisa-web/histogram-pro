@@ -12,6 +12,8 @@ import ITooltipService = powerbi.extensibility.ITooltipService;
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
 import ServicePlanState = powerbi.ServicePlanState;
 import DataView = powerbi.DataView;
+import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
+import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -53,10 +55,17 @@ const DEFAULTS = {
     showP75: false, p75Color: "#FFD740",
     showIQR: false, iqrColor: "#FFD740",
     showBenchmark: false, benchmarkValue: 0, benchmarkColor: "#FF6B6B", benchmarkLabel: "Target",
+    bmColorBars: false, bmAboveColor: "#FF6B6B", bmBelowColor: "#00E5FF",
+    zShow: false, zCut1: 0, zCut2: 0, zColor1: "#69F0AE", zColor2: "#FFD740", zColor3: "#FF6B6B",
+    zLabels: true, zValueShare: true,
+    smColumns: 0, smTitleSize: 12, smTitleColor: "#6B7785",
+    statsBgColor: "#000000", statsBgOpacity: 35, labelBgColor: "#FFFFFF", labelBgOpacity: 75,
+    legendFontSize: 9, legendColor: "#B0BEC5",
     showLegend: false, legendBottom: false,
     legendMeanLabel: "Mean", legendMedianLabel: "Median", legendP25Label: "P25", legendP75Label: "P75", legendNormalLabel: "Normal",
     ibcsMode: false,
     showNormal: false, normalColor: "#7C4DFF",
+    showCumulative: false, cumulativeColor: "#FF9F43",
     showStats: true, statsColor: "#B0BEC5",
     showValueLabels: false, vlFontSize: 9, vlColor: "#E0E6FF", vlShowPercent: false,
 };
@@ -94,10 +103,17 @@ interface Settings {
     showP75: boolean; p75Color: string;
     showIQR: boolean; iqrColor: string;
     showBenchmark: boolean; benchmarkValue: number; benchmarkColor: string; benchmarkLabel: string;
+    bmColorBars: boolean; bmAboveColor: string; bmBelowColor: string;
+    zShow: boolean; zCut1: number; zCut2: number; zColor1: string; zColor2: string; zColor3: string;
+    zLabels: boolean; zValueShare: boolean;
+    smColumns: number; smTitleSize: number; smTitleColor: string;
+    statsBgColor: string; statsBgOpacity: number; labelBgColor: string; labelBgOpacity: number;
+    legendFontSize: number; legendColor: string;
     showLegend: boolean; legendBottom: boolean;
     legendMeanLabel: string; legendMedianLabel: string; legendP25Label: string; legendP75Label: string; legendNormalLabel: string;
     ibcsMode: boolean;
     showNormal: boolean; normalColor: string;
+    showCumulative: boolean; cumulativeColor: string;
     showStats: boolean; statsColor: string;
     showValueLabels: boolean; vlFontSize: number; vlColor: string; vlShowPercent: boolean;
 }
@@ -139,6 +155,26 @@ function parseSettings(dv: DataView): Settings {
         benchmarkValue: getValue<number>(obj, "benchmark", "value", DEFAULTS.benchmarkValue),
         benchmarkColor: getColor(obj, "benchmark", "color", DEFAULTS.benchmarkColor),
         benchmarkLabel: getValue<string>(obj, "benchmark", "label", DEFAULTS.benchmarkLabel),
+        bmColorBars: getValue<boolean>(obj, "benchmark", "colorBars", DEFAULTS.bmColorBars),
+        bmAboveColor: getColor(obj, "benchmark", "aboveColor", DEFAULTS.bmAboveColor),
+        bmBelowColor: getColor(obj, "benchmark", "belowColor", DEFAULTS.bmBelowColor),
+        zShow: getValue<boolean>(obj, "zones", "show", DEFAULTS.zShow),
+        zCut1: getValue<number>(obj, "zones", "cut1", DEFAULTS.zCut1),
+        zCut2: getValue<number>(obj, "zones", "cut2", DEFAULTS.zCut2),
+        zColor1: getColor(obj, "zones", "color1", DEFAULTS.zColor1),
+        zColor2: getColor(obj, "zones", "color2", DEFAULTS.zColor2),
+        zColor3: getColor(obj, "zones", "color3", DEFAULTS.zColor3),
+        zLabels: getValue<boolean>(obj, "zones", "showLabels", DEFAULTS.zLabels),
+        zValueShare: getValue<boolean>(obj, "zones", "showValueShare", DEFAULTS.zValueShare),
+        smColumns: getValue<number>(obj, "smallMultiples", "columns", DEFAULTS.smColumns),
+        smTitleSize: getValue<number>(obj, "smallMultiples", "titleFontSize", DEFAULTS.smTitleSize),
+        smTitleColor: getColor(obj, "smallMultiples", "titleColor", DEFAULTS.smTitleColor),
+        statsBgColor: getColor(obj, "statistics", "statsBgColor", DEFAULTS.statsBgColor),
+        statsBgOpacity: getValue<number>(obj, "statistics", "statsBgOpacity", DEFAULTS.statsBgOpacity),
+        labelBgColor: getColor(obj, "statistics", "labelBgColor", DEFAULTS.labelBgColor),
+        labelBgOpacity: getValue<number>(obj, "statistics", "labelBgOpacity", DEFAULTS.labelBgOpacity),
+        legendFontSize: getValue<number>(obj, "legend", "fontSize", DEFAULTS.legendFontSize),
+        legendColor: getColor(obj, "legend", "color", DEFAULTS.legendColor),
         showLegend: getValue<boolean>(obj, "legend", "show", DEFAULTS.showLegend),
         legendBottom: getValue<boolean>(obj, "legend", "bottom", DEFAULTS.legendBottom),
         legendMeanLabel:   getValue<string>(obj, "legend", "meanLabel",   DEFAULTS.legendMeanLabel),
@@ -149,6 +185,8 @@ function parseSettings(dv: DataView): Settings {
         ibcsMode: getValue<boolean>(obj, "ibcs", "mode", DEFAULTS.ibcsMode),
         showNormal: getValue<boolean>(obj, "statistics", "showNormal", DEFAULTS.showNormal),
         normalColor: getColor(obj, "statistics", "normalColor", DEFAULTS.normalColor),
+        showCumulative: getValue<boolean>(obj, "statistics", "showCumulative", DEFAULTS.showCumulative),
+        cumulativeColor: getColor(obj, "statistics", "cumulativeColor", DEFAULTS.cumulativeColor),
         showStats: getValue<boolean>(obj, "statistics", "showStats", DEFAULTS.showStats),
         statsColor: getColor(obj, "statistics", "statsColor", DEFAULTS.statsColor),
         showValueLabels: getValue<boolean>(obj, "valueLabels", "show", DEFAULTS.showValueLabels),
@@ -194,41 +232,13 @@ function robustDomain(sorted: number[]): { lo: number; hi: number; clamped: bool
     const hi = Math.min(hi0, q3 + 1.5 * iqr);
     if (!(hi > lo)) return { lo: lo0, hi: hi0, clamped: false };
 
-    // Si las vallas apenas recortan, el rango completo ya era legible.
+    // Si las vallas apenas recortan, el rango completo ya era legible. Una normal
+    // pierde siempre ~0,7% de filas fuera de las vallas: recortar ahi anunciaba una
+    // "cola larga" que no existe. Solo se recorta si el rango completo es al menos
+    // 1,5 veces el de las vallas.
+    if ((hi0 - lo0) < 1.5 * (hi - lo)) return { lo: lo0, hi: hi0, clamped: false };
     const clamped = (lo > lo0) || (hi < hi0);
     return { lo, hi, clamped };
-}
-
-function fmtNum(v: number): string {
-    const a = Math.abs(v);
-    if (a >= 1e9) return (v / 1e9).toFixed(1) + "B";
-    if (a >= 1e6) return (v / 1e6).toFixed(1) + "M";
-    if (a >= 1e4) return (v / 1e3).toFixed(1) + "K";
-    if (a >= 100) return v.toFixed(0);
-    if (a >= 1) return v.toFixed(1);
-    return v.toFixed(2);
-}
-
-// Dynamic format strings — respects the measure's Power BI format setting
-function formatValue(v: number, fmt: string): string {
-    if (!fmt) return fmtNum(v);
-    // Percentage: multiply by 100 (PBI stores percentages as fractions)
-    if (fmt.includes("%")) {
-        const dec = fmt.match(/0\.(0+)%/)?.[1]?.length ?? 1;
-        return `${(v * 100).toFixed(dec)}%`;
-    }
-    const sym = fmt.match(/[$€£¥₹]/)?.[0] ?? "";
-    const dec = fmt.match(/0\.(0+)/)?.[1]?.length ?? -1;
-    const a = Math.abs(v);
-    let n: string;
-    if (a >= 1e9) n = (v / 1e9).toFixed(1) + "B";
-    else if (a >= 1e6) n = (v / 1e6).toFixed(1) + "M";
-    else if (a >= 1e4) n = (v / 1e3).toFixed(1) + "K";
-    else if (dec >= 0) n = v.toFixed(dec);
-    else if (a >= 100) n = v.toFixed(0);
-    else if (a >= 1) n = v.toFixed(1);
-    else n = v.toFixed(2);
-    return sym + n;
 }
 
 // ─── Visual ───────────────────────────────────────────────────────────────────
@@ -256,6 +266,7 @@ export class Visual implements IVisual {
     private lastOptions: VisualUpdateOptions | null = null;
     private lastDataView: DataView | null = null;
     private lastCatCol: powerbi.DataViewCategoryColumn | null = null;
+    private lastPanCol: powerbi.DataViewCategoryColumn | null = null;
     private filterApplied: boolean = false;
     /** Guardas del streaming de segmentos — ver streamSegments(). */
     private lastFetchCount = 0;
@@ -264,8 +275,38 @@ export class Visual implements IVisual {
     private axisClamped = false;
     /** Filas del ultimo bin que era demasiado grande para filtrar. */
     private oversizedSelection = 0;
+    /**
+     * Bins selected through the selection manager ("<panel>|<bin index>"), the path used
+     * while the Detail field can be drilled. The filter path needs no state: the
+     * selection is read back from the filter Power BI holds, which is what makes a
+     * bookmark or a reopened report show the right bar.
+     */
+    private selKeys = new Set<string>();
+    /** Selection IDs of every bar drawn, to map a selection Power BI restores back to bars. */
+    private binIds: { key: string; ids: powerbi.extensibility.ISelectionId[] }[] = [];
+    /** Values and panel of the entity filter in force, for Ctrl+click to add to. */
+    private curFilterVals: powerbi.PrimitiveValue[] = [];
+    private curFilterPanel: string | null = null;
     private readonly MAX_FETCH_ROUNDS = 60;   // 60 x 30k pasa del techo de filas de Power BI
-    private readonly isDesktop: boolean = navigator.userAgent.indexOf("Electron") !== -1;
+    /**
+     * Desktop, from the host (CustomVisualHostEnv.Desktop = 1 << 2). The old test
+     * looked for "Electron" in the user agent, which current Desktop builds no longer
+     * carry, so Desktop was taken for the Service.
+     */
+    private get isDesktop(): boolean {
+        const env = Number((this.host as any)?.hostEnv);
+        if (isFinite(env) && env > 0) return (env & 4) !== 0;
+        return navigator.userAgent.indexOf("Electron") !== -1;
+    }
+    private loc: ILocalizationManager;
+    private fmtCache = new Map<string, valueFormatter.IValueFormatter>();
+    /** Roving tabindex: the bin that owns the chart's single Tab stop. */
+    private focusedBin = 0;
+    private restoreFocus = false;
+    /** Last interaction was the keyboard: only then is focus put back after a repaint. */
+    private keyboardNav = false;
+    /** Un unico color en categories[0].objects = color plano del usuario, no una regla fx. */
+    private uniformBarColor: string | null = null;
     private currentSettings: Settings = { ...DEFAULTS } as Settings;
 
     constructor(options: VisualConstructorOptions) {
@@ -273,6 +314,16 @@ export class Visual implements IVisual {
         this.events = options.host.eventService;
         this.tooltipService = options.host.tooltipService;
         this.selectionManager = options.host.createSelectionManager();
+        // A bookmark captured in drill mode stores a selection, not a filter. Power BI
+        // hands it back here; without this the report was filtered but no bar showed it.
+        this.selectionManager.registerOnSelectCallback((ids: powerbi.extensibility.ISelectionId[]) => {
+            this.selKeys.clear();
+            for (const b of this.binIds) {
+                if (b.ids.some(id => ids.some(s => (s as any).equals?.(id) ?? s === id))) this.selKeys.add(b.key);
+            }
+            this.repaint();
+        });
+        this.loc = options.host.createLocalizationManager();
 
         this.container = d3.select(options.element)
             .append("div")
@@ -281,6 +332,65 @@ export class Visual implements IVisual {
 
         this.svg = this.container.append("svg");
         this.checkLicense();
+    }
+
+    // ── Localization and number format ────────────────────────────────────────
+    private t(key: string, fallback: string): string {
+        try {
+            const s = this.loc?.getDisplayName(key);
+            return s && s !== key ? s : fallback;
+        } catch { return fallback; }
+    }
+
+    private tf(key: string, fallback: string, ...args: string[]): string {
+        return this.t(key, fallback).replace(/\{(\d+)\}/g, (_m, i) => args[Number(i)] ?? "");
+    }
+
+    /**
+     * A value with the measure's format string from the model, in the report's
+     * locale. Above 10,000 it is scaled to K / M / bn like the axis needs, except
+     * for percentage formats, which are never scaled (0.3 would become 0.03K%).
+     * With no format string, whole numbers above 100 and two decimals below.
+     */
+    private fmtNumber(v: number, format: string | undefined, scaleRef: number): string {
+        if (!isFinite(v)) return "";
+        const isPct = !!format && /%/.test(format.replace(/"[^"]*"|\\./g, ""));
+        // Below 1,000 the unit would only add a ".0K" to a small number: 0 stays 0.
+        const scale = !isPct && Math.abs(scaleRef) >= 1e4 && Math.abs(v) >= 1e3;
+        const f = format || (Math.abs(scaleRef) >= 100 ? "#,0" : "#,0.##");
+        const key = `${f}|${scale ? Math.round(Math.log10(Math.abs(scaleRef))) : "-"}`;
+        let fmt = this.fmtCache.get(key);
+        if (!fmt) {
+            const opts: any = { format: f, cultureSelector: this.host.locale, displayUnitSystemType: 2 };
+            if (scale) { opts.value = Math.abs(scaleRef); opts.precision = 1; }
+            fmt = valueFormatter.create(opts);
+            this.fmtCache.set(key, fmt);
+        }
+        return fmt.format(v);
+    }
+
+    /** Counts, with the locale's thousands separator. */
+    private fmtInt(n: number): string { return this.fmtNumber(n, "#,0", 0); }
+
+    /** A share the visual computed, in percent units, in the report's locale. */
+    private pct(v: number, decimals = 1): string {
+        return this.fmtNumber(v / 100, decimals > 0 ? "0." + "0".repeat(decimals) + "%" : "0%", 0);
+    }
+
+    /** Display name of a Pro feature label, in the report's language. */
+    private featName(id: string): string {
+        switch (id) {
+            case "bin count":        return this.t("Feat_bins",   "bin count");
+            case "outlier trimming": return this.t("Feat_trim",   "outlier trimming");
+            case "bar styling":      return this.t("Feat_style",  "bar styling");
+            case "statistics panel": return this.t("Feat_stats",  "statistics panel");
+            case "normal curve":     return this.t("Feat_normal", "normal curve");
+            case "cumulative line":  return this.t("Feat_cumulative", "cumulative frequency");
+            case "value labels":     return this.t("Feat_labels", "value labels");
+            case "value zones":      return this.t("Feat_zones",  "value zones");
+            case "small multiples":  return this.t("Feat_panels", "small multiples");
+            default: return id;
+        }
     }
 
     // ── License ───────────────────────────────────────────────────────────────
@@ -377,7 +487,9 @@ export class Visual implements IVisual {
         ["histogram",   "barGap",      "bar styling"],
         ["statistics",  "showStats",   "statistics panel"],
         ["statistics",  "showNormal",  "normal curve"],
+        ["statistics",  "showCumulative", "cumulative line"],
         ["valueLabels", "show",        "value labels"],
+        ["zones",       "show",        "value zones"],
     ];
 
     /**
@@ -388,9 +500,9 @@ export class Visual implements IVisual {
      * nobody has touched.
      */
     private attemptedProFeatures(): string[] {
-        const obj: any = this.lastDataView?.metadata?.objects;
-        if (!obj) return [];
+        const obj: any = this.lastDataView?.metadata?.objects ?? {};
         const found = new Set<string>();
+        if ((this.lastDataView?.metadata?.columns ?? []).some(c => c.roles?.["panel"])) found.add("small multiples");
         for (const [card, prop, label] of Visual.PRO_PROPS) {
             if (!obj[card]) continue;
             const v = obj[card][prop];
@@ -457,7 +569,10 @@ export class Visual implements IVisual {
         const key = attempted.sort().join("|");
         if (key !== this.notifiedFeatures) {
             this.notifiedFeatures = key;
-            try { lm.notifyFeatureBlocked(attempted.join(", ")); } catch { /* older host */ }
+            try {
+                lm.notifyFeatureBlocked(this.tf("UI_NoticeBlocked",
+                    "Histogram Pro: {0} — part of the Pro plan.", attempted.map(a => this.featName(a)).join(", ")).slice(0, 500));
+            } catch { /* older host */ }
         }
 
         // notifyLicenseRequired stays up while Pro settings are stored without a
@@ -572,14 +687,15 @@ export class Visual implements IVisual {
             .attr("fill", "#90A4AE")
             .attr("font-size", 9)
             .attr("font-family", "Segoe UI, sans-serif")
-            .text(`Axis clipped to the long tail · the last bar holds everything above ${hiLabel}`);
+            .text(this.tf("UI_Clamp", "Axis clipped to the long tail · the last bar holds everything above {0}", hiLabel));
     }
 
     private renderTruncationNotice(width: number): void {
         if (!this.truncatedAt) return;
+        const shown = this.fmtInt(this.truncatedAt);
         const txt = this.isDesktop
-            ? `Showing the first ${this.truncatedAt.toLocaleString()} rows — Desktop cannot load more. Publish to the Service for the full distribution.`
-            : `Showing the first ${this.truncatedAt.toLocaleString()} rows — the dataset is larger than Power BI will hand to a visual.`;
+            ? this.tf("UI_TruncDesktop", "Showing the first {0} rows — Desktop cannot load more. Publish to the Service for the full distribution.", shown)
+            : this.tf("UI_TruncService", "Showing the first {0} rows — the dataset is larger than Power BI will hand to a visual.", shown);
         this.svg.append("text")
             .attr("x", width - 6).attr("y", 12)
             .attr("text-anchor", "end")
@@ -610,9 +726,10 @@ export class Visual implements IVisual {
      * one. The caller falls back to selection IDs, so behaviour degrades to the
      * previous mechanism rather than breaking.
      */
-    private buildBinFilter(indices: number[]): powerbi.IFilter | null {
+    private buildBinFilter(indices: number[], panelValue?: powerbi.PrimitiveValue,
+                           keep: powerbi.PrimitiveValue[] = [], remove = false): powerbi.IFilter | powerbi.IFilter[] | null {
         const cat = this.lastCatCol;
-        if (!cat || !indices.length) return null;
+        if (!cat || (!indices.length && !keep.length)) return null;
 
         // Exactly one dot. "table.column" is a usable target; a hierarchy level
         // arrives as "table.hierarchy.level", and splitting that on the first dot
@@ -623,19 +740,28 @@ export class Visual implements IVisual {
         if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
         const dot = parts[0].length;
 
-        const values: powerbi.PrimitiveValue[] = [];
-        const seen = new Set<string>();
+        // Ctrl+click: the values already filtered are kept and the bin's are added, or,
+        // when the bin was already selected, taken out. A plain click passes keep = [].
+        const binVals = new Set<string>();
         for (const i of indices) {
             const v = cat.values[i];
-            if (v === null || v === undefined) continue;
+            if (v !== null && v !== undefined) binVals.add(String(v));
+        }
+        const values: powerbi.PrimitiveValue[] = [];
+        const seen = new Set<string>();
+        const push = (v: powerbi.PrimitiveValue) => {
+            if (v === null || v === undefined) return;
             const key = String(v);
-            if (seen.has(key)) continue;
+            if (seen.has(key)) return;
+            if (remove && binVals.has(key)) return;
             seen.add(key);
             values.push(v);
-        }
+        };
+        keep.forEach(push);
+        if (!remove) for (const i of indices) push(cat.values[i]);
         if (!values.length) return null;
 
-        return {
+        const entityFilter = {
             $schema: "https://powerbi.com/product/schema#basic",
             filterType: 1,                    // FilterType.Basic
             target: {
@@ -645,6 +771,20 @@ export class Visual implements IVisual {
             operator: "In",
             values,
         } as unknown as powerbi.IFilter;
+        if (panelValue === undefined || panelValue === null) return entityFilter;
+
+        // Small multiples: the panel half is mandatory, or the rows of that bin would
+        // be selected in every panel. Without a usable target, fall back to selection
+        // IDs, which carry the panel in their scope.
+        const pq = (this.lastPanCol?.source?.queryName ?? "").split(".");
+        if (pq.length !== 2 || !pq[0] || !pq[1]) return null;
+        return [entityFilter, {
+            $schema: "https://powerbi.com/product/schema#basic",
+            filterType: 1,
+            target: { table: pq[0], column: pq[1] },
+            operator: "In",
+            values: [panelValue],
+        } as unknown as powerbi.IFilter];
     }
 
     /** FilterAction is a const enum — the literals are required at runtime. */
@@ -655,13 +795,46 @@ export class Visual implements IVisual {
      * Filters the report by a bin. Prefers the exact filter; falls back to
      * selection IDs when the model gives no usable target.
      */
-    private selectBin(indices: number[], ids: powerbi.extensibility.ISelectionId[], multi: boolean): void {
+    private selectBin(indices: number[], ids: powerbi.extensibility.ISelectionId[], multi: boolean,
+                      panelValue?: powerbi.PrimitiveValue, key?: string, wasSelected?: boolean): void {
         if (!this.canInteract) return;
+
+        // Clicking the selected bar again clears the selection, as in a native chart.
+        if (wasSelected && !multi) { this.clearSelection(); return; }
+        // Ctrl+click adds to what is filtered, within one panel; in another panel it
+        // starts a new selection (two IN filters cannot express "bin A of panel 1 and
+        // bin B of panel 2" without selecting combinations nobody clicked).
+        const samePanel = panelValue === undefined || panelValue === null
+            || this.curFilterPanel === null || this.curFilterPanel === String(panelValue);
+        const keep = multi && samePanel ? this.curFilterVals : [];
+        const removing = multi && !!wasSelected;
+
+        // Drill mode. Power BI drills into a data point only when the visual SELECTS it
+        // through the selection manager; the exact BasicFilter below never reaches the
+        // drill logic, so with drill mode on a click did nothing. While the Detail field
+        // has a level below (drillableRoles lists Down), select instead: that drills in
+        // drill mode and still cross-filters otherwise. Upper levels hold few members per
+        // bin, so the selection-ID cap does not bite; the last level keeps the exact filter.
+        const dr = (this.lastDataView?.metadata as any)?.dataRoles;
+        const canDrillDown = !dr?.isDrillDisabled
+            && ((dr?.drillableRoles?.["category"] ?? []) as number[]).indexOf(2 /* DrillType.Down */) >= 0;
+        if (canDrillDown && ids.length) {
+            if (this.filterApplied) {
+                this.filterApplied = false;
+                this.host.applyJsonFilter(null, "general", "filter", this.FILTER_REMOVE);
+            }
+            this.selectionManager.select(ids.slice(0, MAX_SEL_IDS_PER_BIN), multi);
+            if (!multi) this.selKeys.clear();
+            if (key) this.selKeys.add(key);
+            this.repaint();
+            return;
+        }
+        this.selKeys.clear();
 
         // Freno antes de construir nada. Sin esto, un bin de un histograma sesgado
         // -donde el primero se lleva la mayoria de las filas- genera un IN() de
         // cientos de miles de valores y bloquea el informe al pulsarlo.
-        const distinct = this.countDistinct(indices, MAX_FILTER_VALUES);
+        const distinct = this.countDistinct(indices, MAX_FILTER_VALUES) + (removing ? 0 : keep.length);
         if (distinct > MAX_FILTER_VALUES) {
             this.oversizedSelection = distinct;
             this.renderOversizedNotice();
@@ -669,15 +842,29 @@ export class Visual implements IVisual {
         }
         this.oversizedSelection = 0;
 
-        const filter = this.buildBinFilter(indices);
+        const filter = this.buildBinFilter(indices, panelValue, keep, removing);
+        if (!filter && removing) { this.clearSelection(); return; }
         if (filter) {
             this.filterApplied = true;
             this.host.applyJsonFilter(filter, "general", "filter", this.FILTER_MERGE);
+            const ent = (Array.isArray(filter) ? filter[0] : filter) as any;
+            this.curFilterVals = Array.isArray(ent?.values) ? ent.values.slice() : [];
+            this.curFilterPanel = panelValue === undefined || panelValue === null ? null : String(panelValue);
+            this.repaint();
             return;
         }
         // Respaldo: el modelo no da un objetivo tabla.columna. Los selection IDs
         // siguen funcionando, con tope.
         this.selectionManager.select(ids.slice(0, MAX_SEL_IDS_PER_BIN), multi);
+        if (!multi) this.selKeys.clear();
+        if (key) this.selKeys.add(key);
+        this.repaint();
+    }
+
+    /** Redraw for a change only the visual knows about (no update() from Power BI). */
+    private repaint(): void {
+        if (!this.lastOptions) return;
+        try { this.render(this.lastOptions); } catch (e) { console.error("[HistogramPro]", e); }
     }
 
     /**
@@ -702,8 +889,8 @@ export class Visual implements IVisual {
     /** Dice por que el clic no ha hecho nada, y que palanca lo arregla. */
     private renderOversizedNotice(): void {
         this.container.selectAll(".oversized-notice").remove();
-        const n = this.oversizedSelection.toLocaleString();
-        const cap = MAX_FILTER_VALUES.toLocaleString();
+        const n = this.fmtInt(this.oversizedSelection);
+        const cap = this.fmtInt(MAX_FILTER_VALUES);
 
         const note = this.container.append("div")
             .classed("oversized-notice", true)
@@ -713,12 +900,12 @@ export class Visual implements IVisual {
             .style("font-size", "11px").style("color", "#7A4E12")
             .style("line-height", "1.4");
 
-        note.append("div").text(
-            `This bin holds over ${n} distinct values — more than the ${cap} Power BI can cross-filter at once.`);
+        note.append("div").text(this.tf("UI_Oversized",
+            "This bin holds over {0} distinct values — more than the {1} Power BI can cross-filter at once.", n, cap));
         note.append("div").text(
             this.isPro
-                ? "Raise the bin count (Histogram → Bins) so each bar covers fewer rows, or trim the outliers."
-                : "Pro lets you raise the bin count so each bar covers fewer rows.");
+                ? this.t("UI_OversizedPro", "Raise the bin count (Histogram → Bins) so each bar covers fewer rows, or trim the outliers.")
+                : this.t("UI_OversizedFree", "Pro lets you raise the bin count so each bar covers fewer rows."));
 
         setTimeout(() => this.container.selectAll(".oversized-notice").remove(), 6000);
     }
@@ -731,6 +918,11 @@ export class Visual implements IVisual {
             this.host.applyJsonFilter(null, "general", "filter", this.FILTER_REMOVE);
         }
         this.selectionManager.clear();
+        const had = this.selKeys.size > 0 || this.curFilterVals.length > 0;
+        this.selKeys.clear();
+        this.curFilterVals = [];
+        this.curFilterPanel = null;
+        if (had) this.repaint();
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
@@ -771,10 +963,16 @@ export class Visual implements IVisual {
     }
 
     private render(options: VisualUpdateOptions): void {
+        this.binIds = [];
         const dataView = options.dataViews?.[0];
         const width = options.viewport.width;
         const height = options.viewport.height;
 
+        const active = (this.container.node() as HTMLElement)?.ownerDocument?.activeElement;
+        // Only while navigating with the keyboard. A mouse click focuses the bar it hits,
+        // and putting focus back on "the keyboard's bar" after the repaint drew a focus
+        // ring on bin 1 whatever was clicked.
+        this.restoreFocus = this.keyboardNav && !!active && (this.container.node() as HTMLElement).contains(active);
         this.svg.selectAll("*").remove();
         this.svg.attr("width", width).attr("height", height);
 
@@ -795,37 +993,108 @@ export class Visual implements IVisual {
 
         // Extract values + selection IDs + highlights
         const raw: number[] = [];
-        const rawWithIds: Array<{ value: number; selId: powerbi.extensibility.ISelectionId; origIndex: number }> = [];
+        type RowT = { value: number; selId: powerbi.extensibility.ISelectionId; origIndex: number; panel: string; hl: boolean };
+        const rawWithIds: RowT[] = [];
         const mainValueCol = dataView.categorical.values.find(v => v.source.roles?.["measure"]) ?? dataView.categorical.values[0];
         const tooltipCols = dataView.categorical.values.filter(v => v.source.roles?.["tooltips"]);
         const rawValues = mainValueCol.values;
         const highlightValues = mainValueCol.highlights;
         const hasHighlights = highlightValues != null;
         const highlightedRaw: number[] = [];
-        const categories = dataView.categorical.categories?.[0];
+        const cats = dataView.categorical.categories ?? [];
+        const categories = cats.find(c => c.source?.roles?.["category"]);
+        const panCol = cats.find(c => c.source?.roles?.["panel"] && c !== categories) ?? null;
         this.lastCatCol = categories ?? null;
+        this.lastPanCol = panCol;
+
+        // The selection, read back from the filter Power BI holds for this visual: a
+        // click, a bookmark or a reopened report all arrive here the same way.
+        const colOf = (src?: powerbi.DataViewMetadataColumn) => {
+            const p = (src?.queryName ?? "").split(".");
+            return p.length === 2 ? p[1] : null;
+        };
+        const catColName = colOf(categories?.source), panColName = colOf(panCol?.source ?? undefined);
+        let selVals: Set<string> | null = null, selPanels: Set<string> | null = null;
+        for (const f of ((options as any).jsonFilters ?? []) as any[]) {
+            const col = f?.target?.column, vs = f?.values;
+            if (!Array.isArray(vs)) continue;
+            if (panColName && col === panColName && col !== catColName) {
+                selPanels = selPanels ?? new Set<string>();
+                vs.forEach((v: any) => selPanels!.add(String(v)));
+            } else if (catColName && col === catColName) {
+                selVals = selVals ?? new Set<string>();
+                vs.forEach((v: any) => selVals!.add(String(v)));
+            }
+        }
+        // Power BI does not always hand the visual's own filter back in jsonFilters (in
+        // Desktop it often does not). So the visual keeps its own copy, set on click:
+        //   - jsonFilters has it  -> it wins (bookmarks, reopened report)
+        //   - a filter is stored but unreadable -> keep our copy
+        //   - no filter at all    -> the selection was cleared elsewhere: drop our copy
+        const ownFilterStored = !!(dataView.metadata?.objects?.["general"]?.["filter"])
+            || ((options as any).jsonFilters?.length ?? 0) > 0;
+        if (selVals) {
+            this.selKeys.clear();
+            this.curFilterVals = [];
+            for (const f of ((options as any).jsonFilters ?? []) as any[]) {
+                if (catColName && f?.target?.column === catColName && Array.isArray(f?.values)) this.curFilterVals.push(...f.values);
+            }
+            this.curFilterPanel = selPanels && selPanels.size === 1 ? Array.from(selPanels)[0] : null;
+        } else if (ownFilterStored && this.curFilterVals.length) {
+            selVals = new Set(this.curFilterVals.map(v => String(v)));
+            if (this.curFilterPanel !== null) selPanels = new Set([this.curFilterPanel]);
+        } else if (!ownFilterStored) {
+            this.curFilterVals = [];
+            this.curFilterPanel = null;
+        }
+        const anySel = !!selVals || this.selKeys.size > 0;
+        const usePanels = !!panCol && this.allow("small multiples");
+        const panelKey = (i: number): string => {
+            const v = panCol?.values[i];
+            return v === null || v === undefined ? "\u0000" : (v instanceof Date ? String(v.getTime()) : String(v));
+        };
 
         for (let i = 0; i < rawValues.length; i++) {
             const v = rawValues[i];
             if (v != null && isFinite(+v)) {
-                const builder = this.host.createSelectionIdBuilder();
-                if (categories) builder.withCategory(categories, i);
+                let builder = this.host.createSelectionIdBuilder();
+                if (categories) builder = builder.withCategory(categories, i);
+                if (usePanels && panCol) builder = builder.withCategory(panCol, i);
                 const selId = builder.createSelectionId();
+                const hl = hasHighlights && highlightValues[i] != null && isFinite(+highlightValues[i]);
                 raw.push(+v);
-                rawWithIds.push({ value: +v, selId, origIndex: i });
-                if (hasHighlights && highlightValues[i] != null && isFinite(+highlightValues[i])) {
-                    highlightedRaw.push(+v);
-                }
+                rawWithIds.push({ value: +v, selId, origIndex: i, panel: usePanels ? panelKey(i) : "", hl });
+                if (hl) highlightedRaw.push(+v);
             }
         }
+        type Shared = { lo: number; hi: number; rd: { lo: number; hi: number; clamped: boolean }; scaleRef: number; yMax: number };
+        const fullW = width, fullH = height;
+        // Small multiples: one legend for all panels, in a band across the top.
+        let legendBand = 0;
+        let bottomBandG = 0;
+        let clampDone = false;
+        const drawPanel = (raw: number[], rawWithIds: RowT[], highlightedRaw: number[],
+                           ox: number, oy: number, width: number, height: number,
+                           shared: Shared | null, title: string, panelValue: powerbi.PrimitiveValue | undefined,
+                           showLegendHere: boolean): void => {
+        const titleH = title ? Math.max(9, settings.smTitleSize) + 8 : 0;
         if (raw.length < 2) return;
 
         raw.sort((a, b) => a - b);
         const n = raw.length;
 
+        // Every number on the chart goes through the model's format string and the
+        // report's locale. The scale reference is the largest magnitude, so ticks,
+        // statistics and tooltips share one unit (K, M…).
+        const scaleRef = shared ? shared.scaleRef : Math.max(Math.abs(raw[0]), Math.abs(raw[n - 1]));
+        const formatValue = (v: number, fmt: string): string => this.fmtNumber(v, fmt || undefined, fmt === formatStr ? scaleRef : Math.abs(v));
+        const fmtNum = (v: number): string => this.fmtInt(v);
+
         const trimOk = this.allow("outlier trimming");
-        const loVal = trimOk && settings.trimLower > 0 ? percentile(raw, settings.trimLower) : raw[0];
-        const hiVal = trimOk && settings.trimUpper > 0 ? percentile(raw, 100 - settings.trimUpper) : raw[n - 1];
+        // With small multiples the trim cut-offs are the whole dataset's, so every
+        // panel is cut at the same values.
+        const loVal = shared ? shared.lo : (trimOk && settings.trimLower > 0 ? percentile(raw, settings.trimLower) : raw[0]);
+        const hiVal = shared ? shared.hi : (trimOk && settings.trimUpper > 0 ? percentile(raw, 100 - settings.trimUpper) : raw[n - 1]);
 
         const data = raw.filter(v => v >= loVal && v <= hiVal);
         if (data.length < 2) return;
@@ -839,20 +1108,39 @@ export class Visual implements IVisual {
         const std = Math.sqrt(data.reduce((s, v) => s + (v - mean) ** 2, 0) / nFiltered);
         const dMin = data[0], dMax = data[data.length - 1];
 
+        // Small tiles: the axis titles, the legend and the statistics panel take more
+        // room than they give, so they go and the bars keep the space.
+        height = height - titleH;
+        const compact = width < 320 || height < 220;
+        if (compact) {
+            settings.showXLabel = false;
+            settings.showYLabel = false;
+            // With small multiples the legend lives in a shared band outside the panels,
+            // so a small panel is no reason to drop it (it vanished with six regions).
+            if (!shared) settings.showLegend = false;
+            settings.axisFontSize = Math.max(8, settings.axisFontSize - 1);
+        }
+
         // Reserve extra margin for the horizontal legend so it never overlaps the plot
-        const legendFs  = Math.max(8, settings.axisFontSize - 1);
+        const legendFs  = Math.max(6, settings.legendFontSize || Math.max(8, settings.axisFontSize - 1));
         const legendRowH = settings.showLegend ? legendFs + 12 : 0;  // line height + padding
         const marginL = settings.showYLabel ? 52 : 38;
-        const marginR = 16;
-        const marginT = 16 + (settings.showLegend && !settings.legendBottom ? legendRowH + 16 : 0);
-        const marginB = (settings.showXLabel ? 46 : 32) + (settings.showLegend && settings.legendBottom ? legendRowH + 16 : 0);
+        // Room for the cumulative axis on the right when the line is on.
+        const showCum = this.allow("cumulative line") && settings.showCumulative;
+        const marginR = showCum ? 40 : 16;
+        // With small multiples the legend lives in a shared band, not in every panel.
+        const ownLegend = settings.showLegend && !shared;
+        const marginT = 16 + (ownLegend && !settings.legendBottom ? legendRowH + 16 : 0);
+        const marginB = (settings.showXLabel ? 46 : 32) + (ownLegend && settings.legendBottom ? legendRowH + 16 : 0);
         const plotW = Math.max(20, width - marginL - marginR);
         const plotH = Math.max(20, height - marginT - marginB);
 
         // Con recorte manual de outliers (Pro) manda el usuario; si no, el eje se
         // calcula de forma resistente a colas largas.
         const manualTrim = trimOk && (settings.trimLower > 0 || settings.trimUpper > 0);
-        const rd = manualTrim ? { lo: dMin, hi: dMax, clamped: false } : robustDomain(data);
+        // Small multiples share one value axis: the same bins in every panel, or the
+        // shapes could not be compared.
+        const rd = shared ? shared.rd : (manualTrim ? { lo: dMin, hi: dMax, clamped: false } : robustDomain(data));
         this.axisClamped = rd.clamped;
 
         const xScale = d3.scaleLinear().domain([rd.lo, rd.hi]).range([0, plotW]).nice();
@@ -868,7 +1156,17 @@ export class Visual implements IVisual {
             .thresholds(d3.range(xDomain[0], xDomain[1], (xDomain[1] - xDomain[0]) / effectiveBins));
         const bins = binner(data.map(clampToAxis));
         const maxCount = d3.max(bins, b => b.length) || 1;
-        const yScale = d3.scaleLinear().domain([0, maxCount]).range([plotH, 0]).nice();
+        // A band at the top of the plot for the labels drawn over it — zone labels, then
+        // one row per reference line, then the value label of the tallest bar. Bars are
+        // scaled to stop below it; before, the tallest bar ran under μ and M and its
+        // value label was hidden.
+        const refFs = settings.axisFontSize;
+        const zoneLabelsOn = this.allow("value zones") && settings.zShow && settings.zLabels && settings.zCut1 !== settings.zCut2;
+        const zoneBand = zoneLabelsOn ? Math.max(8, settings.axisFontSize - 1) + 8 : 0;
+        const refRows = [settings.showMean, settings.showMedian, settings.showP25, settings.showP75].filter(Boolean).length;
+        const vlBand = this.allow("value labels") && settings.showValueLabels ? settings.vlFontSize + 4 : 0;
+        const headroom = Math.min(plotH * 0.4, zoneBand + (refRows ? 4 + refRows * (refFs + 4) : 0) + vlBand);
+        const yScale = d3.scaleLinear().domain([0, shared ? shared.yMax : maxCount]).range([plotH, headroom]).nice();
 
         // Per bin: the rows it holds. The indices drive the exact filter; the
         // selection IDs are the fallback for models with no usable filter target.
@@ -877,6 +1175,29 @@ export class Visual implements IVisual {
         );
         const binSelectionIds: powerbi.extensibility.ISelectionId[][] = binRows.map(rows => rows.map(d => d.selId));
         const binIndices: number[][] = binRows.map(rows => rows.map(d => d.origIndex));
+
+        // Bar colour per bin. Conditional formatting (fx) resolves per row and comes
+        // back on categories[0].objects; a bin takes the colour of its middle row by
+        // value. A single colour across every row is a plain colour the user picked
+        // (the wildcard selector persists it there too), and then it paints every bar.
+        const catObjs = (categories as any)?.objects as powerbi.DataViewObjects[] | undefined;
+        this.uniformBarColor = null;
+        if (catObjs?.length) {
+            const distintos = new Set<string>();
+            for (const o of catObjs) {
+                const c = (o?.["histogram"]?.["barColor"] as powerbi.Fill)?.solid?.color;
+                if (typeof c === "string" && c) distintos.add(c);
+                if (distintos.size > 1) break;
+            }
+            if (distintos.size === 1) this.uniformBarColor = distintos.values().next().value;
+        }
+        const ruleColorOf = (rows: typeof rawWithIds): string | null => {
+            if (!catObjs?.length || !rows.length) return null;
+            const ordered = rows.slice().sort((a, b) => a.value - b.value);
+            const mid = ordered[Math.floor(ordered.length / 2)];
+            const c = (catObjs[mid.origIndex]?.["histogram"]?.["barColor"] as powerbi.Fill)?.solid?.color;
+            return typeof c === "string" && c ? c : null;
+        };
 
         // Highlighted bins for filter-in
         const highlightBinner = d3.bin()
@@ -911,10 +1232,30 @@ export class Visual implements IVisual {
             ? (this.host.colorPalette.foregroundSelected?.value ?? settings.benchmarkColor)
             : (ibcs ? IBCS.benchmark : settings.benchmarkColor);
 
+        // Fill precedence: high contrast → IBCS → benchmark colours → a plain colour
+        // the user picked → the fx rule → the default bar colour.
+        const binFill = (binIndex: number, bin: d3.Bin<number, number>): string => {
+            if (isHighContrast || ibcs) return barColor;
+            if (settings.showBenchmark && settings.bmColorBars && bin.x0 != null && bin.x1 != null) {
+                return (bin.x0 + bin.x1) / 2 >= settings.benchmarkValue ? settings.bmAboveColor : settings.bmBelowColor;
+            }
+            if (estiloOk && this.uniformBarColor) return this.uniformBarColor;
+            if (estiloOk) return ruleColorOf(binRows[binIndex] || []) ?? barColor;
+            return barColor;
+        };
+
         const gap = estiloOk ? Math.max(0, settings.barGap) : 1;
         const barOpacity = (this.isPro ? Math.min(100, Math.max(0, settings.barOpacity)) : 80) / 100;
 
-        const g = this.svg.append("g").attr("transform", `translate(${marginL},${marginT})`);
+        if (title) {
+            this.svg.append("text")
+                .attr("x", ox + 4).attr("y", oy + Math.max(9, settings.smTitleSize))
+                .attr("font-size", Math.max(9, settings.smTitleSize)).attr("font-weight", "600")
+                .attr("fill", isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : settings.smTitleColor)
+                .attr("font-family", "Segoe UI, sans-serif")
+                .text(title);
+        }
+        const g = this.svg.append("g").attr("transform", `translate(${ox + marginL},${oy + titleH + marginT})`);
 
         // Grid
         g.append("g").call(
@@ -940,6 +1281,56 @@ export class Visual implements IVisual {
             }
         }
 
+        // Value zones (Pro): two cuts split the value axis into three bands, each
+        // labelled with its share of the rows AND, optionally, of the total value —
+        // "deals above 50k: 9% of deals, 48% of revenue". Counted over the rows the
+        // chart uses (after trimming), not over the bins, so the figures are exact.
+        type Zone = { lo: number; hi: number; rows: number; value: number; color: string; label: string };
+        let zones: Zone[] = [];
+        const zoneLabels: { x0: number; x1: number; color: string; candidates: string[] }[] = [];
+        if (this.allow("value zones") && settings.zShow && settings.zCut1 !== settings.zCut2) {
+            const c1 = Math.min(settings.zCut1, settings.zCut2), c2 = Math.max(settings.zCut1, settings.zCut2);
+            const z = [0, 0, 0], zv = [0, 0, 0];
+            let totalValue = 0;
+            for (const v of data) {
+                const k = v <= c1 ? 0 : v <= c2 ? 1 : 2;
+                z[k]++; zv[k] += v; totalValue += v;
+            }
+            const fc1 = formatValue(c1, formatStr), fc2 = formatValue(c2, formatStr);
+            const names = [
+                this.tf("UI_ZoneLow", "≤ {0}", fc1),
+                this.tf("UI_ZoneMid", "{0} – {1}", fc1, fc2),
+                this.tf("UI_ZoneHigh", "> {0}", fc2),
+            ];
+            const cols = isHighContrast
+                ? [0, 1, 2].map(() => this.host.colorPalette.foreground?.value ?? "#FFFFFF")
+                : (ibcs ? ["#D9D9D9", "#A6A6A6", "#595959"] : [settings.zColor1, settings.zColor2, settings.zColor3]);
+            zones = [0, 1, 2].map(k => ({
+                lo: k === 0 ? xDomain[0] : k === 1 ? c1 : c2,
+                hi: k === 0 ? c1 : k === 1 ? c2 : xDomain[1],
+                rows: z[k], value: totalValue > 0 ? zv[k] / totalValue : NaN,
+                color: cols[k], label: names[k],
+            }));
+            const zg = g.append("g").attr("class", "value-zones").attr("pointer-events", "none");
+            zones.forEach(zn => {
+                const x0 = xScale(Math.max(xDomain[0], Math.min(xDomain[1], zn.lo)));
+                const x1 = xScale(Math.max(xDomain[0], Math.min(xDomain[1], zn.hi)));
+                if (x1 - x0 < 1) return;
+                zg.append("rect").attr("x", x0).attr("y", 0).attr("width", x1 - x0).attr("height", plotH)
+                    .attr("fill", isHighContrast ? "none" : zn.color).attr("fill-opacity", 0.12)
+                    .attr("stroke", isHighContrast ? zn.color : "none").attr("stroke-dasharray", isHighContrast ? "3,3" : null);
+                if (!settings.zLabels) return;
+                const rowsPct = this.pct(100 * zn.rows / nFiltered);
+                const share = this.tf("UI_ZoneRows", "{0} of rows", rowsPct);
+                const valShare = settings.zValueShare && isFinite(zn.value)
+                    ? " · " + this.tf("UI_ZoneValue", "{0} of value", this.pct(100 * zn.value)) : "";
+                zoneLabels.push({ x0, x1, color: zn.color,
+                    candidates: [`${zn.label}: ${share}${valShare}`, `${zn.label}: ${share}`, `${zn.label} · ${rowsPct}`, rowsPct] });
+            });
+        }
+        const zoneOf = (v: number): Zone | null =>
+            zones.length ? (v <= zones[0].hi ? zones[0] : v <= zones[1].hi ? zones[1] : zones[2]) : null;
+
         // Context menu on empty space
         this.svg.on("click", () => { this.clearSelection(); });
         this.svg.on("contextmenu", (event: MouseEvent) => {
@@ -960,27 +1351,67 @@ export class Visual implements IVisual {
 
             const ids = binSelectionIds[binIndex] || [];
             const rowIdx = binIndices[binIndex] || [];
-            const dimmedOpacity = hasHighlights ? barOpacity * 0.25 : barOpacity;
+            // A selection made here wins over highlights pushed in from other visuals.
+            const binKey = `${title}|${binIndex}`;
+            this.binIds.push({ key: binKey, ids });
+            const isSel = (!!selVals && rowIdx.length > 0
+                    && rowIdx.every(i => selVals!.has(String(categories?.values[i])))
+                    && (!selPanels || panelValue === undefined || panelValue === null || selPanels.has(String(panelValue))))
+                || this.selKeys.has(binKey);
+            const dimmedOpacity = anySel ? (isSel ? barOpacity : barOpacity * 0.25)
+                : (hasHighlights ? barOpacity * 0.25 : barOpacity);
 
             barsG.append("rect")
+                .classed("hp-bar", true)
                 .attr("x", bx).attr("y", by).attr("width", bw).attr("height", bh)
-                .attr("fill", barColor).attr("fill-opacity", dimmedOpacity)
+                .attr("fill", binFill(binIndex, bin)).attr("fill-opacity", dimmedOpacity)
                 .attr("stroke", borderColor).attr("stroke-width", borderWidth)
-                .attr("tabindex", 0)
-                .attr("role", "button")
-                .attr("aria-label", `Bin ${formatValue(bin.x0!, formatStr)} to ${formatValue(bin.x1!, formatStr)}, count ${bin.length}, ${((bin.length / nFiltered) * 100).toFixed(1)}%`)
+                .attr("role", "option")
+                .attr("aria-selected", isSel ? "true" : "false")
+                .attr("aria-label", this.tf("UI_AriaBin", "Bin {0} to {1}, count {2}, {3} of total",
+                    formatValue(bin.x0!, formatStr), formatValue(bin.x1!, formatStr), fmtNum(bin.length), this.pct((bin.length / nFiltered) * 100)))
                 .style("cursor", "pointer")
+                .on("mousedown", () => { this.keyboardNav = false; })
                 .on("keydown", (event: KeyboardEvent) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        this.selectBin(rowIdx, ids, event.ctrlKey);
-                    } else if (event.key === "Escape") {
-                        this.clearSelection();
+                    this.keyboardNav = true;
+                    if (!this.canInteract) return;
+                    const nodes = barsG.selectAll<SVGRectElement, unknown>(".hp-bar").nodes();
+                    const i = nodes.indexOf(event.currentTarget as SVGRectElement);
+                    const go = (k: number) => {
+                        const j = Math.max(0, Math.min(nodes.length - 1, k));
+                        this.focusedBin = j;
+                        nodes.forEach((nd, x) => nd.setAttribute("tabindex", x === j ? "0" : "-1"));
+                        nodes[j]?.focus();
+                    };
+                    let handled = true;
+                    switch (event.key) {
+                        case "ArrowRight": case "ArrowDown": go(i + 1); break;
+                        case "ArrowLeft":  case "ArrowUp":   go(i - 1); break;
+                        case "Home": go(0); break;
+                        case "End":  go(nodes.length - 1); break;
+                        case "Enter": case " ": this.selectBin(rowIdx, ids, event.ctrlKey || event.metaKey, panelValue, binKey, isSel); break;
+                        case "Escape": this.clearSelection(); break;
+                        case "ContextMenu": {
+                            const r = (event.currentTarget as SVGRectElement).getBoundingClientRect();
+                            this.selectionManager.showContextMenu(ids[0] ?? null, { x: r.left + r.width / 2, y: r.top });
+                            break;
+                        }
+                        case "F10":
+                            if (event.shiftKey) {
+                                const r = (event.currentTarget as SVGRectElement).getBoundingClientRect();
+                                this.selectionManager.showContextMenu(ids[0] ?? null, { x: r.left + r.width / 2, y: r.top });
+                            } else handled = false;
+                            break;
+                        default: handled = false;
                     }
+                    if (handled) { event.preventDefault(); event.stopPropagation(); }
                 })
                 .on("click", (event: MouseEvent) => {
+                    const all = barsG.selectAll<SVGRectElement, unknown>(".hp-bar").nodes();
+                    const at = all.indexOf(event.currentTarget as SVGRectElement);
+                    if (at >= 0) this.focusedBin = at;
                     event.stopPropagation();
-                    this.selectBin(rowIdx, ids, (event as MouseEvent).ctrlKey);
+                    this.selectBin(rowIdx, ids, (event as MouseEvent).ctrlKey, panelValue, binKey, isSel);
                 })
                 .on("contextmenu", (event: MouseEvent) => {
                     event.preventDefault();
@@ -1003,14 +1434,18 @@ export class Visual implements IVisual {
                         const avg = vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
                         return {
                             displayName: tc.source.displayName,
-                            value: avg != null ? formatValue(avg, tc.source.format ?? "") : "(blank)"
+                            value: avg != null ? formatValue(avg, tc.source.format ?? "") : this.t("UI_Blank", "(blank)")
                         };
                     });
                     this.tooltipService.show({
                         dataItems: [
-                            { displayName: "Range", value: `${formatValue(bin.x0!, formatStr)} – ${formatValue(bin.x1!, formatStr)}` },
-                            { displayName: "Count", value: String(bin.length) },
-                            { displayName: "% of total", value: `${((bin.length / nFiltered) * 100).toFixed(1)}%` },
+                            { displayName: this.t("UI_TipRange", "Range"), value: `${formatValue(bin.x0!, formatStr)} – ${formatValue(bin.x1!, formatStr)}` },
+                            { displayName: this.t("UI_TipCount", "Count"), value: fmtNum(bin.length) },
+                            { displayName: this.t("UI_TipShare", "% of total"), value: this.pct((bin.length / nFiltered) * 100) },
+                            ...(showCum ? [{ displayName: this.t("UI_TipCum", "Cumulative"),
+                                value: this.pct(100 * bins.slice(0, binIndex + 1).reduce((a, b) => a + b.length, 0) / nFiltered) }] : []),
+                            ...(zones.length && bin.x0 != null && bin.x1 != null
+                                ? [{ displayName: this.t("UI_TipZone", "Zone"), value: zoneOf((bin.x0 + bin.x1) / 2)?.label ?? "" }] : []),
                             ...extraItems,
                         ],
                         identities: ids,
@@ -1028,8 +1463,10 @@ export class Visual implements IVisual {
                 });
 
             // Value labels (Pro only)
-            if (this.allow("value labels") && settings.showValueLabels && bh > 14) {
-                const labelVal = settings.vlShowPercent ? `${((bin.length / nFiltered) * 100).toFixed(1)}%` : String(bin.length);
+            // The label sits ABOVE the bar, so a short bar still has room for it. The old
+            // bh > 14 test came from labels drawn inside the bar and hid small bins.
+            if (this.allow("value labels") && settings.showValueLabels && bh > 0) {
+                const labelVal = settings.vlShowPercent ? this.pct((bin.length / nFiltered) * 100) : fmtNum(bin.length);
                 barsG.append("text")
                     .attr("x", bx + bw / 2).attr("y", by - 3)
                     .attr("text-anchor", "middle").attr("font-size", settings.vlFontSize)
@@ -1037,9 +1474,19 @@ export class Visual implements IVisual {
             }
         });
 
+        // One Tab stop for the whole chart (roving tabindex); the arrows walk the bins.
+        {
+            const nodes = barsG.selectAll<SVGRectElement, unknown>(".hp-bar").nodes();
+            this.focusedBin = Math.max(0, Math.min(this.focusedBin, nodes.length - 1));
+            nodes.forEach((nd, x) => nd.setAttribute("tabindex", x === this.focusedBin ? "0" : "-1"));
+            this.svg.attr("role", "listbox").attr("aria-label",
+                this.tf("UI_AriaChart", "Histogram of {0}, {1} bins.", mainValueCol.source.displayName ?? "", String(nodes.length)));
+            if (this.restoreFocus) { this.restoreFocus = false; nodes[this.focusedBin]?.focus(); }
+        }
+
         // Filter-in overlay (highlighted bars at full opacity)
-        if (hasHighlights) {
-            highlightBins.forEach(hbin => {
+        if (hasHighlights && !anySel) {
+            highlightBins.forEach((hbin, hi) => {
                 if (hbin.x0 == null || hbin.x1 == null || hbin.length === 0) return;
                 const bx = xScale(hbin.x0) + gap / 2;
                 const bw = Math.max(0, xScale(hbin.x1) - xScale(hbin.x0) - gap);
@@ -1048,7 +1495,7 @@ export class Visual implements IVisual {
                 if (bw <= 0 || bh <= 0) return;
                 barsG.append("rect")
                     .attr("x", bx).attr("y", by).attr("width", bw).attr("height", bh)
-                    .attr("fill", barColor).attr("fill-opacity", barOpacity)
+                    .attr("fill", bins[hi] ? binFill(hi, bins[hi]) : barColor).attr("fill-opacity", barOpacity)
                     .attr("stroke", borderColor).attr("stroke-width", borderWidth)
                     .style("pointer-events", "none");
             });
@@ -1056,7 +1503,7 @@ export class Visual implements IVisual {
 
         // X axis
         g.append("g").attr("transform", `translate(0,${plotH})`)
-            .call(d3.axisBottom(xScale).tickFormat(d => formatValue(+d, formatStr)).ticks(Math.min(effectiveBins, 8)))
+            .call(d3.axisBottom(xScale).tickFormat(d => formatValue(+d, formatStr)).ticks(Math.min(effectiveBins, 8, Math.max(2, Math.floor(plotW / (settings.axisFontSize * 4.5))))))
             .call(sel => {
                 sel.select(".domain").attr("stroke", effectiveAxisColor);
                 sel.selectAll("text").attr("fill", effectiveAxisColor).attr("font-size", settings.axisFontSize);
@@ -1073,11 +1520,12 @@ export class Visual implements IVisual {
 
         if (settings.showYLabel) {
             g.append("text").attr("transform", "rotate(-90)").attr("x", -plotH / 2).attr("y", -marginL + 12)
-                .attr("text-anchor", "middle").attr("font-size", settings.axisFontSize).attr("fill", effectiveAxisColor).text("Count");
+                .attr("text-anchor", "middle").attr("font-size", settings.axisFontSize).attr("fill", effectiveAxisColor).text(this.t("UI_AxisY", "Count"));
         }
         if (settings.showXLabel) {
             g.append("text").attr("x", plotW / 2).attr("y", plotH + marginB - 6)
-                .attr("text-anchor", "middle").attr("font-size", settings.axisFontSize).attr("fill", effectiveAxisColor).text("Value");
+                .attr("text-anchor", "middle").attr("font-size", settings.axisFontSize).attr("fill", effectiveAxisColor)
+                .text(mainValueCol.source.displayName || this.t("UI_AxisX", "Value"));
         }
 
         // Mean line
@@ -1086,16 +1534,59 @@ export class Visual implements IVisual {
         const effectiveP25Color    = isHighContrast ? (this.host.colorPalette.foreground?.value ?? settings.p25Color)    : (ibcs ? IBCS.p25    : settings.p25Color);
         const effectiveP75Color    = isHighContrast ? (this.host.colorPalette.foreground?.value ?? settings.p75Color)    : (ibcs ? IBCS.p75    : settings.p75Color);
 
+
+        // A background box behind every label drawn over the plot — reference lines and
+        // value zones. They sit over bars and shaded zones, where a coloured label alone
+        // cannot be read. Colour and opacity are in Statistics → Label background; a
+        // halo picked from the text colour looked heavy on light report backgrounds.
+        const labelBg = isHighContrast ? (this.host.colorPalette.background?.value ?? "#000000") : settings.labelBgColor;
+        const labelBgOp = isHighContrast ? 1 : Math.min(100, Math.max(0, settings.labelBgOpacity)) / 100;
+        const withHalo = (sel: d3.Selection<SVGTextElement, unknown, null, undefined>, _c?: string) => {
+            const node = sel.node();
+            if (!node || typeof node.getBBox !== "function" || labelBgOp <= 0) return sel;
+            const bb = node.getBBox();
+            d3.select(node.parentNode as SVGGElement).insert("rect", () => node)
+                .attr("x", bb.x - 3).attr("y", bb.y - 1).attr("width", bb.width + 6).attr("height", bb.height + 2)
+                .attr("rx", 3).attr("fill", labelBg).attr("fill-opacity", labelBgOp).attr("pointer-events", "none");
+            return sel;
+        };
+
+        // Value zone labels, in front of the bars, at the top of each zone. Each takes the
+        // longest wording that fits its zone, measured, not estimated.
+        let refTop = 0;
+        if (zoneLabels.length) {
+            const zfs = Math.max(8, settings.axisFontSize - 1);
+            const zl = g.append("g").attr("class", "zone-labels").attr("pointer-events", "none");
+            for (const zl0 of zoneLabels) {
+                const avail = zl0.x1 - zl0.x0 - 8;
+                const el = zl.append("text").attr("x", zl0.x0 + 4).attr("y", zfs + 2)
+                    .attr("font-size", zfs).attr("font-weight", "600").attr("fill", zl0.color);
+                let ok = false;
+                for (const c of zl0.candidates) {
+                    el.text(c);
+                    const w = (el.node() as SVGTextElement).getComputedTextLength?.() ?? c.length * zfs * 0.6;
+                    if (w <= avail) { ok = true; break; }
+                }
+                if (!ok) { el.remove(); continue; }
+                withHalo(el);
+            }
+            refTop = zfs + 8;
+        }
+
+        // Reference labels stack in the rows that are in use, in the band reserved above.
+        let refRow = 0;
+        const nextRefY = () => refTop + refFs + 2 + (refRow++) * (refFs + 4);
+
         if (settings.showMean && mean >= xDomain[0] && mean <= xDomain[1]) {
             const mx = xScale(mean);
             const meanDash = ibcs ? IBCS.meanDash : "4,3";  // IBCS: solid; default: dashed
             g.append("line").attr("x1", mx).attr("y1", 0).attr("x2", mx).attr("y2", plotH)
                 .attr("stroke", effectiveMeanColor).attr("stroke-width", ibcs ? 2 : 1.5)
                 .attr("stroke-dasharray", meanDash || null!);
-            g.append("text").attr("x", mx + 4).attr("y", 10)
+            withHalo(g.append("text").attr("x", mx + 4).attr("y", nextRefY())
                 .attr("fill", effectiveMeanColor).attr("font-size", settings.axisFontSize)
                 .attr("font-weight", ibcs ? "600" : "normal")
-                .text(`μ ${formatValue(mean, formatStr)}`);
+                .text(`μ ${formatValue(mean, formatStr)}`), effectiveMeanColor);
         }
 
         // Median line
@@ -1105,8 +1596,8 @@ export class Visual implements IVisual {
             g.append("line").attr("x1", mdx).attr("y1", 0).attr("x2", mdx).attr("y2", plotH)
                 .attr("stroke", effectiveMedianColor).attr("stroke-width", 1.5)
                 .attr("stroke-dasharray", medianDash);
-            g.append("text").attr("x", mdx + 4).attr("y", 24)
-                .attr("fill", effectiveMedianColor).attr("font-size", settings.axisFontSize).text(`M ${formatValue(median, formatStr)}`);
+            withHalo(g.append("text").attr("x", mdx + 4).attr("y", nextRefY())
+                .attr("fill", effectiveMedianColor).attr("font-size", settings.axisFontSize).text(`M ${formatValue(median, formatStr)}`), effectiveMedianColor);
         }
 
         // P25 / P75 quartile lines
@@ -1114,16 +1605,16 @@ export class Visual implements IVisual {
             const px25 = xScale(p25);
             g.append("line").attr("x1", px25).attr("y1", 0).attr("x2", px25).attr("y2", plotH)
                 .attr("stroke", effectiveP25Color).attr("stroke-width", 1).attr("stroke-dasharray", "3,4");
-            g.append("text").attr("x", px25 + 4).attr("y", 38)
-                .attr("fill", effectiveP25Color).attr("font-size", settings.axisFontSize).text(`Q1 ${formatValue(p25, formatStr)}`);
+            withHalo(g.append("text").attr("x", px25 + 4).attr("y", nextRefY())
+                .attr("fill", effectiveP25Color).attr("font-size", settings.axisFontSize).text(`Q1 ${formatValue(p25, formatStr)}`), effectiveP25Color);
         }
 
         if (settings.showP75 && p75 >= xDomain[0] && p75 <= xDomain[1]) {
             const px75 = xScale(p75);
             g.append("line").attr("x1", px75).attr("y1", 0).attr("x2", px75).attr("y2", plotH)
                 .attr("stroke", effectiveP75Color).attr("stroke-width", 1).attr("stroke-dasharray", "3,4");
-            g.append("text").attr("x", px75 + 4).attr("y", 52)
-                .attr("fill", effectiveP75Color).attr("font-size", settings.axisFontSize).text(`Q3 ${formatValue(p75, formatStr)}`);
+            withHalo(g.append("text").attr("x", px75 + 4).attr("y", nextRefY())
+                .attr("fill", effectiveP75Color).attr("font-size", settings.axisFontSize).text(`Q3 ${formatValue(p75, formatStr)}`), effectiveP75Color);
         }
 
         // Benchmark line — user-defined vertical reference
@@ -1131,16 +1622,47 @@ export class Visual implements IVisual {
             const bv = settings.benchmarkValue;
             if (bv >= xDomain[0] && bv <= xDomain[1]) {
                 const bmX = xScale(bv);
-                const bmLabel = settings.benchmarkLabel || "Target";
+                const bmLabel = (settings.benchmarkLabel && settings.benchmarkLabel !== DEFAULTS.benchmarkLabel)
+                    ? settings.benchmarkLabel : this.t("UI_Target", "Target");
                 g.append("line")
                     .attr("x1", bmX).attr("y1", 0).attr("x2", bmX).attr("y2", plotH)
                     .attr("stroke", bmColor).attr("stroke-width", ibcs ? 2.5 : 2);
-                g.append("text")
+                withHalo(g.append("text")
                     .attr("x", bmX + 4).attr("y", plotH - 6)
                     .attr("fill", bmColor).attr("font-size", settings.axisFontSize)
                     .attr("font-weight", ibcs ? "700" : "600")
-                    .text(`${bmLabel}: ${formatValue(bv, formatStr)}`);
+                    .text(`${bmLabel}: ${formatValue(bv, formatStr)}`), bmColor);
             }
+        }
+
+        // Cumulative frequency (Pro): the share of rows up to the end of each bin, on its
+        // own 0–100% axis at the right. Read with the value zones it answers "how many
+        // deals are below 10K" without counting bars.
+        if (showCum) {
+            const cumColor = isHighContrast ? (this.host.colorPalette.foreground?.value ?? settings.cumulativeColor)
+                : (ibcs ? "#262626" : settings.cumulativeColor);
+            const yC = d3.scaleLinear().domain([0, 100]).range([plotH, headroom]);
+            let acc = 0;
+            const pts: [number, number][] = [];
+            if (bins.length && bins[0].x0 != null) pts.push([xScale(bins[0].x0), yC(0)]);
+            for (const b of bins) {
+                if (b.x1 == null) continue;
+                acc += b.length;
+                pts.push([xScale(b.x1), yC(100 * acc / nFiltered)]);
+            }
+            g.append("path").datum(pts).attr("fill", "none").attr("stroke", cumColor).attr("stroke-width", 2)
+                .attr("pointer-events", "none")
+                .attr("d", d3.line<[number, number]>().x(d => d[0]).y(d => d[1]).curve(d3.curveMonotoneX));
+            g.selectAll(".cum-pt").data(pts.slice(1)).enter().append("circle")
+                .attr("cx", d => d[0]).attr("cy", d => d[1]).attr("r", 2.5)
+                .attr("fill", cumColor).attr("pointer-events", "none");
+            g.append("g").attr("transform", `translate(${plotW},0)`)
+                .call(d3.axisRight(yC).ticks(plotH < 160 ? 2 : 4).tickFormat(d => this.pct(Number(d), 0)))
+                .call(sel => {
+                    sel.select(".domain").attr("stroke", effectiveAxisColor);
+                    sel.selectAll("text").attr("fill", effectiveAxisColor).attr("font-size", settings.axisFontSize);
+                    sel.selectAll(".tick line").attr("stroke", effectiveAxisColor);
+                });
         }
 
         // Normal curve (Pro only)
@@ -1155,20 +1677,38 @@ export class Visual implements IVisual {
                 .curve(d3.curveBasis);
             const pts = d3.range(xDomain[0], xDomain[1], (xDomain[1] - xDomain[0]) / 200);
             g.append("path").datum(pts).attr("fill", "none").attr("stroke", settings.normalColor).attr("stroke-width", 2).attr("d", normalLine);
+
+            // With a long tail σ is far wider than the clipped axis, and over the visible
+            // range the bell is flat: correct, but it reads as a broken line. Say why.
+            const binW = (xDomain[1] - xDomain[0]) / effectiveBins;
+            const dens = (d: number) => (1 / (std * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * ((d - mean) / std) ** 2) * nFiltered * binW;
+            let peakX = xDomain[0], peakY = 0;
+            for (const d of pts) { const y = dens(d); if (y > peakY) { peakY = y; peakX = d; } }
+            if (peakY < maxCount * 0.2 && plotW >= 200) {
+                const tx = Math.max(4, Math.min(plotW - 4, xScale(peakX)));
+                withHalo(g.append("text")
+                    .attr("x", tx).attr("y", Math.max(12, yScale(peakY) - 8))
+                    .attr("text-anchor", tx < plotW * 0.3 ? "start" : tx > plotW * 0.7 ? "end" : "middle")
+                    .attr("fill", settings.normalColor).attr("font-size", Math.max(8, settings.axisFontSize - 1))
+                    .attr("pointer-events", "none")
+                    .text(this.tf("UI_NormalFlat", "Normal curve flat: data far from normal (σ = {0})", formatValue(std, formatStr))), settings.normalColor);
+            }
         }
 
         // Stats panel (Pro only)
-        if (this.allow("statistics panel") && settings.showStats) {
+        if (this.allow("statistics panel") && settings.showStats && plotW >= 260) {
             const lines = [
-                `n = ${nFiltered}${n > nFiltered ? ` (${n - nFiltered} trimmed)` : ""}`,
+                `n = ${fmtNum(nFiltered)}${n > nFiltered ? ` (${this.tf("UI_Trimmed", "{0} trimmed", fmtNum(n - nFiltered))})` : ""}`,
                 `μ = ${formatValue(mean, formatStr)}`, `M = ${formatValue(median, formatStr)}`,
                 `σ = ${formatValue(std, formatStr)}`,
                 `min = ${formatValue(dMin, formatStr)}`, `max = ${formatValue(dMax, formatStr)}`,
             ];
-            const px = plotW - 110, py = 8;
+            const px = plotW - 110, py = 8 + refTop;
             const lh = settings.axisFontSize + 3;
             g.append("rect").attr("x", px - 6).attr("y", py - 4).attr("width", 116).attr("height", lines.length * lh + 6)
-                .attr("fill", "rgba(0,0,0,0.35)").attr("rx", 4);
+                .attr("fill", isHighContrast ? (this.host.colorPalette.background?.value ?? "#000000") : settings.statsBgColor)
+                .attr("fill-opacity", isHighContrast ? 1 : Math.min(100, Math.max(0, settings.statsBgOpacity)) / 100)
+                .attr("rx", 4);
             lines.forEach((line, i) => {
                 g.append("text").attr("x", px).attr("y", py + i * lh + settings.axisFontSize)
                     .attr("fill", settings.statsColor).attr("font-size", settings.axisFontSize).attr("font-family", "monospace").text(line);
@@ -1176,21 +1716,23 @@ export class Visual implements IVisual {
         }
 
         // Legend — horizontal, Bullet-style (icon + label, no background)
-        if (settings.showLegend) {
+        if (settings.showLegend && showLegendHere) {
             type LegendItem = { label: string; color: string; dash: string; w: number; kind: "hline" | "vline" };
             const items: LegendItem[] = [];
             const meanDash = ibcs ? "" : "4,3";
             const medDash  = ibcs ? "4,3" : "6,3";
 
-            if (settings.showMean)                 items.push({ label: settings.legendMeanLabel   || DEFAULTS.legendMeanLabel,   color: effectiveMeanColor,   dash: meanDash, w: ibcs ? 2 : 1.5, kind: "hline" });
-            if (settings.showMedian)               items.push({ label: settings.legendMedianLabel || DEFAULTS.legendMedianLabel, color: effectiveMedianColor, dash: medDash,  w: 1.5,            kind: "hline" });
+            const dflt = (v: string, d: string, key: string) => (!v || v === d) ? this.t(key, d) : v;
+            if (settings.showMean)                 items.push({ label: dflt(settings.legendMeanLabel, DEFAULTS.legendMeanLabel, "UI_LegMean"),   color: effectiveMeanColor,   dash: meanDash, w: ibcs ? 2 : 1.5, kind: "hline" });
+            if (settings.showMedian)               items.push({ label: dflt(settings.legendMedianLabel, DEFAULTS.legendMedianLabel, "UI_LegMedian"), color: effectiveMedianColor, dash: medDash,  w: 1.5,            kind: "hline" });
             if (settings.showP25)                  items.push({ label: settings.legendP25Label    || DEFAULTS.legendP25Label,    color: effectiveP25Color,    dash: "3,4",    w: 1,              kind: "hline" });
             if (settings.showP75)                  items.push({ label: settings.legendP75Label    || DEFAULTS.legendP75Label,    color: effectiveP75Color,    dash: "3,4",    w: 1,              kind: "hline" });
-            if (this.isPro && settings.showNormal) items.push({ label: settings.legendNormalLabel || DEFAULTS.legendNormalLabel, color: settings.normalColor, dash: "",       w: 2,              kind: "hline" });
-            if (settings.showBenchmark)            items.push({ label: settings.benchmarkLabel    || "Target",                  color: bmColor,              dash: "",       w: ibcs ? 2.5 : 2, kind: "vline" });
+            if (showCum) items.push({ label: this.t("UI_LegCum", "Cumulative"), color: settings.cumulativeColor, dash: "", w: 2, kind: "hline" });
+            if (this.isPro && settings.showNormal) items.push({ label: dflt(settings.legendNormalLabel, DEFAULTS.legendNormalLabel, "UI_LegNormal"), color: settings.normalColor, dash: "",       w: 2,              kind: "hline" });
+            if (settings.showBenchmark)            items.push({ label: dflt(settings.benchmarkLabel, DEFAULTS.benchmarkLabel, "UI_Target"),                  color: bmColor,              dash: "",       w: ibcs ? 2.5 : 2, kind: "vline" });
 
             if (items.length > 0) {
-                const fs      = Math.max(8, settings.axisFontSize - 1);
+                const fs      = Math.max(6, settings.legendFontSize || Math.max(8, settings.axisFontSize - 1));
                 const iconW   = 16;   // width of icon area
                 const iconH   = fs;   // height of icon area (matches text cap height)
                 const gap     = 5;    // icon → text
@@ -1201,18 +1743,24 @@ export class Visual implements IVisual {
                 const totalW = itemWidths.reduce((a, b) => a + b, 0) + itemGap * (items.length - 1);
 
                 // Center in plot width; clamp inside bounds
-                const lx0 = Math.max(0, (plotW - totalW) / 2);
+                const lx0 = shared
+                    ? -(ox + marginL) + Math.max(0, (fullW - totalW) / 2)   // centred across the whole visual
+                    : Math.max(0, (plotW - totalW) / 2);
 
                 // Vertical centre of the legend row
                 // top:    just above the plot — sits in the reserved top margin
                 // bottom: below the x-axis tick labels (ticks ~3px + label ~fontSize + 4px gap)
-                const cy = settings.legendBottom
-                    ? plotH + settings.axisFontSize + 22   // clear tick labels + gap
-                    : -(legendRowH + 8);                   // above plot with breathing room
+                const cy = shared
+                    ? (settings.legendBottom
+                        ? (fullH - bottomBandG - legendBand / 2) - (oy + titleH + marginT)   // shared band at the bottom
+                        : -(oy + titleH + marginT) + legendBand / 2)                        // shared band at the top
+                    : settings.legendBottom
+                        ? plotH + settings.axisFontSize + 22   // clear tick labels + gap
+                        : -(legendRowH + 8);                   // above plot with breathing room
 
                 const textFill = isHighContrast
                     ? (this.host.colorPalette.foreground?.value ?? effectiveAxisColor)
-                    : effectiveAxisColor;
+                    : settings.legendColor;
 
                 let cx = lx0;
                 items.forEach((item, i) => {
@@ -1244,7 +1792,78 @@ export class Visual implements IVisual {
             }
         }
 
-        this.renderClampNotice(width, height, fmtNum(xDomain[1]));
+        if (!clampDone) { clampDone = true; this.renderClampNotice(fullW, fullH, formatValue(xDomain[1], formatStr)); }
+        };
+
+        if (!usePanels) {
+            drawPanel(raw, rawWithIds, highlightedRaw, 0, 0, width, height, null, "", undefined, true);
+        } else {
+            // One histogram per panel value, on one value axis and one count axis.
+            if (raw.length < 2) return;
+            const all = raw.slice().sort((x, y) => x - y);
+            const trimOk = this.allow("outlier trimming");
+            const lo = trimOk && settings.trimLower > 0 ? percentile(all, settings.trimLower) : all[0];
+            const hi = trimOk && settings.trimUpper > 0 ? percentile(all, 100 - settings.trimUpper) : all[all.length - 1];
+            const kept = all.filter(v => v >= lo && v <= hi);
+            if (kept.length < 2) return;
+            const manualTrim = trimOk && (settings.trimLower > 0 || settings.trimUpper > 0);
+            const rd = manualTrim ? { lo: kept[0], hi: kept[kept.length - 1], clamped: false } : robustDomain(kept);
+            const xd = d3.scaleLinear().domain([rd.lo, rd.hi]).nice().domain();
+            const thresholds = d3.range(xd[0], xd[1], (xd[1] - xd[0]) / effectiveBins);
+            const clamp = (v: number) => Math.min(xd[1], Math.max(xd[0], v));
+
+            const groups = new Map<string, RowT[]>();
+            for (const r of rawWithIds) {
+                let arr = groups.get(r.panel);
+                if (!arr) { arr = []; groups.set(r.panel, arr); }
+                arr.push(r);
+            }
+            const firstRow = new Map<string, number>();
+            for (const r of rawWithIds) if (!firstRow.has(r.panel)) firstRow.set(r.panel, r.origIndex);
+            const keys = Array.from(groups.keys()).sort((p, q) => {
+                const vp = panCol?.values[firstRow.get(p)!], vq = panCol?.values[firstRow.get(q)!];
+                if (typeof vp === "number" && typeof vq === "number") return vp - vq;
+                if (vp instanceof Date && vq instanceof Date) return vp.getTime() - vq.getTime();
+                return String(vp ?? "").localeCompare(String(vq ?? ""), this.host.locale);
+            });
+            let yMax = 1;
+            for (const k of keys) {
+                const vals = groups.get(k)!.map(r => r.value).filter(v => v >= lo && v <= hi).map(clamp);
+                const b = d3.bin().domain(xd as [number, number]).thresholds(thresholds)(vals);
+                yMax = Math.max(yMax, d3.max(b, x => x.length) ?? 0);
+            }
+            const shared: Shared = { lo, hi, rd, scaleRef: Math.max(Math.abs(all[0]), Math.abs(all[all.length - 1])), yMax };
+
+            const np = keys.length;
+            const cols = settings.smColumns >= 1
+                ? Math.min(np, Math.round(settings.smColumns))
+                : Math.max(1, Math.min(np, Math.round(Math.sqrt(np * (width / Math.max(1, height)) / 1.6))));
+            const rows = Math.ceil(np / cols);
+            const gapPx = 14;
+            // Bands outside the grid: the shared legend on top, and room at the bottom for
+            // the clipped-axis notice so it does not sit on the last panel's axis title.
+            legendBand = settings.showLegend
+                ? Math.max(6, settings.legendFontSize || Math.max(8, settings.axisFontSize - 1)) + 18 : 0;
+            const bottomBand = rd.clamped ? 14 : 0;
+            bottomBandG = bottomBand;
+            const gridH = height - legendBand - bottomBand;
+            // "Position: bottom" puts the shared legend under the grid instead of above it.
+            const gridTop = settings.legendBottom ? 0 : legendBand;
+            const cw = (width - gapPx * (cols - 1)) / cols;
+            const chh = (gridH - gapPx * (rows - 1)) / rows;
+            keys.forEach((k, i) => {
+                const rs = groups.get(k)!;
+                const vals = rs.map(r => r.value);
+                const hlv = rs.filter(r => r.hl).map(r => r.value);
+                const pv = panCol?.values[firstRow.get(k)!];
+                const ttl = pv === null || pv === undefined || pv === "" ? this.t("UI_Blank", "(blank)")
+                    : (pv instanceof Date || typeof pv === "number")
+                        ? this.fmtNumber(pv as any, panCol?.source?.format || undefined, 0) || String(pv)
+                        : String(pv);
+                drawPanel(vals, rs, hlv, (i % cols) * (cw + gapPx), gridTop + Math.floor(i / cols) * (chh + gapPx),
+                          cw, chh, shared, ttl, pv ?? null, i === 0);
+            });
+        }
         this.renderTruncationNotice(width);
         this.renderWatermark(width, height);
 
@@ -1286,13 +1905,14 @@ export class Visual implements IVisual {
             .style("paint-order", "stroke");
 
         // Con mas de dos, la lista tapa el grafico que se quiere ensenar.
-        const etiquetas = this.attemptedPro.length <= 2
-            ? this.attemptedPro
-            : this.attemptedPro.slice(0, 2).concat([`+${this.attemptedPro.length - 2}`]);
+        const nombres = this.attemptedPro.map(a => this.featName(a));
+        const etiquetas = nombres.length <= 2
+            ? nombres
+            : nombres.slice(0, 2).concat([`+${nombres.length - 2}`]);
 
         comun(g.append("text"), fs, "700")
             .attr("y", cy - fs * 0.22)
-            .text("Pro preview");
+            .text(this.t("UI_ProPreview", "Pro preview"));
         comun(g.append("text"), Math.round(fs * 0.32), "600")
             .attr("y", cy + fs * 0.45)
             .text(etiquetas.join(" · "));
@@ -1315,7 +1935,7 @@ export class Visual implements IVisual {
         this.svg.append("text").attr("x", cx).attr("y", cy - 50).attr("text-anchor", "middle")
             .attr("font-size", 16).attr("font-weight", "600").attr("fill", "#E0E6FF").attr("font-family", "Segoe UI, sans-serif").text("Histogram Pro");
         this.svg.append("text").attr("x", cx).attr("y", cy - 30).attr("text-anchor", "middle")
-            .attr("font-size", 12).attr("fill", "#B0BEC5").attr("font-family", "Segoe UI, sans-serif").text("Add a numeric field to get started");
+            .attr("font-size", 12).attr("fill", "#B0BEC5").attr("font-family", "Segoe UI, sans-serif").text(this.t("UI_Landing", "Add a numeric field to get started"));
     }
 
     // ── Format Pane ───────────────────────────────────────────────────────────
@@ -1324,31 +1944,54 @@ export class Visual implements IVisual {
         const s = this.currentSettings;
         const pro = this.isPro;
         const lbl = (name: string) => pro ? name : `${name} (Pro)`;
+        // Display names come from stringResources by key (Prop_<card>_<prop>, Obj_<card>),
+        // without their "(Pro)" suffix, which lbl() adds back only for unlicensed users.
+        const T = (key: string, fallback: string) => this.t(key, fallback).replace(/\s*\(Pro\)\s*$/, "");
+        const dn = (obj: string, prop: string, name: string) => {
+            const isPro = /\s\(Pro\)$/.test(name);
+            const base = name.replace(/\s*\(Pro\)\s*$/, "");
+            const tr = T(`Prop_${obj}_${prop}`, base);
+            return isPro ? `${tr} (Pro)` : tr;
+        };
 
         const num = (uid: string, name: string, obj: string, prop: string, val: number) => ({
-            uid, displayName: name,
+            uid, displayName: dn(obj, prop, name),
             control: { type: powerbi.visuals.FormattingComponent.NumUpDown, properties: { descriptor: { objectName: obj, propertyName: prop }, value: val } }
         });
         const tog = (uid: string, name: string, obj: string, prop: string, val: boolean) => ({
-            uid, displayName: name,
+            uid, displayName: dn(obj, prop, name),
             control: { type: powerbi.visuals.FormattingComponent.ToggleSwitch, properties: { descriptor: { objectName: obj, propertyName: prop }, value: val } }
         });
+        // Conditional formatting needs BOTH the instanceKind (which shows the fx button)
+        // and a wildcard selector (which gives Power BI a scope to write the resolved
+        // colours into). With instanceKind alone the button appeared and the rule
+        // never reached the visual — that was the state up to 1.3.0.0.
         const col = (uid: string, name: string, obj: string, prop: string, val: string, conditionalFormatting = false) => ({
-            uid, displayName: name,
+            uid, displayName: dn(obj, prop, name),
             control: {
                 type: powerbi.visuals.FormattingComponent.ColorPicker,
                 properties: {
                     descriptor: {
                         objectName: obj,
                         propertyName: prop,
-                        ...(conditionalFormatting ? { instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule } : {})
+                        ...(conditionalFormatting ? {
+                            instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule,
+                            selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] } as any,
+                        } : {})
                     },
                     value: { value: val }
                 }
             }
         });
-        const card = (uid: string, displayName: string, slices: any[]) => ({
-            uid, displayName, groups: [{ uid: uid + "_g", displayName: "", slices }]
+        const card = (uid: string, displayName: string, slices: any[]) => {
+            const obj = uid.replace(/_card$/, "");
+            const isPro = /\s\(Pro\)$/.test(displayName);
+            const tr = T(`Obj_${obj}`, displayName.replace(/\s*\(Pro\)\s*$/, ""));
+            return { uid, displayName: isPro ? `${tr} (Pro)` : tr, groups: [{ uid: uid + "_g", displayName: "", slices }] };
+        };
+        const txt = (uid: string, name: string, obj: string, prop: string, val: string) => ({
+            uid, displayName: dn(obj, prop, name),
+            control: { type: powerbi.visuals.FormattingComponent.TextInput, properties: { descriptor: { objectName: obj, propertyName: prop }, value: val } }
         });
 
         return {
@@ -1360,7 +2003,7 @@ export class Visual implements IVisual {
                     num("bins",        lbl("Number of bins"), "histogram", "bins",        s.bins),
                     num("trimLower",   lbl("Lower trim %"),   "histogram", "trimLower",   s.trimLower),
                     num("trimUpper",   lbl("Upper trim %"),   "histogram", "trimUpper",   s.trimUpper),
-                    col("barColor",    lbl("Bar color"),      "histogram", "barColor",    s.barColor,    true),
+                    col("barColor",    lbl("Bar color"),      "histogram", "barColor",    this.uniformBarColor ?? s.barColor, true),
                     num("barOpacity",  lbl("Opacity %"),      "histogram", "barOpacity",  s.barOpacity),
                     col("borderColor", lbl("Border color"),   "histogram", "borderColor", s.borderColor),
                     num("borderWidth", lbl("Border width"),   "histogram", "borderWidth", s.borderWidth),
@@ -1386,22 +2029,49 @@ export class Visual implements IVisual {
                     col("iqrColor",    "IQR fill color",         "statistics", "iqrColor",    s.iqrColor),
                     tog("showNormal",  lbl("Normal curve"),      "statistics", "showNormal",  s.showNormal),
                     col("normalColor", lbl("Normal color"),      "statistics", "normalColor", s.normalColor),
+                    tog("showCum",     lbl("Cumulative frequency"), "statistics", "showCumulative", s.showCumulative),
+                    col("cumColor",    lbl("Cumulative line color"), "statistics", "cumulativeColor", s.cumulativeColor),
                     tog("showStats",   lbl("Stats panel"),       "statistics", "showStats",   s.showStats),
                     col("statsColor",  lbl("Stats text color"),  "statistics", "statsColor",  s.statsColor),
+                    col("statsBg",     lbl("Stats panel background"), "statistics", "statsBgColor", s.statsBgColor),
+                    num("statsBgOp",   lbl("Stats panel opacity %"),  "statistics", "statsBgOpacity", s.statsBgOpacity),
+                    col("labelBg",     "Label background",        "statistics", "labelBgColor", s.labelBgColor),
+                    num("labelBgOp",   "Label background opacity %", "statistics", "labelBgOpacity", s.labelBgOpacity),
                 ]),
                 card("benchmark_card", "Benchmark", [
                     tog("bm_show",  "Show benchmark line", "benchmark", "show",  s.showBenchmark),
                     num("bm_value", "Benchmark value",     "benchmark", "value", s.benchmarkValue),
                     col("bm_color", "Line color",          "benchmark", "color", s.benchmarkColor),
+                    txt("bm_label", "Benchmark label",     "benchmark", "label", s.benchmarkLabel),
+                    tog("bm_colorBars", "Color bars by benchmark", "benchmark", "colorBars", s.bmColorBars),
+                    col("bm_above", "At or above benchmark", "benchmark", "aboveColor", s.bmAboveColor),
+                    col("bm_below", "Below benchmark",       "benchmark", "belowColor", s.bmBelowColor),
+                ]),
+                card("zones_card", lbl("Value zones"), [
+                    tog("z_show",   lbl("Show value zones"), "zones", "show", s.zShow),
+                    num("z_cut1",   lbl("First cut"),        "zones", "cut1", s.zCut1),
+                    num("z_cut2",   lbl("Second cut"),       "zones", "cut2", s.zCut2),
+                    col("z_c1",     lbl("Low zone color"),    "zones", "color1", s.zColor1),
+                    col("z_c2",     lbl("Middle zone color"), "zones", "color2", s.zColor2),
+                    col("z_c3",     lbl("High zone color"),   "zones", "color3", s.zColor3),
+                    tog("z_labels", lbl("Show zone labels"),  "zones", "showLabels", s.zLabels),
+                    tog("z_value",  lbl("Show share of total value"), "zones", "showValueShare", s.zValueShare),
+                ]),
+                card("smallMultiples_card", lbl("Small multiples"), [
+                    num("sm_cols",  lbl("Columns (0 = automatic)"), "smallMultiples", "columns", s.smColumns),
+                    num("sm_tsize", lbl("Title font size"),          "smallMultiples", "titleFontSize", s.smTitleSize),
+                    col("sm_tcol",  lbl("Title color"),              "smallMultiples", "titleColor", s.smTitleColor),
                 ]),
                 card("legend_card", "Legend", [
                     tog("legend_show",   "Show legend",      "legend", "show",   s.showLegend),
                     tog("legend_bottom", "Position: bottom", "legend", "bottom", s.legendBottom),
-                    { uid: "leg_mean_lbl",   displayName: "Mean label",   control: { type: powerbi.visuals.FormattingComponent.TextInput, properties: { descriptor: { objectName: "legend", propertyName: "meanLabel"   }, value: s.legendMeanLabel   } } },
-                    { uid: "leg_med_lbl",    displayName: "Median label",  control: { type: powerbi.visuals.FormattingComponent.TextInput, properties: { descriptor: { objectName: "legend", propertyName: "medianLabel" }, value: s.legendMedianLabel } } },
-                    { uid: "leg_p25_lbl",    displayName: "P25 label",     control: { type: powerbi.visuals.FormattingComponent.TextInput, properties: { descriptor: { objectName: "legend", propertyName: "p25Label"    }, value: s.legendP25Label    } } },
-                    { uid: "leg_p75_lbl",    displayName: "P75 label",     control: { type: powerbi.visuals.FormattingComponent.TextInput, properties: { descriptor: { objectName: "legend", propertyName: "p75Label"    }, value: s.legendP75Label    } } },
-                    { uid: "leg_normal_lbl", displayName: "Normal label",  control: { type: powerbi.visuals.FormattingComponent.TextInput, properties: { descriptor: { objectName: "legend", propertyName: "normalLabel" }, value: s.legendNormalLabel } } },
+                    num("legend_fs",     "Font size",        "legend", "fontSize", s.legendFontSize),
+                    col("legend_color",  "Font color",       "legend", "color", s.legendColor),
+                    txt("leg_mean_lbl", "Mean label", "legend", "meanLabel", s.legendMeanLabel),
+                    txt("leg_med_lbl", "Median label", "legend", "medianLabel", s.legendMedianLabel),
+                    txt("leg_p25_lbl", "P25 label", "legend", "p25Label", s.legendP25Label),
+                    txt("leg_p75_lbl", "P75 label", "legend", "p75Label", s.legendP75Label),
+                    txt("leg_normal_lbl", "Normal label", "legend", "normalLabel", s.legendNormalLabel),
                 ]),
                 card("valueLabels_card", lbl("Value labels"), [
                     tog("vl_show",    lbl("Show"),         "valueLabels", "show",        s.showValueLabels),

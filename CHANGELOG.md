@@ -5,6 +5,35 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.0.0] — 2026-10-08
+
+### Added
+
+- **Value zones (Pro).** Two cut points split the axis into three shaded zones — small, medium and large deals, fast, normal and slow tickets. Each zone is labelled, in front of the bars, with its **share of rows** and its **share of total value**: *"> 50K: 8% of rows · 46% of value"* states the concentration a histogram only implies. The share of value can be turned off for measures where a sum means nothing. A value equal to a cut belongs to the lower zone. The zone also appears in the tooltip.
+- **Small multiples (Pro).** A new *Small multiples* field draws one histogram per value. Every panel shares the same bins and the same vertical scale, so bar heights compare across panels; mean, median, quartiles, zones and the statistics panel are computed per panel. Columns can be fixed or left automatic; titles have their own size and colour; the legend is drawn once for the grid, on top or at the bottom.
+- **Cumulative frequency line (Pro).** A 0–100% line on its own right-hand axis — the share of rows up to each bin — with its value in the tooltip and an entry in the legend.
+- **Bar colouring by benchmark.** The bars on each side of the benchmark take their own colour, and the benchmark line now has an editable label. Free.
+- **Visible selection, Ctrl+click and bookmarks.** The selected bars stay highlighted while the others dim. Ctrl+click adds a bar to the selection or takes it out. The selection is stored with the report, so bookmarks bring back both the filter and the highlighted bars.
+- **Conditional formatting on bar colour.** *Bar color* now has a working **fx** button (rules and field values). Before, the visual asked for it in the format pane but `capabilities.json` did not declare the rule, so Power BI never offered it.
+- **Formatting.** Background colour and opacity for the statistics panel and for the labels of the reference lines and zones; legend font size and colour; legend at the bottom.
+- **Localization.** The format pane and every text drawn on the chart are available in English and Spanish, following Power BI's language.
+- New icon.
+
+### Fixed
+
+- **Drill-down did not work.** With a hierarchy in *Detail (rows)*, clicking a bar applied a filter, and Power BI only drills on a selection. When the field can be drilled the visual now selects, and drill-down works as in a native chart. Without a hierarchy it still filters by every row behind the bar.
+- **Numbers did not follow the report.** Values below one thousand were shown as *0.0K*. Numbers now use the measure's format string and the report's locale, and only large values are scaled to K / M.
+- **X-axis labels overlapped** on narrow charts. The number of labels now adapts to the width.
+- **Labels of reference lines and zones were drawn behind the bars.** They are now in front, on a configurable background, in a band reserved at the top of the plot: the bars are scaled to stop below it, so the tallest bar and its value label are never covered by μ, M, Q1 or Q3. The labels stack only in the rows in use.
+- **A normal distribution was reported as a clipped long tail.** Tukey's fences always leave about 0.7% of a normal outside them, so the axis was clipped and the chart announced a long tail that did not exist. The axis is now clipped only when the full range is at least 1.5 times the fenced range.
+- **A flat normal curve looked like a broken line.** With a long tail, σ is far wider than the clipped axis and the bell is flat over the visible range — correct, but unreadable. When its peak is below a fifth of the tallest bar, a label next to the curve says so: *"Normal curve flat: data far from normal (σ = …)"*.
+- **Value labels were missing on short bars.** Every bar with at least one row shows its count.
+- **The legend disappeared in small panels**, and the *bottom* position was ignored. Both fixed.
+- **After a mouse click, the first bar showed a focus ring.** Focus is now restored after a repaint only while navigating with the keyboard.
+- **Desktop detection** used the browser's user agent; it now reads Power BI's host environment.
+
+---
+
 ## [1.3.0.0] — 2026-09-23
 
 ### Added

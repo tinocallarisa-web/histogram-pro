@@ -1,9 +1,68 @@
-# Certification Notes — Histogram Pro v1.2.1.0
+# Certification Notes — Histogram Pro v1.4.0.0
 
 The short version to paste into Partner Center is
-[`CERTIFICATION-NOTES-SHORT.txt`](./CERTIFICATION-NOTES-SHORT.txt), written to fit the
+[`docs/CERTIFICATION-NOTES-SHORT.txt`](./docs/CERTIFICATION-NOTES-SHORT.txt), written to fit the
 2,500-character limit of that field, which truncates without warning and mid-word. **That
 field is cleared on every resubmission** — it has to be pasted again each time.
+
+## What changed in 1.4.0.0
+
+### New features
+
+- **Value zones (Pro).** Two cut points split the axis into three shaded zones. Each zone
+  is labelled, in front of the bars, with its share of rows and its share of total value.
+  A value equal to a cut belongs to the lower zone. The zone also appears in the tooltip.
+- **Small multiples (Pro).** A new grouping role, `panel`, mapped as a second category
+  column (`categories.select` with `for category, bind panel`) so the row count and paging
+  are unchanged. One panel per value; all panels share bins and y scale; per-panel
+  statistics; one legend for the grid.
+- **Cumulative frequency line (Pro)** on its own 0–100% right axis.
+- **Free:** bars coloured by benchmark side, benchmark label, label and statistics-panel
+  backgrounds, legend font size, colour and bottom position.
+
+### Selection and bookmarks
+
+The selected bars stay highlighted (others dimmed, `aria-selected` set). Ctrl+click adds a
+bar to the filter or removes it, within one small-multiples panel. The filter is written
+with `applyJsonFilter` to `general.filter`, so it is part of the bookmark state; on
+`update()` the visual reads it back from `jsonFilters` and draws the same bars as
+selected. Desktop does not always return the visual's own filter in `jsonFilters`, so the
+visual also keeps its own copy, dropped as soon as no filter is stored.
+In drill mode the selection goes through the selection manager; `registerOnSelectCallback`
+maps a selection restored by a bookmark back to its bars.
+
+### Drill-down
+
+With a filter, Power BI does not drill. When `dataRoles.drillableRoles.category` includes
+Drill Down, a click now uses `selectionManager.select` with the bin's selection IDs (capped
+at 100), and drill-down works. Without a drillable field the BasicFilter path is unchanged.
+
+### Conditional formatting
+
+`barColor` declares the fill `rule` in `capabilities.json`, and the format card uses
+`instanceKind` ConstantOrRule with a data wildcard selector. A plain colour stored in the
+category objects is honoured as a plain colour.
+
+### Localization and number formats
+
+Every object and property has a `displayNameKey`; `stringResources/en-US` and `es-ES` are
+registered in `pbiviz.json`. Numbers use `valueFormatter` with the measure's format string
+and `host.locale`; values below one thousand are no longer scaled (the old "0.0K").
+
+### Rendering events
+
+One `renderingStarted` per `update()`, closed by `renderingFinished` or `renderingFailed`
+on every path. Repaints after a click call `render()` directly, never `update()`.
+
+### Layout
+
+Reference and zone labels sit in a band reserved at the top of the plot; bars are scaled
+below it. The axis is clipped to Tukey's fences only when the full range is at least 1.5
+times the fenced range. A flat normal curve (peak under 20% of the tallest bar) is labelled.
+
+### Desktop detection
+
+`host.hostEnv` replaces the user-agent check for Desktop.
 
 ## What changed in 1.2.0.0
 
@@ -23,7 +82,7 @@ remaining segments through `fetchMoreData(true)`. Verified over a 500,000-row mo
 Three independent brakes guard the streaming loop, because requesting more data and
 returning without rendering is only safe while more data is actually arriving:
 
-- Power BI Desktop runs inside Electron and cannot stream segments at all.
+- Power BI Desktop cannot stream segments at all.
 - No growth in row count since the previous round means the same data is being handed
   back. This is the brake that matters, because it does not depend on sniffing the user
   agent.
@@ -116,7 +175,7 @@ which is the local folder name and the GUID prefix.
 | Terms of Use | https://tinocallarisa-web.github.io/histogram-pro/terms.html |
 | Support | https://tinocallarisa-web.github.io/histogram-pro/support.html |
 | Case study | https://tinocallarisa-web.github.io/histogram-pro/use-case.html |
-| Demo video | https://www.youtube.com/watch?v=qL9luDsg3h8 |
+| Demo video | https://www.youtube.com/watch?v=elLjSnxd8tw |
 
 All four pages verified with a real request: HTTP 200.
 
@@ -133,7 +192,7 @@ All four pages verified with a real request: HTTP 200.
 
 ## Data access & privacy
 
-- Reads only the standard categorical `dataView` (Values, Detail rows, Tooltips).
+- Reads only the standard categorical `dataView` (Values, Detail rows, Small multiples, Tooltips).
 - No `fetch` / `XMLHttpRequest`, no local file access, no telemetry, no CDN.
 - Nothing is persisted outside the `.pbix` beyond the visual's own formatting properties
   and the filter it applies through `applyJsonFilter`.
@@ -143,21 +202,26 @@ All four pages verified with a real request: HTTP 200.
 ### Free
 - The distribution over the whole table, with segment streaming
 - Mean and median lines, P25, P75 and IQR shading
-- Benchmark line with its own value, colour and label
+- Benchmark line with its own value, colour and label; bars coloured by benchmark side
 - Legend, at the side or along the bottom, with editable labels
 - IBCS monochrome mode
 - Axis text and grid colours, font size, X and Y axis titles
-- Cross-filtering by the bar, cross-highlighting, drill-down
+- Cross-filtering by the bar, Ctrl+click multi-select, visible selection, bookmarks,
+  cross-highlighting, drill-down
 - Report page tooltips and standard tooltips
 - Keyboard focus and activation, ARIA labels, high contrast
+- Localization (English, Spanish), number formats from the model
 
 ### Pro
 - Bin count from 2 to 100 (Free is fixed at 10)
 - Outlier trimming, lower and upper percentage
+- Value zones with share of rows and of value
+- Small multiples
+- Cumulative frequency line
 - Statistics panel: n, mean, median, standard deviation, min, max
 - Normal curve overlay
 - Value labels on the bars
-- Bar colour, opacity, border colour and width, and the gap between bars
+- Bar colour with conditional formatting, opacity, border colour and width, and the gap between bars
 
 ## Certification requirements checklist
 
@@ -170,18 +234,15 @@ All four pages verified with a real request: HTTP 200.
 - [x] `host.allowInteractions` checked before selecting
 - [x] Privacy Policy and Terms of Use are separate pages, both reachable
 - [x] Support page documents field wells, format pane, tiers and FAQ
-- [x] No watermark and no artificial limits in the free tier
+- [x] The free result never carries a watermark; the "Pro preview" watermark appears only
+      while editing, on a Pro feature the user turned on
 - [x] No licensing UI of the visual's own
 - [x] `package.json` declares `typescript`, per policy 1200.1.1.4
-- [x] Version in `pbiviz.json` (1.2.0.0) is above the published 1.1.0.0
+- [x] Version in `pbiviz.json` (1.4.0.0) is above the published 1.3.0.0
 
 ### Known gaps, declared openly
 
-- **Bookmarks.** The visual persists a filter but does not yet restore its state from an
-  applied filter, so a bookmark can leave the chart and the filter out of step. The build
-  tooling flags this.
-- **Localization.** `stringResources/en-US` exists and is declared, but the format pane
-  properties carry no `displayNameKey`, so the pane is English only.
+None open. Bookmarks and localization, listed here in 1.2, are implemented in 1.4.0.0.
 
 ## Testing instructions
 
@@ -189,19 +250,22 @@ All four pages verified with a real request: HTTP 200.
 1. Import the visual with no licence assigned.
 2. Bind a numeric measure to **Values** and the row-level field to **Detail (rows)**.
 3. The histogram renders with ten bins, mean and median lines.
-4. Change the bin count under **Histogram → Bins**. The chart keeps ten bins and Power BI
-   raises its own licence notification, carrying the link to obtain one. The setting is
-   kept.
-5. Turn on **Statistics → Show stats panel** or **Show normal curve**. Same behaviour.
-6. Remove those settings and the notification clears.
-7. Right-click a bar and empty space — the context menu appears in both.
-8. Tab to a bar and press Enter — the report is filtered by the rows behind it.
-9. With a heavily skewed measure, confirm the axis stops before the maximum and the note
-   under the chart says the end bar accumulates the tail.
+4. While editing, turn on **Value zones → Show value zones** and set the cuts to two
+   different values. The zones draw under a "Pro preview" watermark, Power BI's banner names
+   the feature, and the Upgrade bar follows.
+5. Turn it off: watermark and notification clear. In reading view the free chart shows,
+   with no watermark and no prompt.
+6. Click a bar: the report filters and the bar stays highlighted. Ctrl+click a second bar:
+   both are selected. Save a bookmark, clear the selection, apply the bookmark: the same
+   bars return highlighted.
+7. Put a hierarchy in **Detail (rows)**, turn on drill mode and click a bar: it drills.
+8. Right-click a bar and empty space — the context menu appears in both.
+9. Tab to a bar, use the arrows and press Enter — the report is filtered.
+10. With a heavily skewed measure, confirm the axis stops before the maximum and the note
+    under the chart says the end bar accumulates the tail.
 
 ### Pro tier
 1. Assign a plan with the corresponding service plan entitlement.
-2. Repeat step 4 — the bin count now applies, from 2 to 100.
-3. Repeat step 5 — the statistics panel and the normal curve render.
-4. Set **Exclude top %** to 1 and confirm the axis follows the manual range instead of the
-   automatic one.
+2. The bin count applies from 2 to 100; value zones, small multiples, the cumulative line,
+   the statistics panel and the normal curve render with no watermark and no notification.
+3. Set **Lower trim %** to 1 and confirm the axis follows the manual range.

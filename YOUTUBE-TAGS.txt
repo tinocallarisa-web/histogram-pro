@@ -1,11 +1,11 @@
 =========================================================
-HISTOGRAM PRO — YouTube Tags (v1.2.0.0)
-Video: https://www.youtube.com/watch?v=qL9luDsg3h8
+HISTOGRAM PRO — YouTube Tags (v1.4.0.0)
+Video: https://www.youtube.com/watch?v=elLjSnxd8tw
 =========================================================
 
---- MAIN TAG BLOCK (476 chars, YouTube's limit is 500) ---
+--- MAIN TAG BLOCK (366 chars, YouTube's limit is 500) ---
 
-power bi,power bi custom visual,power bi histogram,histogram,distribution chart,power bi distribution,frequency distribution,power bi statistics,mean median,quartiles,standard deviation,normal distribution,outliers,power bi no dax,data distribution analysis,power bi appsource,power bi visuals,data visualization,business intelligence,microsoft power bi,statistical analysis,tcviz
+power bi,power bi histogram,histogram,power bi custom visual,distribution chart,frequency distribution,power bi statistics,mean median,quartiles,normal distribution,cumulative frequency,small multiples,power bi small multiples,outliers,long tail,power bi no dax,concentration analysis,power bi appsource,power bi visuals,data visualization,statistical analysis,tcviz
 
 Notes on the choices:
 

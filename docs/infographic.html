@@ -191,7 +191,7 @@ async function downloadPNG() {
   </svg>
 
   <div class="header-title">
-    <h1>HISTOGRAM PRO <span>FOR POWER BI</span></h1>
+    <h1>Histogram Pro <span>for Power BI</span></h1>
     <p>The complete guide to analyzing distributions, detecting outliers, and presenting statistics with impact.<br>
     From <strong>raw data</strong> to <strong>statistical insight</strong> in seconds.</p>
   </div>
@@ -242,10 +242,10 @@ async function downloadPNG() {
       <div class="step-num">1</div>
       <div class="step-label">0–1 min</div>
       <h3>Get started in seconds</h3>
-      <p>Drag any numeric field into the <strong>Values</strong> field well. The histogram renders instantly with 10 bins, mean, and median lines.</p>
+      <p>Row ID in <strong>Detail (rows)</strong>, number in <strong>Values</strong>: 10 bins, mean and median.</p>
       <ul>
-        <li><i class="ti ti-check ok"></i>Numeric field in Values</li>
-        <li><i class="ti ti-check ok"></i>Category (optional) for cross-filtering</li>
+        <li><i class="ti ti-check ok"></i>Detail (rows) decides what one count is</li>
+        <li><i class="ti ti-check ok"></i>Small multiples (Pro): one histogram per group</li>
         <li><i class="ti ti-check ok"></i>Tooltips (optional) for extra measures per bin</li>
       </ul>
     </div>
@@ -264,7 +264,7 @@ async function downloadPNG() {
       <ul>
         <li><i class="ti ti-arrow-right ok"></i>Fewer bins → overall trend</li>
         <li><i class="ti ti-arrow-right ok"></i>More bins → micropatterns and gaps</li>
-        <li><i class="ti ti-arrow-right ok"></i>Rule of thumb: √n bins for n rows</li>
+        <li><i class="ti ti-arrow-right ok"></i>Stop when the shape stops changing</li>
       </ul>
     </div>
   </div>
@@ -286,14 +286,14 @@ async function downloadPNG() {
       <div class="desc">n · μ · M · σ · min · max</div>
     </div>
     <div class="stat-pill">
-      <div class="label">Reference lines</div>
-      <div class="value purple">5</div>
-      <div class="desc">mean · median · Q1 · Q3 · target</div>
+      <div class="label">Value zones</div>
+      <div class="value purple">3</div>
+      <div class="desc">share of rows · share of value</div>
     </div>
     <div class="stat-pill">
-      <div class="label">Outlier trimming</div>
-      <div class="value">%</div>
-      <div class="desc">without deleting data</div>
+      <div class="label">Small multiples</div>
+      <div class="value">1:1</div>
+      <div class="desc">same bins · same scale</div>
     </div>
   </div>
 
@@ -312,12 +312,11 @@ async function downloadPNG() {
     <div class="step step-accent">
       <div class="step-num">5</div>
       <div class="step-label">8–12 min · Pro</div>
-      <h3>Validate normality with the curve</h3>
-      <p>Enable the <strong style="color:#3E9C5B">normal curve</strong> to overlay the theoretical distribution. Do the bars follow it?</p>
+      <h3>Say what the shape implies</h3>
+      <p>Set two cuts and turn on <strong style="color:#3E9C5B">value zones</strong>. Each zone shows its share of rows and of value.</p>
+      <div class="formula">&gt; 50K: 8% of rows · 46% of value</div>
       <ul>
-        <li><i class="ti ti-check ok"></i>Good fit → statistical models are valid</li>
-        <li><i class="ti ti-check ok"></i>Bimodal → two distinct segments in your data</li>
-        <li><i class="ti ti-check ok"></i>Long tail → significant outliers present</li>
+      <li><i class="ti ti-check ok"></i>Cumulative line: the value 80% of rows stay under</li>
       </ul>
     </div>
     <div class="step">
@@ -325,9 +324,9 @@ async function downloadPNG() {
       <div class="step-label">12–15 min</div>
       <h3>Avoid common mistakes</h3>
       <ul>
+        <li><i class="ti ti-x bad"></i>Leaving Detail (rows) empty</li>
         <li><i class="ti ti-x bad"></i>Too many bins with a small dataset</li>
         <li><i class="ti ti-x bad"></i>Ignoring the gap between μ and M</li>
-        <li><i class="ti ti-x bad"></i>Not trimming when extreme outliers are present</li>
         <li style="margin-top:3px"><i class="ti ti-check ok"></i>Enable the stats panel for full context</li>
         <li><i class="ti ti-check ok"></i>Add a benchmark line for your SLA or target</li>
       </ul>
@@ -345,13 +344,13 @@ async function downloadPNG() {
     <span class="flow-arrow">›</span>
     <div class="flow-step"><i class="ti ti-adjustments"></i><span>Tune bins<br>&amp; trim</span></div>
     <span class="flow-arrow">›</span>
-    <div class="flow-step"><i class="ti ti-wave-sine"></i><span>Validate<br>normality</span></div>
+    <div class="flow-step"><i class="ti ti-layers-subtract"></i><span>Mark value<br>zones</span></div>
     <span class="flow-arrow">›</span>
     <div class="flow-step"><i class="ti ti-target"></i><span>Add<br>benchmark</span></div>
     <span class="flow-arrow">›</span>
     <div class="flow-step"><i class="ti ti-presentation"></i><span>Present<br>with impact</span></div>
     <span class="flow-arrow">›</span>
-    <div class="flow-step"><i class="ti ti-repeat"></i><span>Iterate and<br>reuse</span></div>
+    <div class="flow-step"><i class="ti ti-layout-grid"></i><span>Compare<br>groups</span></div>
   </div>
   <div class="flow-tagline">Histograms reveal what averages hide.</div>
 </div>
@@ -370,7 +369,7 @@ async function downloadPNG() {
     </div>
     <div class="benefit"><i class="ti ti-filter" aria-hidden="true"></i>
       <div><div class="benefit-name">Native cross-filtering</div>
-      <div class="benefit-desc">Click a bar to filter the entire report page. Full Power BI integration.</div></div>
+      <div class="benefit-desc">Click a bar to filter the page, Ctrl+click to add bars. Bookmarks keep the selection.</div></div>
     </div>
     <div class="benefit"><i class="ti ti-certificate" aria-hidden="true"></i>
       <div><div class="benefit-name">Executive-ready</div>
@@ -380,10 +379,10 @@ async function downloadPNG() {
 
   <div class="bottom-card">
     <div class="section-title">Key takeaways</div>
-    <div class="tip"><i class="ti ti-check"></i>Always add the Category field if you want cross-filtering to work with other visuals.</div>
+    <div class="tip"><i class="ti ti-check"></i>Put the row ID in Detail (rows): it defines what one count is.</div>
     <div class="tip"><i class="ti ti-check"></i>If μ and M are far apart, check for outliers before drawing conclusions.</div>
     <div class="tip"><i class="ti ti-check"></i>Use Lower/Upper trim % to present the core distribution without distorting extremes.</div>
-    <div class="tip"><i class="ti ti-check"></i>Combine the normal curve with the stats panel (σ) to validate statistical assumptions.</div>
+    <div class="tip"><i class="ti ti-check"></i>Value zones show concentration: few rows, most of the value.</div>
     <div class="tip"><i class="ti ti-check"></i>Add a Benchmark line with your SLA or target value for immediate context.</div>
     <div class="tip-cta">
       <strong>Learn the pattern once. Apply it to any metric.</strong>
@@ -394,11 +393,11 @@ async function downloadPNG() {
   <div class="bottom-card">
     <div class="section-title">Format pane — quick reference</div>
     <div class="tip"><i class="ti ti-adjustments-horizontal"></i><span><strong style="color:#3D3929">Histogram</strong> — Bins (2–100 Pro), Lower/Upper trim %, bar color &amp; style</span></div>
-    <div class="tip"><i class="ti ti-calculator"></i><span><strong style="color:#3D3929">Statistics</strong> — Mean, median, P25, P75, IQR shading, normal curve, stats panel</span></div>
-    <div class="tip"><i class="ti ti-target"></i><span><strong style="color:#3D3929">Benchmark</strong> — Custom target line with value, color, and label</span></div>
-    <div class="tip"><i class="ti ti-tag"></i><span><strong style="color:#3D3929">Value labels</strong> (Pro) — Show count or % above each bar</span></div>
-    <div class="tip"><i class="ti ti-certificate"></i><span><strong style="color:#3D3929">IBCS mode</strong> — Black-and-white style for financial reports</span></div>
-    <div class="tip"><i class="ti ti-list"></i><span><strong style="color:#3D3929">Legend</strong> — Custom labels for reference lines, top or bottom position</span></div>
+    <div class="tip"><i class="ti ti-calculator"></i><span><strong style="color:#3D3929">Statistics</strong> — Mean, median, P25, P75, IQR, cumulative line, normal curve, stats panel</span></div>
+    <div class="tip"><i class="ti ti-layers-subtract"></i><span><strong style="color:#3D3929">Value zones</strong> (Pro) — Two cuts, three zones, share of rows and value</span></div>
+    <div class="tip"><i class="ti ti-layout-grid"></i><span><strong style="color:#3D3929">Small multiples</strong> (Pro) — Columns, title size and color</span></div>
+    <div class="tip"><i class="ti ti-target"></i><span><strong style="color:#3D3929">Benchmark</strong> — Target line; color the bars by side</span></div>
+    <div class="tip"><i class="ti ti-list"></i><span><strong style="color:#3D3929">Legend · labels · IBCS</strong> — Font, position, count or % on bars, IBCS mode</span></div>
   </div>
 </div>
 
@@ -421,7 +420,7 @@ async function downloadPNG() {
       </text>
       <text x="264" y="306" font-family="Poppins,sans-serif" font-weight="500" font-size="31" letter-spacing="6.5" fill="#83827D">VISUALS TO POWER BI</text>
     </svg>
-    <span style="color:#83827D;font-size:11px">Histogram Pro · Power BI Custom Visual</span>
+    <span style="color:#83827D;font-size:11px">Histogram Pro 1.4 · Power BI Custom Visual</span>
   </div>
   <div class="footer-links">
     <a href="support.html">Support</a>

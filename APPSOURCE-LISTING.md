@@ -1,4 +1,4 @@
-# AppSource Listing — Histogram Pro v1.2.0.0
+# AppSource Listing — Histogram Pro v1.4.0.0
 
 Copy ready to paste into Partner Center. **The marketplace description is the
 documentation most people read and the one that goes stale fastest** — update it on every
@@ -9,14 +9,16 @@ release, not only when the code changes.
 ## Short description (max 100 characters)
 
 ```
-Distribution histogram with mean, median, quartiles and a normal curve. No DAX.
+Histogram with value zones, small multiples, mean, median and quartiles. No DAX.
 ```
 
-*(78 characters)*
+*(80 characters)*
 
 ---
 
 ## Long description
+
+*(3176 characters; limit 5,000)*
 
 ```
 Every other visual on the page tells you how much. A histogram tells you how it is spread
@@ -36,63 +38,70 @@ WHAT YOU GET
 • The distribution over your whole table, not a sample — Power BI hands a visual 30,000
   rows at a time, and Histogram Pro asks for the following segments and combines them.
   Verified at 500,000 rows.
-• An axis built for skewed data. Amounts, response times and consumption have long tails:
-  with the axis running from minimum to maximum, one extreme value pushes every other row
-  into the first bar. The axis focuses on where the data lives instead — and every row is
-  still counted, with values beyond the axis going into the end bar.
+• An axis built for skewed data: one extreme value no longer pushes every other row into
+  the first bar. The axis focuses on where the data lives, and every row is still counted.
 • Mean and median lines, quartiles and IQR shading, without a line of DAX
-• A benchmark line for a target or SLA
-• IBCS monochrome mode for standards-based reporting
+• A benchmark line for a target or SLA, with the bars coloured by which side they fall on
 • Cross-filtering by the bar: one click filters the report by every row behind it, up to
-  10,000 distinct values at once
+  10,000 distinct values at once. Ctrl+click adds bars; the selection stays visible and
+  bookmarks restore it.
 • Drill-up and drill-down when Detail (rows) holds a hierarchy
-• Report page tooltips as well as standard tooltips
-• Keyboard focus and activation on every bar, with descriptive ARIA labels, and high
-  contrast support
+• Report page tooltips, number formats from your model, English and Spanish
+• Keyboard navigation with ARIA labels, high contrast support, IBCS mode
 
-PRIVACY
+READ THE CONCENTRATION, NOT JUST THE SHAPE (PRO)
 
-No network calls of any kind: no telemetry, no analytics, no CDN, no endpoints. All
-calculation and rendering happens inside Power BI, on your machine or your tenant.
+• Value zones: two cut points split the axis into three zones, each labelled with its
+  share of rows and its share of total value. "> 50K: 8% of rows · 46% of value" says
+  what the bars only imply.
+• Small multiples: one histogram per region, year or segment, on the same bins and the
+  same vertical scale, so a taller bar really means more rows.
+• Cumulative frequency line on its own 0–100% axis
+• Bin count from 2 to 100, outlier trimming, normal curve, statistics panel (n, mean,
+  median, standard deviation, min, max), value labels, bar colour with conditional
+  formatting
 
 FREE AND PRO
 
 The free tier is the histogram itself, over your whole dataset, with no watermark and no
-row limit of ours: the distribution, mean and median, quartiles and IQR, the benchmark
-line, the legend, IBCS mode, axis controls, cross-filtering, keyboard navigation and high
-contrast.
+row limit of ours: ten bins, mean and median, quartiles and IQR, the benchmark, the
+legend, cross-filtering, bookmarks, drilldown, IBCS mode, keyboard and high contrast.
 
-Pro adds the analysis: the bin count anywhere from 2 to 100, outlier trimming, the
-statistics panel (n, mean, median, standard deviation, min, max), the normal curve
-overlay, value labels on the bars, and full control of bar colour, opacity, border and
-gap.
+Turn on a Pro feature while editing and it is drawn working on your own data, under a
+"Pro preview" watermark that names it. Every paid setting says (Pro) in the format pane
+and is never hidden.
 
-Every paid setting says (Pro) in the format pane and is never hidden — you can see what
-the paid tier offers before deciding.
+PRIVACY
 
-30-day free trial on AppSource. No card required.
+No network calls of any kind: no telemetry, no analytics, no CDN, no endpoints. All
+calculation and rendering happens inside Power BI.
+
+GETTING STARTED
+
+1. Put the field that identifies one row (Order ID, Customer, Ticket) in Detail (rows).
+2. Put the number to distribute in Values.
+3. Open the Format pane for bins, zones, benchmark and statistics.
+
+Documentation: https://tinocallarisa-web.github.io/histogram-pro/support.html
+Support: support@tcviz.com
 ```
 
 ---
 
-## What's new — v1.2.0.0
+## What's new — v1.4.0.0
 
 ```
-• The distribution is now computed over your whole table. Power BI hands a visual 30,000
-  rows at a time; the visual asks for the following segments and combines them. Verified
-  at 500,000 rows.
-• Fixed: past 30,000 rows the histogram drew only the rows with the highest values, so the
-  shape of the distribution was wrong and nothing on screen said so.
-• An axis built for skewed data: it focuses on where the data lives instead of following a
-  single extreme value, which used to push every row into the first bar. No row is
-  discarded — values beyond the axis are counted in the end bar and the chart says so.
-• Cross-filtering by the bar: one click filters the report by every row behind it, up to
-  10,000 distinct values at once.
-• Fixed: a paying customer could be shown the free tier in a report that renders once. The
-  licence now repaints the chart as soon as it resolves.
-• Power BI's own licensing notifications replace the caption that used to be drawn inside
-  the chart, which had nothing to click.
-• allowInteractions is honoured, and a licence in its payment grace period keeps working.
+• Value zones (Pro): three zones from two cut points, each with its share of rows and of
+  total value.
+• Small multiples (Pro): one histogram per group, on shared bins and a shared scale.
+• Cumulative frequency line (Pro) on its own 0–100% axis.
+• Bars coloured by the benchmark, and an editable benchmark label.
+• The selected bars stay visible; Ctrl+click adds bars; bookmarks restore the selection.
+• Drill-down on a bar now works when Detail holds a hierarchy.
+• Conditional formatting (fx) on bar colour.
+• Number formats follow your model and locale; English and Spanish.
+• Configurable backgrounds for the statistics panel and labels; legend font, colour and
+  bottom position.
 ```
 
 ---
@@ -117,13 +126,13 @@ chart is called a histogram, which is a real share of the audience.
 | Terms of use | https://tinocallarisa-web.github.io/histogram-pro/terms.html |
 | Case study | https://tinocallarisa-web.github.io/histogram-pro/use-case.html |
 | Repository (certification branch) | https://github.com/tinocallarisa-web/histogram-pro/tree/certification |
-| Demo video | https://www.youtube.com/watch?v=qL9luDsg3h8 |
+| Demo video | https://www.youtube.com/watch?v=elLjSnxd8tw |
 
 **The repository slug is `histogram-pro`, lowercase and hyphenated** — not `HistogramPro`,
 which is the local folder name and the GUID prefix. A URL built from the folder name 404s.
 
 **The certification notes field caps at 2,500 characters** and truncates without warning,
-mid-word. Paste `CERTIFICATION-NOTES-SHORT.txt`, which is written to fit at 2,499. That
+mid-word. Paste `docs/CERTIFICATION-NOTES-SHORT.txt`, which is written to fit. That
 field is cleared on every resubmission.
 
 **`privacyTermsLink` does not travel inside the `.pbiviz`.** The privacy URL shown to users
@@ -137,7 +146,7 @@ comes from Partner Center, so correcting it in `pbiviz.json` alone changes nothi
 - [ ] "What's new" pasted
 - [ ] Support, privacy and terms URLs checked with a real request, not assumed
 - [ ] Certification notes pasted from `CERTIFICATION-NOTES-SHORT.txt`
-- [ ] Version 1.2.0.0 is above the published 1.1.0.0
+- [ ] Version 1.4.0.0 is above the published 1.3.0.0
 - [ ] Screenshots show the visual, not the whole Power BI Desktop window — the current
       captures in `assets/` include the ribbon, the format pane and the signed-in user's
       name

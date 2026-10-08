@@ -2,30 +2,49 @@
   "dataRoles": [
     {
       "displayName": "Values",
+      "displayNameKey": "Role_measure",
       "name": "measure",
       "kind": "Measure",
       "description": "Numeric field to plot as histogram"
     },
     {
       "displayName": "Detail (rows)",
+      "displayNameKey": "Role_category",
       "name": "category",
       "kind": "Grouping",
       "description": "Optional category for row-level data"
     },
     {
       "displayName": "Tooltips",
+      "displayNameKey": "Role_tooltips",
       "name": "tooltips",
       "kind": "Measure",
       "description": "Optional measures shown in the tooltip (displayed as average per bin)"
+    },
+    {
+      "displayName": "Small multiples (Pro)",
+      "displayNameKey": "Role_panel",
+      "name": "panel",
+      "kind": "Grouping",
+      "description": "One histogram per value of this field — region, product, channel — on a shared axis."
     }
   ],
   "dataViewMappings": [
     {
       "categorical": {
         "categories": {
-          "for": {
-            "in": "category"
-          },
+          "select": [
+            {
+              "for": {
+                "in": "category"
+              }
+            },
+            {
+              "bind": {
+                "to": "panel"
+              }
+            }
+          ],
           "dataReductionAlgorithm": {
             "window": {
               "count": 30000
@@ -52,6 +71,7 @@
   "objects": {
     "general": {
       "displayName": "General",
+      "displayNameKey": "Obj_general",
       "properties": {
         "filter": {
           "type": {
@@ -62,9 +82,11 @@
     },
     "histogram": {
       "displayName": "Histogram",
+      "displayNameKey": "Obj_histogram",
       "properties": {
         "bins": {
           "displayName": "Number of bins (Pro)",
+          "displayNameKey": "Prop_histogram_bins",
           "description": "Number of bins. Free tier is fixed at 10. Upgrade to Pro for 2–100.",
           "type": {
             "numeric": true
@@ -72,6 +94,7 @@
         },
         "trimLower": {
           "displayName": "Lower trim % (Pro)",
+          "displayNameKey": "Prop_histogram_trimLower",
           "description": "Trim bottom N% of values as outliers. Pro only.",
           "type": {
             "numeric": true
@@ -79,6 +102,7 @@
         },
         "trimUpper": {
           "displayName": "Upper trim % (Pro)",
+          "displayNameKey": "Prop_histogram_trimUpper",
           "description": "Trim top N% of values as outliers. Pro only.",
           "type": {
             "numeric": true
@@ -86,22 +110,35 @@
         },
         "barColor": {
           "displayName": "Bar color (Pro)",
+          "displayNameKey": "Prop_histogram_barColor",
+          "description": "Fill color of the bars. Supports conditional formatting (fx): each bin takes the color the rule gives its middle row.",
           "type": {
             "fill": {
               "solid": {
                 "color": true
               }
             }
+          },
+          "rule": {
+            "inputRole": "measure",
+            "output": {
+              "property": "barColor",
+              "selector": [
+                "category"
+              ]
+            }
           }
         },
         "barOpacity": {
           "displayName": "Bar opacity % (Pro)",
+          "displayNameKey": "Prop_histogram_barOpacity",
           "type": {
             "numeric": true
           }
         },
         "borderColor": {
           "displayName": "Border color (Pro)",
+          "displayNameKey": "Prop_histogram_borderColor",
           "type": {
             "fill": {
               "solid": {
@@ -112,12 +149,14 @@
         },
         "borderWidth": {
           "displayName": "Border width (Pro)",
+          "displayNameKey": "Prop_histogram_borderWidth",
           "type": {
             "numeric": true
           }
         },
         "barGap": {
           "displayName": "Bar gap px (Pro)",
+          "displayNameKey": "Prop_histogram_barGap",
           "type": {
             "numeric": true
           }
@@ -126,9 +165,11 @@
     },
     "axes": {
       "displayName": "Axes",
+      "displayNameKey": "Obj_axes",
       "properties": {
         "axisColor": {
           "displayName": "Axis text color",
+          "displayNameKey": "Prop_axes_axisColor",
           "type": {
             "fill": {
               "solid": {
@@ -139,6 +180,7 @@
         },
         "gridColor": {
           "displayName": "Grid color",
+          "displayNameKey": "Prop_axes_gridColor",
           "type": {
             "fill": {
               "solid": {
@@ -149,6 +191,7 @@
         },
         "fontSize": {
           "displayName": "Font size",
+          "displayNameKey": "Prop_axes_fontSize",
           "type": {
             "formatting": {
               "fontSize": true
@@ -157,12 +200,14 @@
         },
         "showXLabel": {
           "displayName": "Show X label",
+          "displayNameKey": "Prop_axes_showXLabel",
           "type": {
             "bool": true
           }
         },
         "showYLabel": {
           "displayName": "Show Y label",
+          "displayNameKey": "Prop_axes_showYLabel",
           "type": {
             "bool": true
           }
@@ -171,15 +216,18 @@
     },
     "statistics": {
       "displayName": "Statistics",
+      "displayNameKey": "Obj_statistics",
       "properties": {
         "showMean": {
           "displayName": "Show mean line",
+          "displayNameKey": "Prop_statistics_showMean",
           "type": {
             "bool": true
           }
         },
         "meanColor": {
           "displayName": "Mean line color",
+          "displayNameKey": "Prop_statistics_meanColor",
           "type": {
             "fill": {
               "solid": {
@@ -190,12 +238,14 @@
         },
         "showMedian": {
           "displayName": "Show median line",
+          "displayNameKey": "Prop_statistics_showMedian",
           "type": {
             "bool": true
           }
         },
         "medianColor": {
           "displayName": "Median line color",
+          "displayNameKey": "Prop_statistics_medianColor",
           "type": {
             "fill": {
               "solid": {
@@ -206,6 +256,7 @@
         },
         "showP25": {
           "displayName": "Show P25 line",
+          "displayNameKey": "Prop_statistics_showP25",
           "description": "Show the 25th percentile (Q1) marker.",
           "type": {
             "bool": true
@@ -213,6 +264,7 @@
         },
         "p25Color": {
           "displayName": "P25 line color",
+          "displayNameKey": "Prop_statistics_p25Color",
           "type": {
             "fill": {
               "solid": {
@@ -223,6 +275,7 @@
         },
         "showP75": {
           "displayName": "Show P75 line",
+          "displayNameKey": "Prop_statistics_showP75",
           "description": "Show the 75th percentile (Q3) marker.",
           "type": {
             "bool": true
@@ -230,6 +283,7 @@
         },
         "p75Color": {
           "displayName": "P75 line color",
+          "displayNameKey": "Prop_statistics_p75Color",
           "type": {
             "fill": {
               "solid": {
@@ -240,6 +294,7 @@
         },
         "showIQR": {
           "displayName": "Show IQR range",
+          "displayNameKey": "Prop_statistics_showIQR",
           "description": "Shade the interquartile range (Q1–Q3) behind the bars.",
           "type": {
             "bool": true
@@ -247,6 +302,7 @@
         },
         "iqrColor": {
           "displayName": "IQR fill color",
+          "displayNameKey": "Prop_statistics_iqrColor",
           "type": {
             "fill": {
               "solid": {
@@ -257,6 +313,7 @@
         },
         "showNormal": {
           "displayName": "Normal curve (Pro)",
+          "displayNameKey": "Prop_statistics_showNormal",
           "description": "Overlay a normal distribution curve. Pro only.",
           "type": {
             "bool": true
@@ -264,6 +321,7 @@
         },
         "normalColor": {
           "displayName": "Normal curve color (Pro)",
+          "displayNameKey": "Prop_statistics_normalColor",
           "type": {
             "fill": {
               "solid": {
@@ -274,6 +332,7 @@
         },
         "showStats": {
           "displayName": "Stats panel (Pro)",
+          "displayNameKey": "Prop_statistics_showStats",
           "description": "Show n, mean, median, σ, min, max panel. Pro only.",
           "type": {
             "bool": true
@@ -281,6 +340,62 @@
         },
         "statsColor": {
           "displayName": "Stats text color (Pro)",
+          "displayNameKey": "Prop_statistics_statsColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "statsBgColor": {
+          "displayName": "Stats panel background",
+          "displayNameKey": "Prop_statistics_statsBgColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "statsBgOpacity": {
+          "displayName": "Stats panel opacity %",
+          "displayNameKey": "Prop_statistics_statsBgOpacity",
+          "type": {
+            "numeric": true
+          }
+        },
+        "labelBgColor": {
+          "displayName": "Label background",
+          "displayNameKey": "Prop_statistics_labelBgColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "labelBgOpacity": {
+          "displayName": "Label background opacity %",
+          "displayNameKey": "Prop_statistics_labelBgOpacity",
+          "type": {
+            "numeric": true
+          }
+        },
+        "showCumulative": {
+          "displayName": "Cumulative frequency (Pro)",
+          "displayNameKey": "Prop_statistics_showCumulative",
+          "description": "A line from 0% to 100% on its own right axis: the share of rows up to each bin.",
+          "type": {
+            "bool": true
+          }
+        },
+        "cumulativeColor": {
+          "displayName": "Cumulative line color (Pro)",
+          "displayNameKey": "Prop_statistics_cumulativeColor",
           "type": {
             "fill": {
               "solid": {
@@ -293,9 +408,11 @@
     },
     "legend": {
       "displayName": "Legend",
+      "displayNameKey": "Obj_legend",
       "properties": {
         "show": {
           "displayName": "Show legend",
+          "displayNameKey": "Prop_legend_show",
           "description": "Show a legend for all active reference lines.",
           "type": {
             "bool": true
@@ -303,6 +420,7 @@
         },
         "bottom": {
           "displayName": "Position: bottom",
+          "displayNameKey": "Prop_legend_bottom",
           "description": "Off = top of chart, On = bottom of chart.",
           "type": {
             "bool": true
@@ -310,41 +428,66 @@
         },
         "meanLabel": {
           "displayName": "Mean label",
+          "displayNameKey": "Prop_legend_meanLabel",
           "type": {
             "text": true
           }
         },
         "medianLabel": {
           "displayName": "Median label",
+          "displayNameKey": "Prop_legend_medianLabel",
           "type": {
             "text": true
           }
         },
         "p25Label": {
           "displayName": "P25 label",
+          "displayNameKey": "Prop_legend_p25Label",
           "type": {
             "text": true
           }
         },
         "p75Label": {
           "displayName": "P75 label",
+          "displayNameKey": "Prop_legend_p75Label",
           "type": {
             "text": true
           }
         },
         "normalLabel": {
           "displayName": "Normal label",
+          "displayNameKey": "Prop_legend_normalLabel",
           "type": {
             "text": true
+          }
+        },
+        "fontSize": {
+          "displayName": "Font size",
+          "displayNameKey": "Prop_legend_fontSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color": {
+          "displayName": "Font color",
+          "displayNameKey": "Prop_legend_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
           }
         }
       }
     },
     "ibcs": {
       "displayName": "IBCS",
+      "displayNameKey": "Obj_ibcs",
       "properties": {
         "mode": {
           "displayName": "IBCS mode",
+          "displayNameKey": "Prop_ibcs_mode",
           "description": "Apply International Business Communication Standards colors and styling.",
           "type": {
             "bool": true
@@ -354,9 +497,11 @@
     },
     "benchmark": {
       "displayName": "Benchmark",
+      "displayNameKey": "Obj_benchmark",
       "properties": {
         "show": {
           "displayName": "Show benchmark line",
+          "displayNameKey": "Prop_benchmark_show",
           "description": "Show a vertical reference line at a user-defined value.",
           "type": {
             "bool": true
@@ -364,6 +509,7 @@
         },
         "value": {
           "displayName": "Benchmark value",
+          "displayNameKey": "Prop_benchmark_value",
           "description": "Position of the benchmark line on the X axis.",
           "type": {
             "numeric": true
@@ -371,6 +517,150 @@
         },
         "color": {
           "displayName": "Line color",
+          "displayNameKey": "Prop_benchmark_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "label": {
+          "displayName": "Benchmark label",
+          "displayNameKey": "Prop_benchmark_label",
+          "type": {
+            "text": true
+          }
+        },
+        "colorBars": {
+          "displayName": "Color bars by benchmark",
+          "displayNameKey": "Prop_benchmark_colorBars",
+          "description": "Bins at or above the benchmark take one color, bins below it another.",
+          "type": {
+            "bool": true
+          }
+        },
+        "aboveColor": {
+          "displayName": "At or above benchmark",
+          "displayNameKey": "Prop_benchmark_aboveColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "belowColor": {
+          "displayName": "Below benchmark",
+          "displayNameKey": "Prop_benchmark_belowColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "zones": {
+      "displayName": "Value zones (Pro)",
+      "displayNameKey": "Obj_zones",
+      "properties": {
+        "show": {
+          "displayName": "Show value zones",
+          "displayNameKey": "Prop_zones_show",
+          "description": "Shade three bands of the value axis and label each with its share of rows and of the total value.",
+          "type": {
+            "bool": true
+          }
+        },
+        "cut1": {
+          "displayName": "First cut",
+          "displayNameKey": "Prop_zones_cut1",
+          "type": {
+            "numeric": true
+          }
+        },
+        "cut2": {
+          "displayName": "Second cut",
+          "displayNameKey": "Prop_zones_cut2",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color1": {
+          "displayName": "Low zone color",
+          "displayNameKey": "Prop_zones_color1",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "color2": {
+          "displayName": "Middle zone color",
+          "displayNameKey": "Prop_zones_color2",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "color3": {
+          "displayName": "High zone color",
+          "displayNameKey": "Prop_zones_color3",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "showLabels": {
+          "displayName": "Show zone labels",
+          "displayNameKey": "Prop_zones_showLabels",
+          "type": {
+            "bool": true
+          }
+        },
+        "showValueShare": {
+          "displayName": "Show share of total value",
+          "displayNameKey": "Prop_zones_showValueShare",
+          "type": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "smallMultiples": {
+      "displayName": "Small multiples (Pro)",
+      "displayNameKey": "Obj_smallMultiples",
+      "properties": {
+        "columns": {
+          "displayName": "Columns (0 = automatic)",
+          "displayNameKey": "Prop_smallMultiples_columns",
+          "type": {
+            "numeric": true
+          }
+        },
+        "titleFontSize": {
+          "displayName": "Title font size",
+          "displayNameKey": "Prop_smallMultiples_titleFontSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "titleColor": {
+          "displayName": "Title color",
+          "displayNameKey": "Prop_smallMultiples_titleColor",
           "type": {
             "fill": {
               "solid": {
@@ -383,15 +673,18 @@
     },
     "valueLabels": {
       "displayName": "Value labels (Pro)",
+      "displayNameKey": "Obj_valueLabels",
       "properties": {
         "show": {
           "displayName": "Show",
+          "displayNameKey": "Prop_valueLabels_show",
           "type": {
             "bool": true
           }
         },
         "fontSize": {
           "displayName": "Font size",
+          "displayNameKey": "Prop_valueLabels_fontSize",
           "type": {
             "formatting": {
               "fontSize": true
@@ -400,6 +693,7 @@
         },
         "color": {
           "displayName": "Color",
+          "displayNameKey": "Prop_valueLabels_color",
           "type": {
             "fill": {
               "solid": {
@@ -410,6 +704,7 @@
         },
         "showPercent": {
           "displayName": "Show percent",
+          "displayNameKey": "Prop_valueLabels_showPercent",
           "type": {
             "bool": true
           }

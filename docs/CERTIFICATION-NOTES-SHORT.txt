@@ -1,39 +1,43 @@
-Histogram Pro 1.3.0.0 - GUID HistogramPro38A7C1D94E2B4F6D8A0E5B3C9F1D2E4A
-WHAT CHANGED IN 1.3.0.0
-1. PRO PREVIEW. A free user who turned on a Pro setting saw NOTHING happen: it was silently
-   reverted. That reads as a broken visual, not as something to buy. Now, editing without a
-   licence and once it has resolved, the feature is drawn WORKING under a "Pro preview"
-   watermark naming it, granted per feature, never in bulk. In reading view, before the
-   licence resolves, and where it cannot be read (Publish to Web, embed, export): free
-   result, no watermark.
-2. The Upgrade bar no longer wipes out the feature banner: Power BI shows one notification
-   at a time and both were raised back to back. The banner comes first and the Upgrade bar
-   10.5 s later. Cancelled in destroy().
-3. Fixed: the notice never cleared. Whether a feature was "attempted" was read from the
-   presence of the property in metadata.objects, which Power BI keeps forever once written,
-   even after returning it to its free value. It now compares the VALUE.
-4. Fixed: no repaint once the licence resolved to Free, so the preview never appeared and
-   vanished on returning to the page.
-5. BUILD: four fetch calls from d3-fetch were bundled. tsconfig had module=commonjs, which
-   defeats tree-shaking, so all of d3 came in although the visual calls none of it. Now
-   module=esnext and --certification-audit reports none. Toolchain current (tools 7.2.1,
-   API 5.11.1), npm audit 0, lint clean - it was being skipped.
+Histogram Pro 1.4.0.0 - GUID HistogramPro38A7C1D94E2B4F6D8A0E5B3C9F1D2E4A
 
-PRIVACY: no network calls, no telemetry, no storage. Only the dataView. privileges [].
+SOURCE CODE
+github.com/tinocallarisa-web/histogram-pro, branch "certification".
+PUBLIC: no credentials needed, none included here.
 
-FREE VS PRO
-Free: the histogram with 10 bins, mean, median, percentile and IQR markers, benchmark line,
-axes, legend, IBCS mode, tooltips, cross-filtering, high contrast.
-Pro: bin count, outlier trimming, bar styling, statistics panel, normal curve, value labels.
+TESTING THE PREMIUM FEATURES - NO KEY NEEDED
+There is no activation key: Pro is granted by the AppSource plan through
+IVisualLicenseManager. The submitted package already renders every premium feature:
+open a report in EDIT mode without a licence and turn on any Pro setting - it is drawn
+WORKING under a "Pro preview" watermark naming it. Reading view, Publish to Web, embed
+and export show the free result, no watermark. Without the watermark: npm install,
+then node build-test.js (isPro forced true, GUID + "_test"; never submitted).
 
-TEST - FREE (no plan)
-1. Bind a numeric measure: the histogram renders with 10 bins.
-2. Editing, turn on Statistics > Show statistics: the panel draws under a "Pro preview"
-   watermark, a banner names it, and ten seconds later the Upgrade bar appears.
-3. Turn it off, or return a Pro setting to its default value: watermark and notice clear.
-4. Reading view: no watermark, no panel, no prompt. Publish to Web or export: the same.
+WHAT CHANGED IN 1.4.0.0
+1. NEW (Pro): value zones (share of rows and of value), small multiples (new "panel"
+   grouping role, shared bins and y scale), cumulative frequency line.
+2. NEW (Free): bars coloured by benchmark side; label backgrounds; legend font, colour,
+   bottom position. Labels sit in a band above the bars.
+3. SELECTION: selected bars stay highlighted; Ctrl+click adds/removes; filter persisted
+   in general.filter, so bookmarks restore filter and highlight. Drill mode uses
+   selectionManager.select (Power BI drills on a selection) and registerOnSelectCallback.
+4. FIXED conditional formatting on barColor (rule + ConstantOrRule, wildcard selector).
+5. Localization en-US/es-ES (displayNameKey). Numbers: format string + host.locale.
 
-TEST - PRO: the same features render, no watermark, no notification.
+RENDERING EVENTS: one started/finished-or-failed pair per update(); click repaints
+do not call update().
+PRIVACY: no network calls, no telemetry. privileges [].
 
-Rendering events on every path of update().
-Support: tinocallarisa-web.github.io/histogram-pro/
+FREE: 10 bins, mean, median, P25/P75, IQR, benchmark, legend, IBCS, tooltips,
+cross-filtering, bookmarks, drilldown, high contrast.
+PRO: bin count, trimming, zones, small multiples, cumulative line, bar styling and fx,
+statistics panel, normal curve, value labels.
+
+WHAT TO CHECK
+1. Values = numeric measure, Detail (rows) = row-level field: 10 bins.
+2. Editing, no licence: Value zones on, cuts 10000 and 50000 - drawn under the
+   watermark, a banner names it, then the Upgrade bar. Turn off: both clear.
+3. Click a bar: page filters, bar stays highlighted. Ctrl+click a second. Save a
+   bookmark, clear, apply it: same bars highlighted.
+4. Hierarchy in Detail, drill mode on, click a bar: it drills.
+
+Support: tinocallarisa-web.github.io/histogram-pro/support.html

@@ -3,88 +3,694 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Support — Histogram Pro</title>
+<title>Histogram Pro – Support | TCViz</title>
 <style>
-  body { font-family: Segoe UI, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }
-  h1 { color: #1a1a2e; } h2 { color: #16213e; margin-top: 2em; }
-  .card { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px 20px; margin: 1em 0; }
-  a { color: #0078d4; }
-  code { background: #eef; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
-  .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 6px; margin: 1em 0; }
-  .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-  .badge { display: inline-block; background: #0078d4; color: #fff; border-radius: 4px; padding: 2px 8px; font-size: 0.8em; margin-left: 6px; vertical-align: middle; }
+  :root {
+    --bg: #FAF9F5; --bg2: #EDE9DE; --bd: #F5F3ED; --line: #DAD9D4;
+    --t1: #3D3929; --t2: #535146; --t3: #83827D;
+    --acc: #2B6CB0; --accd: #1F4E80; --acc2: #3E9C5B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--t1); line-height: 1.65; }
+
+  /* ── Header ── */
+  header { background: var(--t1); color: #fff; padding: 28px 48px; display: flex; align-items: center; gap: 20px; }
+  header svg { flex-shrink: 0; }
+  header .title { font-size: 22px; font-weight: 700; }
+  header .sub   { font-size: 13px; color: #b5b3aa; margin-top: 2px; }
+
+  /* ── Nav ── */
+  nav { background: var(--bg2); border-bottom: 1px solid var(--line); padding: 0 48px; display: flex; gap: 0; overflow-x: auto; }
+  nav a { display: block; padding: 14px 14px; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--t2);
+          text-decoration: none; border-bottom: 3px solid transparent; transition: color .2s, border-color .2s; }
+  nav a:hover, nav a.active { color: var(--acc); border-bottom-color: var(--acc); }
+
+  /* ── Layout ── */
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  h2 { font-size: 17px; font-weight: 700; color: var(--t1); margin: 40px 0 12px; padding-bottom: 8px;
+       border-bottom: 2px solid var(--acc); display: inline-block; }
+  h3 { font-size: 14px; font-weight: 700; color: var(--t1); margin: 18px 0 6px; }
+  p  { font-size: 14px; color: var(--t2); margin-bottom: 10px; }
+  ul { font-size: 14px; color: var(--t2); padding-left: 20px; margin-bottom: 10px; }
+  li { margin-bottom: 5px; }
+  code { font-family: monospace; background: var(--bg2); padding: 1px 6px; border-radius: 4px;
+         font-size: 12px; color: var(--acc); }
+
+  /* ── Cards ── */
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 24px 28px; margin-bottom: 16px; }
+
+  /* ── Badges ── */
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+           text-transform: uppercase; letter-spacing: .5px; vertical-align: middle; margin-left: 6px; }
+  .badge-pro  { background: var(--acc2); color: #fff; }
+  .badge-free { background: var(--acc);  color: #fff; }
+
+  /* ── Field wells table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+  th { background: var(--bg2); color: var(--t1); font-weight: 700; padding: 10px 14px; text-align: left;
+       border-bottom: 2px solid var(--line); }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--bd); color: var(--t2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── FAQ ── */
+  details { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; background: #fff; }
+  summary { padding: 14px 18px; font-size: 14px; font-weight: 600; cursor: pointer; list-style: none;
+            display: flex; align-items: center; justify-content: space-between; color: var(--t1); }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; font-size: 18px; font-weight: 300; color: var(--acc); transition: transform .2s; }
+  details[open] summary::after { content: '−'; }
+  details[open] summary { border-bottom: 1px solid var(--line); }
+  .faq-body { padding: 14px 18px; font-size: 14px; color: var(--t2); }
+  .faq-body p { margin-bottom: 6px; }
+  .faq-body ul { margin-top: 6px; }
+
+  /* ── Contact box ── */
+  .contact-box { background: var(--acc); color: #fff; border-radius: 10px; padding: 24px 28px;
+                  display: flex; align-items: center; gap: 20px; }
+  .contact-box .icon { font-size: 36px; flex-shrink: 0; }
+  .contact-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #fff; }
+  .contact-box p  { font-size: 13px; color: rgba(255,255,255,.85); margin: 0; }
+  .contact-box a  { color: #fff; font-weight: 700; text-decoration: underline; }
+
+  /* ── Video embed ── */
+  .video-wrap { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 10px; overflow: hidden;
+                border: 1px solid var(--line); margin-bottom: 20px; }
+  .video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+  /* ── CTA strip ── */
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+  .btn { display: inline-block; padding: 10px 22px; border-radius: 6px; font-size: 13px; font-weight: 700;
+          text-decoration: none; transition: background .2s; }
+  .btn-primary { background: var(--acc); color: #fff; }
+  .btn-primary:hover { background: var(--accd); }
+  .btn-outline { background: transparent; color: var(--acc); border: 2px solid var(--acc); }
+  .btn-outline:hover { background: var(--acc); color: #fff; }
+
+  /* ── Search ── */
+  .searchbar { background: var(--bg2); border-bottom: 1px solid var(--line); padding: 14px 48px 16px; }
+  .searchbox { position: relative; max-width: 900px; margin: 0 auto; display: flex; align-items: center;
+               gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; }
+  .searchbox:focus-within { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(43,108,176,.16); }
+  .searchbox svg { color: var(--t3); flex-shrink: 0; }
+  .searchbox input { flex: 1; border: none; outline: none; background: transparent; font: inherit;
+                     font-size: 14px; color: var(--t1); padding: 11px 0; }
+  .searchbox input::placeholder { color: var(--t3); }
+  .searchbox button { border: none; background: transparent; color: var(--t3); font-size: 20px;
+                      line-height: 1; cursor: pointer; padding: 0 2px; }
+  .searchbox button:hover { color: var(--acc); }
+  .search-status { max-width: 900px; margin: 8px auto 0; font-size: 12px; color: var(--t3); min-height: 16px; }
+  mark { background: #FCE8A8; color: var(--t1); border-radius: 2px; padding: 0 2px; }
+  .is-hidden { display: none !important; }
+
+  /* ── Version pill ── */
+  .verpill { display: block; width: fit-content; font-size: 11px; font-weight: 700; letter-spacing: .4px;
+             background: var(--bg2); color: var(--t2); border: 1px solid var(--line);
+             padding: 3px 10px; border-radius: 20px; margin-bottom: 14px; }
+  .verpill a { color: var(--acc); text-decoration: none; }
+  .lead { font-size: 14px; line-height: 1.6; color: var(--t2); margin: 0 0 22px; }
+  .lead a { color: var(--acc); }
+
+  /* ── Footer ── */
+  footer { background: var(--t1); color: var(--t3); text-align: center; padding: 24px 48px; font-size: 12px; }
+  footer a { color: #b5b3aa; text-decoration: none; margin: 0 8px; }
+  footer a:hover { color: #fff; }
 </style>
 </head>
 <body>
-<h1>Histogram Pro — Support</h1>
-<p>Developed by <strong>TCViz</strong> · <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
-<p>
-  <a href="https://github.com/tinocallarisa-web/histogram-pro/blob/main/CHANGELOG.md">Changelog</a> ·
-  <a href="use-case.html">Case Study</a> ·
-  <a href="privacy.html">Privacy Policy</a> ·
-  <a href="terms.html">Terms of Use</a>
-</p>
 
-<h2>Demo Video</h2>
-<div class="video-wrapper">
-  <iframe src="https://www.youtube.com/embed/qL9luDsg3h8" allowfullscreen title="Histogram Pro — Demo"></iframe>
-</div>
+<!-- Header -->
+<header>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="90" height="40">
+    <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#1F4E80"/>
+      <stop offset=".55" stop-color="#2B6CB0"/>
+      <stop offset="1" stop-color="#3E9C5B"/>
+    </linearGradient></defs>
+    <g transform="translate(40,46)">
+      <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#g)" stroke-width="11"/>
+      <g fill="url(#g)">
+        <rect x="42" y="110" width="20" height="58" rx="5"/>
+        <rect x="70" y="86" width="20" height="82" rx="5"/>
+        <rect x="98" y="62" width="20" height="106" rx="5"/>
+        <rect x="126" y="38" width="20" height="130" rx="5"/>
+      </g>
+    </g>
+    <text x="258" y="246" font-family="Poppins,sans-serif" font-weight="700" font-size="196" letter-spacing="-4">
+      <tspan fill="url(#g)">tc</tspan><tspan fill="#fff">viz</tspan>
+    </text>
+    <text x="264" y="306" font-family="Poppins,sans-serif" font-weight="500" font-size="31" letter-spacing="6.5" fill="#83827D">VISUALS TO POWER BI</text>
+  </svg>
+  <div>
+    <div class="title">Histogram Pro</div>
+    <div class="sub">Support &amp; Documentation</div>
+  </div>
+</header>
 
-<h2>Quick Start</h2>
-<div class="card">
-  <p><strong>Step 1:</strong> Import the visual into your Power BI report from AppSource.</p>
-  <p><strong>Step 2:</strong> Drag a numeric measure into the <em>Values</em> field well. Optionally add a dimension to <em>Detail (rows)</em> for row-level data and drilldown support.</p>
-  <p><strong>Step 3:</strong> Use the Format pane to configure bins, colors, and statistics overlays.</p>
-</div>
+<!-- Nav -->
+<nav>
+  <a href="#quickstart" class="active">Quick Start</a>
+  <a href="#reading">Reading the chart</a>
+  <a href="#fields">Field Wells</a>
+  <a href="#format">Format Pane</a>
+  <a href="#interaction">Selection</a>
+  <a href="#accessibility">Accessibility</a>
+  <a href="#performance">Performance</a>
+  <a href="#free-pro">Free vs Pro</a>
+  <a href="#faq">FAQ</a>
+  <a href="changelog.html">Changelog</a>
+  <a href="#contact">Contact</a>
+</nav>
 
-<h2>Free vs Pro</h2>
-<p>The Free tier is the histogram itself: ten bins, mean and median lines, quartiles and IQR shading, the benchmark line, the legend, IBCS mode, axis controls, cross-filtering, keyboard navigation and high contrast — over your whole dataset, with no row limit of ours and no watermark. The Pro tier (via AppSource subscription) adds the analysis:</p>
-<ul>
-  <li>Bin count anywhere from 2 to 100</li>
-  <li>Outlier trimming (lower/upper %)</li>
-  <li>Normal distribution curve overlay</li>
-  <li>Full statistics panel (n, μ, M, σ, min, max)</li>
-  <li>Value labels on bars</li>
-  <li>Custom bar color, opacity, border, and gap</li>
-</ul>
-
-<h2>Common Questions</h2>
-<div class="card">
-  <p><strong>Q: Why does the x-axis stop before my largest value?</strong><br>
-  A: So that you can see your data. With a long-tailed distribution — amounts, response times, consumption — a single extreme value stretches the axis and pushes every other row into the first bar. The axis therefore focuses on where the data actually lives, using Tukey's fences (Q1&nbsp;&minus;&nbsp;1.5&middot;IQR to Q3&nbsp;+&nbsp;1.5&middot;IQR), and only when that changes anything. <strong>Every row is still counted:</strong> values beyond the axis go into the end bar, and a note says so, so the totals, the mean and the standard deviation are exact. With Pro you can set the range yourself through <em>Exclude top / bottom&nbsp;%</em>.</p>
-</div>
-<div class="card">
-  <p><strong>Q: How much can one click cross-filter?</strong><br>
-  A: Clicking a bar filters the report by <strong>every row behind it</strong>, up to 10,000 distinct values in a single click — measured as the practical ceiling for a Power BI filter over a live connection to a semantic model. Most bars are far below that. When a bar holds more, the visual says so instead of filtering part of it: filtering a subset would leave the rest of the report showing figures that do not match the bar you clicked, and nothing on screen would reveal it. Raising the bin count (Pro) puts fewer rows in each bar.</p>
-</div>
-<div class="card">
-  <p><strong>Q: How large a dataset can it draw?</strong><br>
-  A: The whole of it. Power BI hands a visual 30,000 rows at a time; Histogram Pro requests the following segments and combines them, so the distribution is computed over every row — <strong>verified at 500,000</strong>, and the ceiling from there is Power BI's own. The one exception is Power BI Desktop, which runs inside Electron and cannot stream segments: there it draws the first 30,000 and says so on the chart. Publish the report to the Service for the full distribution.</p>
-</div>
-<div class="card">
-  <p><strong>Q: The visual shows "Add a numeric field to get started"</strong><br>
-  A: Drag a numeric measure or column into the <em>Values</em> field well on the left panel.</p>
-</div>
-<div class="card">
-  <p><strong>Q: The bins setting doesn't change anything</strong><br>
-  A: Bin count is fixed at 10 in the Free tier. When you change it without a licence, Power BI shows its own notification with the link to obtain one — the setting is kept and applies as soon as the licence is active.</p>
-</div>
-<div class="card">
-  <p><strong>Q: The normal curve is a Pro feature</strong><br>
-  A: Every setting that needs a licence says <em>(Pro)</em> in the format pane, and it is never hidden: you can see what the paid tier offers before deciding. Turning one on without a licence leaves the free result on screen and raises Power BI's own notification, with the link to obtain one.</p>
-</div>
-<div class="card">
-  <p><strong>Q: How do drilldown and cross-filtering work?</strong><br>
-  A: Add a category field to <em>Detail (rows)</em> to enable drilldown. Use the drill-up/drill-down buttons in the visual header. Cross-filtering with other visuals works automatically — clicking a bar highlights the corresponding data across the report.</p>
-</div>
-<div class="card">
-  <p><strong>Q: How do I get a Pro license?</strong><br>
-  A: Search for "Histogram Pro" in Microsoft AppSource and subscribe to the Pro plan.</p>
+<!-- Search -->
+<div class="searchbar">
+  <div class="searchbox">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="docsearch" type="search" placeholder="Search the documentation — try &quot;bins&quot;, &quot;zones&quot;, &quot;bookmark&quot;…"
+           autocomplete="off" aria-label="Search the documentation">
+    <button id="searchclear" type="button" aria-label="Clear search" hidden>&times;</button>
+  </div>
+  <div id="searchstatus" class="search-status" role="status" aria-live="polite"></div>
 </div>
 
-<h2>Contact &amp; Support</h2>
-<p>For bugs, feature requests, or license questions: <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
-<p>Response time: 1–3 business days.</p>
-<p>Issue tracker: <a href="https://github.com/tinocallarisa-web/histogram-pro/issues">github.com/tinocallarisa-web/histogram-pro/issues</a></p>
+<div class="wrap">
+
+  <div class="verpill">Visual v1.4.0.0 &nbsp;·&nbsp; docs updated 8 Oct 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+
+  <p class="lead">Supported Power BI features: <strong>small multiples</strong> · <strong>conditional formatting (fx)</strong>
+  on bar colour · drilldown on a hierarchy in Detail · cross-filtering by the whole bar, <strong>Ctrl+click
+  multi-select</strong> and <strong>highlighting</strong> · <strong>bookmarks</strong> (the selected bars are restored and
+  shown) · standard and <strong>report page tooltips</strong> · context menu · keyboard navigation with ARIA labels ·
+  high contrast · <strong>number formats from the model</strong> · <strong>localization</strong> (English, Spanish) ·
+  IBCS mode · data streaming past 30,000 rows. Analysis: mean, median, quartiles and IQR, a benchmark line,
+  <strong>value zones</strong> with the share of rows and of value in each, a <strong>cumulative frequency</strong>
+  line, a normal curve and a statistics panel.</p>
+
+  <!-- Video -->
+  <div class="video-wrap">
+    <iframe src="https://www.youtube.com/embed/elLjSnxd8tw" title="Histogram Pro walkthrough"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+
+  <!-- Quick Start -->
+  <h2 id="quickstart">Quick Start</h2>
+  <div class="card">
+    <h3>1. Add the visual to your report</h3>
+    <p>In Power BI Desktop, go to the Visualizations pane → click the three dots → <strong>Get more visuals</strong> → search for <em>Histogram Pro</em>.</p>
+
+    <h3>2. Bind your data</h3>
+    <p>Put the field that identifies one observation — Order ID, Customer, Ticket, Employee — in <code>Detail (rows)</code>, and the
+    number to distribute — Sales, Days to close, Score — in <code>Values</code>. The visual counts one row per Detail value, so the
+    Detail field decides what "one" means: one order, one customer, one ticket.</p>
+
+    <h3>3. Read the shape, then tune it</h3>
+    <p>The chart starts with 10 bins and the mean and median lines. Open the <strong>Format</strong> pane to add quartiles, IQR shading,
+    a benchmark, value zones or the cumulative line, and (Pro) to change the bin count.</p>
+
+    <h3>4. Compare groups</h3>
+    <p>Drop a field such as Region or Year into <code>Small multiples</code> (Pro). You get one histogram per value, on the same
+    bins and the same vertical scale, so the panels can be compared bar by bar.</p>
+  </div>
+
+  <!-- Reading -->
+  <h2 id="reading">Reading the chart</h2>
+  <div class="card">
+    <h3>Bars</h3>
+    <p>Each bar is a range of values (a <em>bin</em>) and its height is how many rows fall in it. All bins are the same width. Hover
+    a bar for its range, its count, its share of all rows and — with the cumulative line on — the share of rows up to and
+    including it.</p>
+
+    <h3>Mean and median</h3>
+    <p>The mean (dashed) and the median are drawn as vertical lines. The gap between them is the quickest read of skew there is:
+    a mean well to the right of the median means a long upper tail — a few large values are pulling the average up.</p>
+
+    <h3>Quartiles and IQR</h3>
+    <p>P25 and P75 mark the first and third quartiles; the IQR shading covers the middle half of the rows between them. A narrow
+    band means a consistent process; a wide one, a spread-out one.</p>
+
+    <h3>The clipped axis</h3>
+    <p>When a few extreme values would stretch the axis until everything else sits in the first bar — the full range at least
+    1.5 times wider than where the data lives — the axis stops at Tukey's
+    fences (Q1&nbsp;−&nbsp;1.5·IQR to Q3&nbsp;+&nbsp;1.5·IQR) and a note at the bottom says <em>"Axis clipped to the long tail · the last
+    bar holds everything above X"</em>. No row is dropped: values beyond the axis are counted in the end bar, and the mean, the
+    median and σ are computed over every row.</p>
+
+    <h3>Value zones <span class="badge badge-pro">Pro</span></h3>
+    <p>Two cut points split the axis into three shaded zones — for example small, medium and large deals. Each zone is labelled with
+    its <strong>share of rows</strong> and, optionally, its <strong>share of the total value</strong>. The two numbers together answer
+    the concentration question directly: <em>"&gt; 50K: 8% of rows · 46% of value"</em> means a few large deals carry almost half the
+    revenue.</p>
+
+    <h3>Cumulative frequency <span class="badge badge-pro">Pro</span></h3>
+    <p>A line from 0% to 100% on its own right-hand axis: the share of rows at or below the end of each bin. Read across from 80% to
+    find the value that 80% of rows stay under, without counting bars.</p>
+
+    <h3>Benchmark</h3>
+    <p>A vertical target line — a turnaround time, a tolerance, a policy limit. With <em>Color bars by benchmark</em> the bars on
+    each side take their own colour, so "how much falls on the wrong side" reads at a glance. A bar is coloured by its midpoint.</p>
+
+    <h3>Normal curve <span class="badge badge-pro">Pro</span></h3>
+    <p>A bell curve with the same mean and standard deviation as your data, scaled to the bars. It is a visual reference, not a
+    normality test: read it as "clearly not normal" rather than "normal". With a long tail, σ is much wider than the axis and the
+    bell is nearly flat over it; the chart then says <em>"Normal curve flat: data far from normal"</em> next to the curve.</p>
+
+    <h3>Statistics panel <span class="badge badge-pro">Pro</span></h3>
+    <p>n, mean (μ), median (M), standard deviation (σ), min and max in the top-right corner. When rows are trimmed, n says how
+    many. The panel hides itself when the plot is narrower than about 260&nbsp;px, so it never covers the bars.</p>
+
+    <h3>Small multiples <span class="badge badge-pro">Pro</span></h3>
+    <p>Every panel shares the same bins and the same vertical scale, so a taller bar is really more rows. Mean, median, quartiles,
+    zones and the statistics panel are computed per panel, over that panel's rows. Panels are sorted by the value of the
+    Small multiples field (numbers and dates in order, text alphabetically), and the legend is drawn once for all panels.</p>
+  </div>
+
+  <!-- Field wells -->
+  <h2 id="fields">Field Wells</h2>
+  <table>
+    <tr><th>Field well</th><th>Accepts</th><th>What it does</th></tr>
+    <tr><td><strong>Values</strong></td><td>One numeric field</td><td>The number to distribute. Required. Its format string from the model (currency, percent, decimals) is used on the axis, the labels, the tooltip and the statistics panel.</td></tr>
+    <tr><td><strong>Detail (rows)</strong></td><td>One or more grouping fields</td><td>What one row is. The histogram counts one row per value of this field. With a hierarchy here, the drill-up / drill-down buttons in the visual header work as in any native chart.</td></tr>
+    <tr><td><strong>Small multiples</strong> <span class="badge badge-pro">Pro</span></td><td>One grouping field</td><td>One histogram per value, on shared bins and a shared vertical scale.</td></tr>
+    <tr><td><strong>Tooltips</strong></td><td>Measures</td><td>Extra measures shown when you hover a bar, as the average over the rows in that bin. Report page tooltips are supported too.</td></tr>
+  </table>
+
+  <!-- Format pane -->
+  <h2 id="format">Format Pane</h2>
+  <p>Every setting that needs a licence says <strong>(Pro)</strong> in the format pane. None is hidden.</p>
+
+  <div class="card">
+    <h3>Histogram</h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>Number of bins <span class="badge badge-pro">Pro</span></td><td>10</td><td>2 to 100. Free uses 10.</td></tr>
+      <tr><td>Lower trim % / Upper trim % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Leaves out that percentage of rows from each tail, before binning. Unlike the clipped axis, trimmed rows are excluded from the statistics, and the panel says how many.</td></tr>
+      <tr><td>Bar color <span class="badge badge-pro">Pro</span></td><td>Cyan</td><td>Has an <strong>fx</strong> button: colour bars by a rule or a field instead of one colour.</td></tr>
+      <tr><td>Bar opacity %, Border color, Border width, Bar gap px <span class="badge badge-pro">Pro</span></td><td>80 · dark · 1 · 2</td><td>Bar styling.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Axes</h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>Axis text color, Grid color</td><td>Grey</td><td>Axis labels and gridlines.</td></tr>
+      <tr><td>Font size</td><td>10</td><td>Axis labels. Fewer X labels are drawn on narrow plots so they never overlap.</td></tr>
+      <tr><td>Show X label / Show Y label</td><td>On</td><td>Axis titles.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Statistics</h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>Show mean line, Show median line</td><td>On</td><td>Vertical reference lines, each with its own colour.</td></tr>
+      <tr><td>Show P25 line, Show P75 line</td><td>Off</td><td>First and third quartiles.</td></tr>
+      <tr><td>Show IQR range</td><td>Off</td><td>Shades the band between P25 and P75.</td></tr>
+      <tr><td>Label background, Label background opacity %</td><td>White · 75</td><td>The box behind line labels and zone labels, so they stay readable over bars.</td></tr>
+      <tr><td>Normal curve <span class="badge badge-pro">Pro</span></td><td>Off</td><td>Bell curve with the data's mean and σ.</td></tr>
+      <tr><td>Cumulative frequency <span class="badge badge-pro">Pro</span></td><td>Off</td><td>0–100% line on its own right axis.</td></tr>
+      <tr><td>Stats panel <span class="badge badge-pro">Pro</span></td><td>On</td><td>n, μ, M, σ, min, max.</td></tr>
+      <tr><td>Stats text color, Stats panel background, Stats panel opacity % <span class="badge badge-pro">Pro</span></td><td>Grey · black · 35</td><td>Panel styling — set an opaque light background on a white report.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Value zones <span class="badge badge-pro">Pro</span></h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>Show value zones</td><td>Off</td><td>Turns the three zones on. Nothing is drawn until the two cuts differ.</td></tr>
+      <tr><td>First cut, Second cut</td><td>0</td><td>The boundaries, in the units of Values. Order does not matter. A value equal to a cut belongs to the lower zone.</td></tr>
+      <tr><td>Low / Middle / High zone color</td><td>Green · amber · red</td><td>Zone shading.</td></tr>
+      <tr><td>Show zone labels</td><td>On</td><td>Labels in front of the bars, shortened automatically when a zone is narrow.</td></tr>
+      <tr><td>Show share of total value</td><td>On</td><td>Adds "· N% of value" to each label. Turn it off for measures where a sum means nothing (scores, durations).</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Benchmark</h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>Show benchmark line, Benchmark value, Line color, Benchmark label</td><td>Off · 0 · red · "Target"</td><td>A vertical target line with its label.</td></tr>
+      <tr><td>Color bars by benchmark, At or above / Below benchmark</td><td>Off</td><td>Colours each bar by which side of the line its midpoint falls.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Value labels <span class="badge badge-pro">Pro</span></h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>Show, Font size, Color</td><td>Off · 9</td><td>The count above each bar — short bars included.</td></tr>
+      <tr><td>Show percent</td><td>Off</td><td>Adds the bar's share of all rows.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Small multiples <span class="badge badge-pro">Pro</span></h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>Columns</td><td>0 (automatic)</td><td>0 picks a grid that fits the visual's shape; any other number fixes the columns.</td></tr>
+      <tr><td>Title font size, Title color</td><td>12 · grey</td><td>Panel titles.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Legend</h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>Show legend</td><td>Off</td><td>Lists the active reference lines and curves: mean, median, quartiles, cumulative, normal and benchmark.</td></tr>
+      <tr><td>Position: bottom</td><td>Off</td><td>Moves the legend below the chart (below the grid with small multiples).</td></tr>
+      <tr><td>Mean / Median / P25 / P75 / Normal label</td><td>—</td><td>Rename the legend entries, e.g. "Average deal".</td></tr>
+      <tr><td>Font size, Font color</td><td>9 · grey</td><td>Legend text.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>IBCS</h3>
+    <p><strong>IBCS mode</strong> switches to the International Business Communication Standards notation: dark grey bars, solid black
+    mean, dashed grey median, greyscale zones. It overrides the colour settings while it is on.</p>
+  </div>
+
+  <!-- Interaction -->
+  <h2 id="interaction">Selection &amp; filtering</h2>
+  <div class="card">
+    <h3>Click a bar</h3>
+    <p>Filters the rest of the page to <strong>every row behind that bar</strong>, and the bar stays highlighted while the others dim.
+    Click it again, or click empty space, to clear.</p>
+    <h3>Ctrl+click</h3>
+    <p>Adds bars to the selection (or takes one out). Within small multiples, Ctrl+click adds bars of the same panel; a click in another
+    panel starts a new selection.</p>
+    <h3>Bookmarks</h3>
+    <p>The selection is stored with the report, so a bookmark brings back both the filter and the highlighted bars. In Desktop, Ctrl+click
+    a bookmark button to try it while editing.</p>
+    <h3>Drilldown</h3>
+    <p>With a hierarchy in Detail (rows), the visual uses Power BI's selection so drill-down on a bar works as in a native chart.</p>
+    <h3>Highlighting from other visuals</h3>
+    <p>When another visual highlights a subset, the part of each bar that belongs to it is drawn solid over the dimmed total.</p>
+  </div>
+
+  <!-- Accessibility -->
+  <h2 id="accessibility">Accessibility</h2>
+  <div class="card">
+    <ul>
+      <li><strong>Keyboard:</strong> Tab into the chart, then ←/→ (or ↑/↓) to move between bars, Home/End for the first and last,
+      Enter or Space to select, Ctrl+Enter to add to the selection, Esc to clear, Shift+F10 or the context-menu key for the menu.</li>
+      <li><strong>Screen readers:</strong> each bar is announced with its range, count and share of total, and whether it is selected.</li>
+      <li><strong>High contrast:</strong> under a Windows high-contrast theme bars, lines, zones and text take the theme's colours;
+      zones become dashed outlines instead of fills.</li>
+      <li><strong>Language:</strong> the format pane and every label on the chart follow Power BI's language — English and Spanish.</li>
+    </ul>
+  </div>
+
+  <!-- Performance -->
+  <h2 id="performance">Performance &amp; limits</h2>
+  <table>
+    <tr><th>What</th><th>Limit</th></tr>
+    <tr><td>Rows in the Service</td><td><strong>Your whole table.</strong> Power BI hands a visual 30,000 rows at a time; the visual asks for the following segments and combines them. Verified at 500,000.</td></tr>
+    <tr><td>Rows in Desktop</td><td>The first 30,000 — Desktop cannot stream segments. The chart says so; publish to the Service for the full distribution.</td></tr>
+    <tr><td>Bins</td><td>10 in Free, 2 to 100 in Pro.</td></tr>
+    <tr><td>One click</td><td>Up to <strong>10,000 distinct values</strong> filtered at once. A bar holding more is not filtered partially: the visual says so, and more bins (Pro) put fewer rows in each bar.</td></tr>
+  </table>
+
+  <!-- Free vs Pro -->
+  <h2 id="free-pro">Free vs Pro</h2>
+  <table>
+    <tr><th>Feature</th><th>Free</th><th>Pro</th></tr>
+    <tr><td>Histogram over your whole dataset, no watermark</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Mean, median, P25, P75, IQR shading</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Benchmark line and bar colouring by benchmark</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Legend, axes, IBCS mode, high contrast, keyboard, cross-filtering, bookmarks</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Number of bins</td><td>10</td><td>2–100</td></tr>
+    <tr><td>Outlier trimming</td><td>—</td><td>✓</td></tr>
+    <tr><td>Value zones with share of rows and value</td><td>—</td><td>✓</td></tr>
+    <tr><td>Small multiples</td><td>—</td><td>✓</td></tr>
+    <tr><td>Cumulative frequency line</td><td>—</td><td>✓</td></tr>
+    <tr><td>Normal curve, statistics panel, value labels</td><td>—</td><td>✓</td></tr>
+    <tr><td>Bar colour, fx rules, opacity, border, gap</td><td>—</td><td>✓</td></tr>
+  </table>
+  <div class="card">
+    <h3>Pro preview</h3>
+    <p>Turn on a Pro feature while editing without a licence and it is drawn working, on your own data, under a "Pro preview" watermark that
+    names it — together with Power BI's own notification and its link to the licence. In reading view, published reports and exports the
+    free chart is shown, without watermark or prompt.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://appsource.microsoft.com/en-us/product/power-bi-visuals/tino_callarisa.histogram-pro-tcviz" target="_blank">Get Pro on AppSource</a>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <h2 id="faq">FAQ</h2>
+
+  <details>
+    <summary>The visual shows "Add a numeric field to get started"</summary>
+    <div class="faq-body"><p>Put a numeric field in <strong>Values</strong>. The chart needs at least two rows, so also put the row identifier in <strong>Detail (rows)</strong>.</p></div>
+  </details>
+
+  <details>
+    <summary>Why does the x-axis stop before my largest value?</summary>
+    <div class="faq-body"><p>So that you can see your data. A single extreme value would stretch the axis and squash every other row into the first bar,
+    so the axis stops at Tukey's fences and the last bar holds everything beyond — a note on the chart says so. No row is dropped and the
+    statistics use every row. To set the range yourself, use Lower / Upper trim % (Pro).</p></div>
+  </details>
+
+  <details>
+    <summary>How many bins should I use?</summary>
+    <div class="faq-body"><p>Start around 10–25 and move it until the shape stops changing character. Too few bins flatten two groups into one hump;
+    too many turn a clear shape into noise. If the shape keeps changing, that instability is telling you something about the data.</p></div>
+  </details>
+
+  <details>
+    <summary>The bin count, value labels or zones don't change anything</summary>
+    <div class="faq-body"><p>They are Pro features. While you edit without a licence they are drawn under a "Pro preview" watermark; in reading view
+    the free chart is shown. Settings marked <strong>(Pro)</strong> in the format pane are the ones that need the licence.</p></div>
+  </details>
+
+  <details>
+    <summary>My value zones don't appear</summary>
+    <div class="faq-body"><p>Both cuts start at 0, and zones are drawn only when the two cuts differ. Enter both in the units of your Values field —
+    for revenue in euros, 10000 and 50000, not 10 and 50.</p></div>
+  </details>
+
+  <details>
+    <summary>The normal curve is a flat line</summary>
+    <div class="faq-body"><p>It is the correct curve for your data: with a long tail the standard deviation is far wider than the visible axis,
+    so a bell with that mean and σ is almost flat over it — the chart says so next to the curve. It means the data is far from normal. To see the
+    bell over the bulk of the data, trim 1–2% of each tail (Pro): the statistics are then computed without the tail.</p></div>
+  </details>
+
+  <details>
+    <summary>What is the difference between the clipped axis and trimming?</summary>
+    <div class="faq-body"><p>The clipped axis is presentation only: every row is counted and the statistics are exact. Trimming (Pro) excludes the
+    trimmed percentage of rows from the bars and from the statistics; the panel shows how many were left out. Use trimming to read ordinary
+    behaviour, and say so on the page.</p></div>
+  </details>
+
+  <details>
+    <summary>Clicking a bar doesn't filter the other visuals</summary>
+    <div class="faq-body"><p>Check <em>Format → Edit interactions</em> — the other visuals must be set to filter. If the bar holds more than 10,000
+    distinct values the visual tells you and does not filter part of it; raise the bin count or filter the page first.</p></div>
+  </details>
+
+  <details>
+    <summary>How do I test a bookmark button in Desktop?</summary>
+    <div class="faq-body"><p>While editing, Power BI only applies a button on Ctrl+click. In reading view or the Service a normal click is enough.</p></div>
+  </details>
+
+  <details>
+    <summary>Why does Desktop show fewer rows than the Service?</summary>
+    <div class="faq-body"><p>Desktop cannot stream data segments to custom visuals, so it draws the first 30,000 rows and says so on the chart. The
+    Service streams the rest; publish the report for the full distribution.</p></div>
+  </details>
+
+  <details>
+    <summary>Does the visual send my data anywhere?</summary>
+    <div class="faq-body"><p>No. It makes no network calls; it only reads the fields you bind, and its settings are stored in the report. The licence is
+    checked through Power BI's own licensing API. See the <a href="privacy.html" style="color:var(--acc);">privacy policy</a>.</p></div>
+  </details>
+
+  <details>
+    <summary>How do I report a bug or request a feature?</summary>
+    <div class="faq-body"><p>Open an <a href="https://github.com/tinocallarisa-web/histogram-pro/issues" style="color:var(--acc);" target="_blank">issue on GitHub</a>
+    — include the bin count, the value range and the row count, which is what makes a distribution bug reproducible. Questions and ideas are welcome in
+    <a href="https://github.com/tinocallarisa-web/histogram-pro/discussions" style="color:var(--acc);" target="_blank">Discussions</a>.</p></div>
+  </details>
+
+  <!-- Contact -->
+  <h2 id="contact">Contact &amp; Support</h2>
+  <div class="contact-box">
+    <div class="icon">✉️</div>
+    <div>
+      <h3>Need help? We reply within 1 business day.</h3>
+      <p>For bug reports, feature requests, and licensing questions:<br>
+      <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
+    </div>
+  </div>
+
+  <p style="margin-top:24px;font-size:13px;color:var(--t3);">
+    You can also open an issue on
+    <a href="https://github.com/tinocallarisa-web/histogram-pro/issues" style="color:var(--acc);" target="_blank">GitHub</a>,
+    ask in <a href="https://github.com/tinocallarisa-web/histogram-pro/discussions" style="color:var(--acc);" target="_blank">Discussions</a>,
+    read a worked example in the <a href="use-case.html" style="color:var(--acc);">case study</a>, or see what changed in the
+    <a href="changelog.html" style="color:var(--acc);">changelog</a>.
+  </p>
+
+</div><!-- /wrap -->
+
+
+<footer>
+  <div style="margin-bottom:10px;">
+    <a href="https://tinocallarisa-web.github.io/histogram-pro/privacy.html">Privacy Policy</a>
+    <a href="https://tinocallarisa-web.github.io/histogram-pro/terms.html">Terms of Service</a>
+  <a href="changelog.html">Changelog</a>
+    <a href="https://github.com/tinocallarisa-web/histogram-pro" target="_blank">GitHub</a>
+    <a href="https://appsource.microsoft.com/en-us/product/power-bi-visuals/tino_callarisa.histogram-pro-tcviz" target="_blank">AppSource</a>
+  </div>
+  <p>© 2026 TCViz · Histogram Pro · <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Nav highlight (in-page anchors only) ────────────────────────────────────
+  document.querySelectorAll('nav a[href^="#"]').forEach(function (a) {
+    a.addEventListener('click', function () {
+      document.querySelectorAll('nav a').forEach(function (x) { x.classList.remove('active'); });
+      a.classList.add('active');
+    });
+  });
+
+  // ── Documentation search ────────────────────────────────────────────────────
+  var input  = document.getElementById('docsearch');
+  var clear  = document.getElementById('searchclear');
+  var status = document.getElementById('searchstatus');
+  var wrap   = document.querySelector('.wrap');
+  if (!input || !wrap) { return; }
+
+  var HIDE = 'is-hidden';
+
+  // Atomic searchable units: one FAQ entry, one table row, one card.
+  var units = [];
+  function add(el) {
+    if (units.some(function (u) { return u.el === el; })) { return; }
+    units.push({ el: el, html: el.innerHTML, text: (el.textContent || '').toLowerCase() });
+  }
+  wrap.querySelectorAll('details').forEach(add);
+  wrap.querySelectorAll('table tr').forEach(function (tr) {
+    if (tr.querySelector('th')) { return; }   // header rows follow their table
+    add(tr);
+  });
+  wrap.querySelectorAll('.card, .contact-box').forEach(add);
+
+  // Sections: an <h2> plus every sibling up to the next <h2>.
+  var sections = [];
+  var current = null;
+  Array.prototype.forEach.call(wrap.children, function (el) {
+    if (el.tagName === 'H2') {
+      current = { head: el, body: [] };
+      sections.push(current);
+    } else if (current) {
+      current.body.push(el);
+    }
+  });
+  // Each body element remembers which units live inside it.
+  sections.forEach(function (sec) {
+    sec.body.forEach(function (b) {
+      b._units = units.filter(function (u) { return b === u.el || b.contains(u.el); });
+      if (!b._units.length) { b._html = b.innerHTML; }
+    });
+  });
+
+  function escapeRe(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function escapeHtml(t) {
+    return t.replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; });
+  }
+
+  function highlight(el, terms) {
+    var re = new RegExp('(' + terms.map(escapeRe).join('|') + ')', 'gi');
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var nodes = [], n;
+    while ((n = walker.nextNode())) { nodes.push(n); }
+    nodes.forEach(function (node) {
+      var txt = node.nodeValue;
+      re.lastIndex = 0;
+      if (!re.test(txt)) { return; }
+      re.lastIndex = 0;
+      var span = document.createElement('span');
+      span.innerHTML = escapeHtml(txt).replace(re, '<mark>$1</mark>');
+      node.parentNode.replaceChild(span, node);
+    });
+  }
+
+  function showAll() {
+    units.forEach(function (u) { u.el.classList.remove(HIDE); u.el.innerHTML = u.html; });
+    sections.forEach(function (sec) {
+      sec.head.classList.remove(HIDE);
+      sec.body.forEach(function (b) {
+        b.classList.remove(HIDE);
+        if (b._html !== undefined) { b.innerHTML = b._html; }
+      });
+    });
+    status.textContent = '';
+    clear.hidden = true;
+  }
+
+  function run(q) {
+    q = (q || '').trim();
+    if (q.length < 2) { showAll(); return; }
+    clear.hidden = false;
+
+    var terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    var hits = 0;
+
+    units.forEach(function (u) {
+      u.el.innerHTML = u.html;
+      var match = terms.every(function (t) { return u.text.indexOf(t) !== -1; });
+      u.el.classList.toggle(HIDE, !match);
+      if (match) {
+        hits++;
+        highlight(u.el, terms);
+        if (u.el.tagName === 'DETAILS') { u.el.open = true; }
+      }
+    });
+
+    sections.forEach(function (sec) {
+      var anyVisible = false;
+      sec.body.forEach(function (b) {
+        var visible;
+        if (b._units.length) {
+          visible = b._units.some(function (u) { return !u.el.classList.contains(HIDE); });
+        } else {
+          b.innerHTML = b._html;
+          var txt = (b.textContent || '').toLowerCase();
+          visible = terms.every(function (t) { return txt.indexOf(t) !== -1; });
+          if (visible) { highlight(b, terms); }
+        }
+        b.classList.toggle(HIDE, !visible);
+        if (visible) { anyVisible = true; }
+      });
+      sec.head.classList.toggle(HIDE, !anyVisible);
+    });
+
+    status.textContent = hits
+      ? hits + ' result' + (hits === 1 ? '' : 's') + ' for “' + q + '”'
+      : 'No results for “' + q + '”. Try a Format Pane setting name, or email support@tcviz.com.';
+  }
+
+  var timer;
+  input.addEventListener('input', function () {
+    clearTimeout(timer);
+    timer = setTimeout(function () { run(input.value); }, 120);
+  });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { input.value = ''; showAll(); }
+  });
+  clear.addEventListener('click', function () { input.value = ''; showAll(); input.focus(); });
+
+  // Deep link: support.html?q=license
+  var qp = new URLSearchParams(location.search).get('q');
+  if (qp) { input.value = qp; run(qp); }
+})();
+</script>
 </body>
 </html>

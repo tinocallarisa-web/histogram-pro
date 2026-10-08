@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Histogram Pro – Changelog | TCViz</title>
+<style>
+  :root {
+    --bg: #FAF9F5; --bg2: #EDE9DE; --bd: #F5F3ED; --line: #DAD9D4;
+    --t1: #3D3929; --t2: #535146; --t3: #83827D;
+    --acc: #2B6CB0; --accd: #1F4E80; --acc2: #3E9C5B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--t1); line-height: 1.65; }
+
+  /* ── Header ── */
+  header { background: var(--t1); color: #fff; padding: 28px 48px; display: flex; align-items: center; gap: 20px; }
+  header svg { flex-shrink: 0; }
+  header .title { font-size: 22px; font-weight: 700; }
+  header .sub   { font-size: 13px; color: #b5b3aa; margin-top: 2px; }
+
+  /* ── Nav ── */
+  nav { background: var(--bg2); border-bottom: 1px solid var(--line); padding: 0 48px; display: flex; gap: 0; overflow-x: auto; }
+  nav a { display: block; padding: 14px 14px; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--t2);
+          text-decoration: none; border-bottom: 3px solid transparent; transition: color .2s, border-color .2s; }
+  nav a:hover, nav a.active { color: var(--acc); border-bottom-color: var(--acc); }
+
+  /* ── Layout ── */
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  h2 { font-size: 17px; font-weight: 700; color: var(--t1); margin: 40px 0 12px; padding-bottom: 8px;
+       border-bottom: 2px solid var(--acc); display: inline-block; }
+  h3 { font-size: 14px; font-weight: 700; color: var(--t1); margin: 18px 0 6px; }
+  p  { font-size: 14px; color: var(--t2); margin-bottom: 10px; }
+  ul { font-size: 14px; color: var(--t2); padding-left: 20px; margin-bottom: 10px; }
+  li { margin-bottom: 5px; }
+  code { font-family: monospace; background: var(--bg2); padding: 1px 6px; border-radius: 4px;
+         font-size: 12px; color: var(--acc); }
+
+  /* ── Cards ── */
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 24px 28px; margin-bottom: 16px; }
+
+  /* ── Badges ── */
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+           text-transform: uppercase; letter-spacing: .5px; vertical-align: middle; margin-left: 6px; }
+  .badge-pro  { background: var(--acc2); color: #fff; }
+  .badge-free { background: var(--acc);  color: #fff; }
+
+  /* ── Field wells table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+  th { background: var(--bg2); color: var(--t1); font-weight: 700; padding: 10px 14px; text-align: left;
+       border-bottom: 2px solid var(--line); }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--bd); color: var(--t2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── FAQ ── */
+  details { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; background: #fff; }
+  summary { padding: 14px 18px; font-size: 14px; font-weight: 600; cursor: pointer; list-style: none;
+            display: flex; align-items: center; justify-content: space-between; color: var(--t1); }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; font-size: 18px; font-weight: 300; color: var(--acc); transition: transform .2s; }
+  details[open] summary::after { content: '−'; }
+  details[open] summary { border-bottom: 1px solid var(--line); }
+  .faq-body { padding: 14px 18px; font-size: 14px; color: var(--t2); }
+  .faq-body p { margin-bottom: 6px; }
+  .faq-body ul { margin-top: 6px; }
+
+  /* ── Contact box ── */
+  .contact-box { background: var(--acc); color: #fff; border-radius: 10px; padding: 24px 28px;
+                  display: flex; align-items: center; gap: 20px; }
+  .contact-box .icon { font-size: 36px; flex-shrink: 0; }
+  .contact-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #fff; }
+  .contact-box p  { font-size: 13px; color: rgba(255,255,255,.85); margin: 0; }
+  .contact-box a  { color: #fff; font-weight: 700; text-decoration: underline; }
+
+  /* ── Video embed ── */
+  .video-wrap { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 10px; overflow: hidden;
+                border: 1px solid var(--line); margin-bottom: 20px; }
+  .video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+  /* ── CTA strip ── */
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+  .btn { display: inline-block; padding: 10px 22px; border-radius: 6px; font-size: 13px; font-weight: 700;
+          text-decoration: none; transition: background .2s; }
+  .btn-primary { background: var(--acc); color: #fff; }
+  .btn-primary:hover { background: var(--accd); }
+  .btn-outline { background: transparent; color: var(--acc); border: 2px solid var(--acc); }
+  .btn-outline:hover { background: var(--acc); color: #fff; }
+
+  /* ── Search ── */
+  .searchbar { background: var(--bg2); border-bottom: 1px solid var(--line); padding: 14px 48px 16px; }
+  .searchbox { position: relative; max-width: 900px; margin: 0 auto; display: flex; align-items: center;
+               gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; }
+  .searchbox:focus-within { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(43,108,176,.16); }
+  .searchbox svg { color: var(--t3); flex-shrink: 0; }
+  .searchbox input { flex: 1; border: none; outline: none; background: transparent; font: inherit;
+                     font-size: 14px; color: var(--t1); padding: 11px 0; }
+  .searchbox input::placeholder { color: var(--t3); }
+  .searchbox button { border: none; background: transparent; color: var(--t3); font-size: 20px;
+                      line-height: 1; cursor: pointer; padding: 0 2px; }
+  .searchbox button:hover { color: var(--acc); }
+  .search-status { max-width: 900px; margin: 8px auto 0; font-size: 12px; color: var(--t3); min-height: 16px; }
+  mark { background: #FCE8A8; color: var(--t1); border-radius: 2px; padding: 0 2px; }
+  .is-hidden { display: none !important; }
+
+  /* ── Version pill ── */
+  .verpill { display: block; width: fit-content; font-size: 11px; font-weight: 700; letter-spacing: .4px;
+             background: var(--bg2); color: var(--t2); border: 1px solid var(--line);
+             padding: 3px 10px; border-radius: 20px; margin-bottom: 14px; }
+  .verpill a { color: var(--acc); text-decoration: none; }
+  .lead { font-size: 14px; line-height: 1.6; color: var(--t2); margin: 0 0 22px; }
+  .lead a { color: var(--acc); }
+
+  /* ── Footer ── */
+  footer { background: var(--t1); color: var(--t3); text-align: center; padding: 24px 48px; font-size: 12px; }
+  footer a { color: #b5b3aa; text-decoration: none; margin: 0 8px; }
+  footer a:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="90" height="40">
+    <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#1F4E80"/>
+      <stop offset=".55" stop-color="#2B6CB0"/>
+      <stop offset="1" stop-color="#3E9C5B"/>
+    </linearGradient></defs>
+    <g transform="translate(40,46)">
+      <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#g)" stroke-width="11"/>
+      <g fill="url(#g)">
+        <rect x="42" y="110" width="20" height="58" rx="5"/>
+        <rect x="70" y="86" width="20" height="82" rx="5"/>
+        <rect x="98" y="62" width="20" height="106" rx="5"/>
+        <rect x="126" y="38" width="20" height="130" rx="5"/>
+      </g>
+    </g>
+    <text x="258" y="246" font-family="Poppins,sans-serif" font-weight="700" font-size="196" letter-spacing="-4">
+      <tspan fill="url(#g)">tc</tspan><tspan fill="#fff">viz</tspan>
+    </text>
+    <text x="264" y="306" font-family="Poppins,sans-serif" font-weight="500" font-size="31" letter-spacing="6.5" fill="#83827D">VISUALS TO POWER BI</text>
+  </svg>
+  <div>
+    <div class="title">Histogram Pro</div>
+    <div class="sub">Changelog</div>
+  </div>
+</header>
+
+<!-- Nav -->
+<nav>
+  <a href="support.html">Documentation</a>
+  <a href="changelog.html" class="active">Changelog</a>
+  <a href="use-case.html">Case study</a>
+  <a href="https://github.com/tinocallarisa-web/histogram-pro/discussions" target="_blank">Discussions</a>
+</nav>
+
+<div class="wrap">
+  <h1>What's new in Histogram Pro</h1>
+  <p class="lead">Every version published to Microsoft AppSource, newest first. Each one is tagged in the
+  <a href="https://github.com/tinocallarisa-web/histogram-pro" target="_blank">GitHub repository</a>.</p>
+
+  <h2 id="v1.4.0.0">1.4.0.0 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-10-08</span></h2>
+  <div class="card">
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Value zones (Pro).</strong> Two cut points split the axis into three shaded zones — small, medium and large deals, fast, normal and slow tickets. Each zone is labelled, in front of the bars, with its <strong>share of rows</strong> and its <strong>share of total value</strong>: <em>"&gt; 50K: 8% of rows · 46% of value"</em> states the concentration a histogram only implies. The share of value can be turned off for measures where a sum means nothing. A value equal to a cut belongs to the lower zone. The zone also appears in the tooltip.</li>
+      <li><strong>Small multiples (Pro).</strong> A new <em>Small multiples</em> field draws one histogram per value. Every panel shares the same bins and the same vertical scale, so bar heights compare across panels; mean, median, quartiles, zones and the statistics panel are computed per panel. Columns can be fixed or left automatic; titles have their own size and colour; the legend is drawn once for the grid, on top or at the bottom.</li>
+      <li><strong>Cumulative frequency line (Pro).</strong> A 0–100% line on its own right-hand axis — the share of rows up to each bin — with its value in the tooltip and an entry in the legend.</li>
+      <li><strong>Bar colouring by benchmark.</strong> The bars on each side of the benchmark take their own colour, and the benchmark line now has an editable label. Free.</li>
+      <li><strong>Visible selection, Ctrl+click and bookmarks.</strong> The selected bars stay highlighted while the others dim. Ctrl+click adds a bar to the selection or takes it out. The selection is stored with the report, so bookmarks bring back both the filter and the highlighted bars.</li>
+      <li><strong>Conditional formatting on bar colour.</strong> <em>Bar color</em> now has a working <strong>fx</strong> button (rules and field values). Before, the visual asked for it in the format pane but <code>capabilities.json</code> did not declare the rule, so Power BI never offered it.</li>
+      <li><strong>Formatting.</strong> Background colour and opacity for the statistics panel and for the labels of the reference lines and zones; legend font size and colour; legend at the bottom.</li>
+      <li><strong>Localization.</strong> The format pane and every text drawn on the chart are available in English and Spanish, following Power BI's language.</li>
+      <li>New icon.</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Drill-down did not work.</strong> With a hierarchy in <em>Detail (rows)</em>, clicking a bar applied a filter, and Power BI only drills on a selection. When the field can be drilled the visual now selects, and drill-down works as in a native chart. Without a hierarchy it still filters by every row behind the bar.</li>
+      <li><strong>Numbers did not follow the report.</strong> Values below one thousand were shown as <em>0.0K</em>. Numbers now use the measure's format string and the report's locale, and only large values are scaled to K / M.</li>
+      <li><strong>X-axis labels overlapped</strong> on narrow charts. The number of labels now adapts to the width.</li>
+      <li><strong>Labels of reference lines and zones were drawn behind the bars.</strong> They are now in front, on a configurable background, in a band reserved at the top of the plot: the bars are scaled to stop below it, so the tallest bar and its value label are never covered by μ, M, Q1 or Q3. The labels stack only in the rows in use.</li>
+      <li><strong>A normal distribution was reported as a clipped long tail.</strong> Tukey's fences always leave about 0.7% of a normal outside them, so the axis was clipped and the chart announced a long tail that did not exist. The axis is now clipped only when the full range is at least 1.5 times the fenced range.</li>
+      <li><strong>A flat normal curve looked like a broken line.</strong> With a long tail, σ is far wider than the clipped axis and the bell is flat over the visible range — correct, but unreadable. When its peak is below a fifth of the tallest bar, a label next to the curve says so: <em>"Normal curve flat: data far from normal (σ = …)"</em>.</li>
+      <li><strong>Value labels were missing on short bars.</strong> Every bar with at least one row shows its count.</li>
+      <li><strong>The legend disappeared in small panels</strong>, and the <em>bottom</em> position was ignored. Both fixed.</li>
+      <li><strong>After a mouse click, the first bar showed a focus ring.</strong> Focus is now restored after a repaint only while navigating with the keyboard.</li>
+      <li><strong>Desktop detection</strong> used the browser's user agent; it now reads Power BI's host environment.</li>
+    </ul>
+  </div>
+  <h2 id="v1.3.0.0">1.3.0.0 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-09-23</span></h2>
+  <div class="card">
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Pro preview.</strong> Until now a free user who turned on the statistics panel, the normal curve, value labels, a custom bin count, outlier trimming or bar styling saw <strong>nothing happen</strong>: the setting was silently reverted to its default and the chart carried on as before. That does not read as "there is something here to buy", it reads as a visual that ignores you. The feature is now drawn <em>working</em>, under a "Pro preview" watermark that names it, while you edit a report without a licence. In reading view — and anywhere the licence cannot be read, such as Publish to Web, embedding or export — the free result renders with no watermark and no prompt, so a published report never uses a feature nobody paid for. The preview is granted <strong>per feature</strong>, never in bulk: inserting the visual hands out nothing, because nothing has been asked for yet.</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>The banner naming the Pro feature was never readable.</strong> Power BI shows one notification at a time and the last call replaces the previous one; <code>notifyFeatureBlocked</code> and <code>notifyLicenseRequired</code> were raised back to back, so the persistent Upgrade bar wiped out the banner immediately. The banner now comes first and the Upgrade bar follows 10.5 seconds later, once the banner has gone. The timer is cancelled in <code>destroy()</code>, because Power BI recreates the visual on every page change.</li>
+      <li><strong>The notice never cleared.</strong> Whether a Pro feature had been "attempted" was read from the <em>presence</em> of the property in <code>metadata.objects</code>. Power BI keeps a property there forever once it has been written — even after the user returns the setting to its free value — so the prompt stayed up for good. It now compares the <strong>value</strong> against the free default. A legitimate value can never be a sentinel.</li>
+      <li><strong>The preview never appeared, and vanished on returning to the page.</strong> The visual only repainted when the licence resolved to Pro. The first render happens before the licence resolves, so on the free branch the preview was computed as false and never drawn again. It now repaints on both branches.</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>The clipped-axis notice is in English.</strong> It was the only Spanish string the visual drew — in a visual whose format pane and every other label are in English — and it had no accents either. It now reads <em>"Axis clipped to the long tail · the last bar holds everything above X"</em>.</li>
+      <li><strong>Four <code>fetch</code> calls were being shipped inside the package.</strong> They come from <code>d3-fetch</code>, which the visual never calls: <code>tsconfig.json</code> had <code>module: "commonjs"</code>, which turns the imports into <code>require()</code> and defeats webpack's tree-shaking, so all of d3 was bundled. With <code>module: "esnext"</code> the dead code never enters. This matters beyond housekeeping — accessing external services is the first thing on the certification "not allowed" list, and <code>pbiviz package --certification-audit</code> now reports no external requests where it previously reported four. Fixing the build is the right answer here rather than <code>--certification-fix</code>, which only strips the calls from the output.</li>
+      <li><strong>The toolchain was failing certification requirements.</strong> Lint had no configuration in the format <code>pbiviz</code> expects, so every build skipped it silently — and that is where the certification rules are checked. Tools are now 7.2.1, the API 5.11.1, TypeScript 5.5.4 with <code>@types/node</code> pinned to 22, plus the <code>qs</code>/<code>uuid</code> overrides: <code>npm audit</code> reports 0 vulnerabilities and lint runs clean.</li>
+    </ul>
+  </div>
+  <h2 id="v1.2.1.0">1.2.1.0 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-09-14</span></h2>
+  <div class="card">
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>A paying customer could stay on Free.</strong> <code>getAvailableServicePlans()</code> returns each plan's <code>spIdentifier</code> as the full Partner Center <strong>Service ID</strong> (<code>publisher.offer.plan</code>), as the licensing API documentation states. The visual compared it with the bare plan ID <code>histogram-pro-tcviz</code> using <code>===</code>, which never matches the full Service ID. It now accepts a Service ID ending in <code>.histogram-pro-tcviz</code>, and the bare plan ID as well.</li>
+      <li><strong>A failed licence lookup could ask a paying customer to buy.</strong> When <code>getAvailableServicePlans()</code> threw, the visual fell back to Free but still treated the licence information as available, so purchase notifications could appear. It now marks the licence as unreadable and shows no purchase prompt, as it already did when Power BI reports the information unavailable.</li>
+    </ul>
+  </div>
+  <h2 id="v1.2.0.0">1.2.0.0 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-09-10</span></h2>
+  <div class="card">
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>The distribution was drawn from the 30,000 rows with the highest values.</strong> The data reduction was <code>top</code>, which does not truncate: with a measure bound it selects the highest N by that measure. Past 30,000 rows the histogram showed only the upper tail, and the shape of the distribution — which is the whole product — was false. Nothing on screen said so. It is now <code>window</code>, which takes the first N in model order, and the visual streams the remaining segments.</li>
+    </ul>
+    <ul>
+      <li><strong>A long tail collapsed the chart into its first bin.</strong> The x-axis ran from the minimum to the maximum, so a single extreme value stretched it and buried everything else. On a real dataset of 500,000 rows with a median of 666 and a maximum of 1.4 million, all 500,000 fell in the first bin: the chart did not look skewed, it looked broken. The axis is now derived from Tukey's fences (Q1 − 1.5·IQR to Q3 + 1.5·IQR), applied only when it actually narrows the range.</li>
+    </ul>
+    <p><strong>No rows are dropped.</strong> Values beyond the axis are counted in the end bin, and the chart says so. Trimming the axis is a presentation decision; discarding rows would change the counts, the mean and the standard deviation, which is precisely what a histogram cannot afford. Manual outlier trimming (Pro) still overrides this when set.</p>
+    <ul>
+      <li><strong>Clicking a bar could hang the report.</strong> Cross-filtering built one selection ID per row, each carrying a full scope identity, so a bin holding thousands of rows either built thousands of heavy objects or filtered a subset — leaving the rest of the report showing figures that did not match the bar the user clicked.</li>
+    </ul>
+    <ul>
+      <li><strong>A paying customer could be shown the free tier.</strong> The licence check ran in the constructor, resolved asynchronously and only assigned a flag — it never repainted. If Power BI did not call <code>update()</code> again, the customer kept ten fixed bins and no statistics. In a report that renders once, permanently.</li>
+    </ul>
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Exact cross-filtering.</strong> Clicking a bar applies a <code>BasicFilter</code> over the rows in the bin, which carries plain scalars — the mechanism native slicers use for large value lists. Above 10,000 distinct values the visual declines and says which lever fixes it, rather than filtering a subset and giving a silently wrong answer. Measured ceiling: at 25,000 values a report is unusable and at 50,000 it hangs.</li>
+    </ul>
+    <ul>
+      <li><strong>Segment streaming.</strong> When Power BI signals there are more rows, the next segment is requested and combined. Power BI Desktop runs in Electron and cannot stream segments, so it stops at the first 30,000; the chart says so and names the fix.</li>
+    </ul>
+    <ul>
+      <li><strong>Power BI's own licensing notifications</strong>, which carry the purchase path. <code>notifyFeatureBlocked</code> when a Pro setting is changed without a licence, and <code>notifyLicenseRequired</code> while Pro settings are stored without one — which covers the lapsed trial, where the user changes nothing, the chart quietly reverts, and the stored settings make it read as the visual breaking.</li>
+    </ul>
+    <ul>
+      <li><strong><code>host.allowInteractions</code></strong> is checked before selecting, clearing and opening the context menu, on the bars and on the background, with mouse and keyboard.</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>A licence in the <code>Warning</code> state is honoured.</strong> Only <code>Active</code> was accepted; per the licensing API "only the active and warning states represent a usable license". <code>Warning</code> is a payment grace period, so a paying customer no longer loses features while a billing problem is resolved.</li>
+    </ul>
+    <ul>
+      <li><strong><code>isLicenseUnsupportedEnv</code> and <code>isLicenseInfoAvailable</code> are honoured.</strong> In Publish to Web, embedded, national clouds, PDF/PPT export, or when the user is offline, a Pro customer reads as Free. The visual renders the free experience there without prompting anyone to buy what they may already own.</li>
+    </ul>
+    <h3>Removed</h3>
+    <ul>
+      <li><strong>The Free caption drawn inside the chart</strong> — a black bar along the bottom reading "⬆ Unlock Pro: custom bins, outlier trim, stats, normal curve". It was licensing UI of the visual's own, which Microsoft's guidance advises against, it behaved as a watermark on the free tier, and there was nothing to click. Power BI's notifications replace it.</li>
+    </ul>
+  </div>
+  <h2 id="v1.1.0.0">1.1.0.0 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-07-27</span></h2>
+  <div class="card">
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Report page tooltips</strong> — <code>tooltips.supportedTypes.canvas: true</code> enables custom report page tooltips in addition to default tooltips</li>
+      <li><strong>Drilldown support</strong> — add a category to <em>Detail (rows)</em> to enable Power BI's drill-up/drill-down hierarchy controls</li>
+      <li><strong>Conditional formatting</strong> — Bar Color now supports Power BI's native conditional formatting rules (data-driven color via Format pane)</li>
+      <li><strong>High contrast mode</strong> — visual automatically adapts all colors (bars, axes, grid, stat lines) when Power BI's high contrast theme is active, using <code>host.colorPalette.isHighContrast</code></li>
+      <li><strong><code>allowInteractions</code> capability</strong> — registered so Power BI correctly enables mouse interactions in all report modes</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li>Support page contact email updated to <code>support@tcviz.com</code></li>
+      <li>Support page now includes demo video embed and links to case study and issue tracker</li>
+    </ul>
+    <h3>Documentation</h3>
+    <ul>
+      <li>Added <code>docs/use-case.html</code> — retail sales distribution case study</li>
+      <li>Added <code>CHANGELOG.md</code> (this file)</li>
+    </ul>
+  </div>
+  <h2 id="v1.0.0.6">1.0.0.6 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-07</span></h2>
+  <div class="card">
+    <h3>Fixed</h3>
+    <ul>
+      <li>Stability and rendering improvements</li>
+      <li>Incremented for AppSource resubmission after certification review</li>
+    </ul>
+  </div>
+  <h2 id="v1.0.0.5">1.0.0.5 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-06</span></h2>
+  <div class="card">
+    <h3>Fixed</h3>
+    <ul>
+      <li>Resolved rendering event timing issue (<code>renderingFinished</code> called before async operations settled)</li>
+    </ul>
+  </div>
+  <h2 id="v1.0.0.4">1.0.0.4 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-06</span></h2>
+  <div class="card">
+    <h3>Fixed</h3>
+    <ul>
+      <li>Context menu (<code>showContextMenu</code>) now works correctly on right-click on bars and background</li>
+    </ul>
+  </div>
+  <h2 id="v1.0.0.3">1.0.0.3 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-05</span></h2>
+  <div class="card">
+    <h3>Added</h3>
+    <ul>
+      <li>Value labels on bars (Pro) — count or percentage, configurable font size and color</li>
+    </ul>
+    <h3>Fixed</h3>
+    <ul>
+      <li>Normal curve scaling corrected for non-uniform bin widths</li>
+    </ul>
+  </div>
+  <h2 id="v1.0.0.1">1.0.0.1 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-05</span></h2>
+  <div class="card">
+    <h3>Fixed</h3>
+    <ul>
+      <li>License check guard for environments where <code>host.licenseManager</code> is unavailable</li>
+      <li>Landing page now renders correctly when no data is connected</li>
+    </ul>
+  </div>
+  <h2 id="v1.0.0.0">1.0.0.0 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-04</span></h2>
+  <div class="card">
+    <h3>Initial release</h3>
+    <ul>
+      <li>10-bin histogram (Free tier)</li>
+      <li>Configurable bins 2–100, outlier trimming, normal curve, stats panel (Pro)</li>
+      <li>Mean and median reference lines</li>
+      <li>Cross-filtering and context menu</li>
+      <li>Standard tooltips with range, count, and % of total</li>
+      <li>Rendering events (<code>renderingStarted</code> / <code>renderingFinished</code> / <code>renderingFailed</code>)</li>
+      <li>Landing page when no data is connected</li>
+    </ul>
+  </div>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div style="margin-bottom:10px;">
+    <a href="https://tinocallarisa-web.github.io/histogram-pro/privacy.html">Privacy Policy</a>
+    <a href="https://tinocallarisa-web.github.io/histogram-pro/terms.html">Terms of Service</a>
+  <a href="changelog.html">Changelog</a>
+    <a href="https://github.com/tinocallarisa-web/histogram-pro" target="_blank">GitHub</a>
+    <a href="https://appsource.microsoft.com/en-us/product/power-bi-visuals/tino_callarisa.histogram-pro-tcviz" target="_blank">AppSource</a>
+  </div>
+  <p>© 2026 TCViz · Histogram Pro · <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
+</footer>
+
+</body>
+</html>
