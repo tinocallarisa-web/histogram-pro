@@ -69,6 +69,90 @@
     }
   ],
   "objects": {
+    "style": {
+      "displayName": "Style",
+      "displayNameKey": "Obj_style",
+      "properties": {
+        "template": {
+          "displayName": "Style template (Pro)",
+          "displayNameKey": "Prop_style_template",
+          "description": "A look for the whole visual. It only fills what you have not set yourself. Pro.",
+          "type": {
+            "enumeration": [
+              {
+                "value": "classic",
+                "displayName": "Classic",
+                "displayNameKey": "Enum_style_classic"
+              },
+              {
+                "value": "boardroom",
+                "displayName": "Boardroom",
+                "displayNameKey": "Enum_style_boardroom"
+              },
+              {
+                "value": "ledger",
+                "displayName": "Ledger",
+                "displayNameKey": "Enum_style_ledger"
+              },
+              {
+                "value": "editorial",
+                "displayName": "Editorial",
+                "displayNameKey": "Enum_style_editorial"
+              },
+              {
+                "value": "signal",
+                "displayName": "Signal",
+                "displayNameKey": "Enum_style_signal"
+              },
+              {
+                "value": "aurora",
+                "displayName": "Aurora",
+                "displayNameKey": "Enum_style_aurora"
+              },
+              {
+                "value": "terrace",
+                "displayName": "Terrace",
+                "displayNameKey": "Enum_style_terrace"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "rangeBar": {
+      "displayName": "Range bar",
+      "displayNameKey": "Obj_rangeBar",
+      "properties": {
+        "show": {
+          "displayName": "Show range bar",
+          "displayNameKey": "Prop_rangeBar_show",
+          "description": "A bar with two handles under the axis to filter the report by a range of values.",
+          "type": {
+            "bool": true
+          }
+        },
+        "shortcuts": {
+          "displayName": "Shortcuts and summary (Pro)",
+          "displayNameKey": "Prop_rangeBar_shortcuts",
+          "description": "Quartiles, no outliers and top 10% in one click, and what the range holds. Pro.",
+          "type": {
+            "bool": true
+          }
+        },
+        "color": {
+          "displayName": "Range colour",
+          "displayNameKey": "Prop_rangeBar_color",
+          "description": "Colour of the range and its handles.",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
     "general": {
       "displayName": "General",
       "displayNameKey": "Obj_general",
