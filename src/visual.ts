@@ -375,6 +375,12 @@ export class Visual implements IVisual {
     /** Which range handle holds the keyboard, to give the focus back after a repaint. */
     private rangeFocus: "lo" | "hi" | null = null;
     private rangeTimer: number | null = null;
+    /**
+     * The filter this visual has just applied. Power BI hands it back a moment later, so until
+     * then a repaint or an update still carries the previous one, and the range jumped back and
+     * forth on release. A filter from outside, such as a bookmark, wins once the wait is over.
+     */
+    private ownFilter: { sig: string; at: number; filters: any[] } | null = null;
     /** Removing the old bar during a repaint blurs its handle: that is not the user leaving it. */
     private painting = false;
 
@@ -892,10 +898,7 @@ export class Visual implements IVisual {
         const canDrillDown = !dr?.isDrillDisabled
             && ((dr?.drillableRoles?.["category"] ?? []) as number[]).indexOf(2 /* DrillType.Down */) >= 0;
         if (canDrillDown && ids.length) {
-            if (this.filterApplied) {
-                this.filterApplied = false;
-                this.host.applyJsonFilter(null, "general", "filter", this.FILTER_REMOVE);
-            }
+            if (this.filterApplied) this.setOwnFilter(null);
             this.selectionManager.select(ids.slice(0, MAX_SEL_IDS_PER_BIN), multi);
             if (!multi) this.selKeys.clear();
             if (key) this.selKeys.add(key);
@@ -918,8 +921,7 @@ export class Visual implements IVisual {
         const filter = this.buildBinFilter(indices, panelValue, keep, removing);
         if (!filter && removing) { this.clearSelection(); return; }
         if (filter) {
-            this.filterApplied = true;
-            this.host.applyJsonFilter(filter, "general", "filter", this.FILTER_MERGE);
+            this.setOwnFilter(filter);
             const ent = (Array.isArray(filter) ? filter[0] : filter) as any;
             this.curFilterVals = Array.isArray(ent?.values) ? ent.values.slice() : [];
             this.curFilterPanel = panelValue === undefined || panelValue === null ? null : String(panelValue);
@@ -986,13 +988,23 @@ export class Visual implements IVisual {
         setTimeout(() => this.container.selectAll(".oversized-notice").remove(), 6000);
     }
 
+    private static filterSig(filters: any[] | undefined): string {
+        return (filters ?? []).map(f => `${f?.target?.column}:${(f?.values ?? []).map(String).sort().join("")}`).sort().join("");
+    }
+
+    /** Applies the filter and remembers it, so what is drawn does not wait for Power BI. */
+    private setOwnFilter(filter: powerbi.IFilter | powerbi.IFilter[] | null): void {
+        const filters: any[] = !filter ? [] : Array.isArray(filter) ? filter : [filter];
+        this.ownFilter = { sig: Visual.filterSig(filters), at: Date.now(), filters };
+        if (this.lastOptions) (this.lastOptions as any).jsonFilters = filters;
+        this.filterApplied = !!filter;
+        this.host.applyJsonFilter(filter as any, "general", "filter", filter ? this.FILTER_MERGE : this.FILTER_REMOVE);
+    }
+
     /** Clears whichever mechanism is in force. */
     private clearSelection(): void {
         if (!this.canInteract) return;
-        if (this.filterApplied) {
-            this.filterApplied = false;
-            this.host.applyJsonFilter(null, "general", "filter", this.FILTER_REMOVE);
-        }
+        if (this.filterApplied) this.setOwnFilter(null);
         this.selectionManager.clear();
         const had = this.selKeys.size > 0 || this.curFilterVals.length > 0;
         this.selKeys.clear();
@@ -1026,8 +1038,7 @@ export class Visual implements IVisual {
         const filter = this.buildBinFilter(idx);
         if (!filter) { this.repaint(); return; }
         this.selKeys.clear();
-        this.filterApplied = true;
-        this.host.applyJsonFilter(filter, "general", "filter", this.FILTER_MERGE);
+        this.setOwnFilter(filter);
         const ent = (Array.isArray(filter) ? filter[0] : filter) as any;
         this.curFilterVals = Array.isArray(ent?.values) ? ent.values.slice() : [];
         this.curFilterPanel = null;
@@ -1050,6 +1061,11 @@ export class Visual implements IVisual {
         // un bookmark aplicado desde fuera. Power BI si lo sabe, asi que se lee
         // de lo que llega: sin esto, "borrar" no quitaria un filtro que sigue
         // vivo en el informe.
+        if (this.ownFilter) {
+            const incoming = (options as any).jsonFilters as any[] | undefined;
+            if (Visual.filterSig(incoming) === this.ownFilter.sig || Date.now() - this.ownFilter.at > 3000) this.ownFilter = null;
+            else (options as any).jsonFilters = this.ownFilter.filters;
+        }
         this.filterApplied =
             (options.jsonFilters?.length ?? 0) > 0 ||
             !!(this.lastDataView?.metadata?.objects?.["general"]?.["filter"]);
