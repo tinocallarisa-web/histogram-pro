@@ -68,7 +68,7 @@ const BASE_DEFAULTS = {
     showCumulative: false, cumulativeColor: "#FF9F43",
     showStats: true, statsColor: "#B0BEC5",
     showValueLabels: false, vlFontSize: 9, vlColor: "#E0E6FF", vlShowPercent: false,
-    template: "classic", rangeShow: true, rangeShortcuts: true, rangeColor: "",
+    template: "classic", rangeShow: true, rangeShortcuts: true, rangeColor: "", rangeInColor: "", rangeOutColor: "",
 };
 
 // ─── Style templates ──────────────────────────────────────────────────────────
@@ -191,7 +191,7 @@ interface Settings {
     showCumulative: boolean; cumulativeColor: string;
     showStats: boolean; statsColor: string;
     showValueLabels: boolean; vlFontSize: number; vlColor: string; vlShowPercent: boolean;
-    template: string; rangeShow: boolean; rangeShortcuts: boolean; rangeColor: string;
+    template: string; rangeShow: boolean; rangeShortcuts: boolean; rangeColor: string; rangeInColor: string; rangeOutColor: string;
 }
 
 function getColor(obj: powerbi.DataViewObjects, o: string, p: string, fb: string): string {
@@ -211,6 +211,8 @@ function parseSettings(dv: DataView, styleOk: boolean): Settings {
         rangeShow: getValue<boolean>(obj, "rangeBar", "show", DEFAULTS.rangeShow),
         rangeShortcuts: getValue<boolean>(obj, "rangeBar", "shortcuts", DEFAULTS.rangeShortcuts),
         rangeColor: getColor(obj, "rangeBar", "color", DEFAULTS.rangeColor),
+        rangeInColor: getColor(obj, "rangeBar", "inColor", DEFAULTS.rangeInColor),
+        rangeOutColor: getColor(obj, "rangeBar", "outColor", DEFAULTS.rangeOutColor),
         bins: getValue<number>(obj, "histogram", "bins", DEFAULTS.bins),
         trimLower: getValue<number>(obj, "histogram", "trimLower", DEFAULTS.trimLower),
         trimUpper: getValue<number>(obj, "histogram", "trimUpper", DEFAULTS.trimUpper),
@@ -396,6 +398,8 @@ export class Visual implements IVisual {
     /** Which range handle holds the keyboard, to give the focus back after a repaint. */
     private rangeFocus: "lo" | "hi" | null = null;
     private rangeTimer: number | null = null;
+    /** The ends asked for: the filter only holds values, so 150 would read back as the nearest row, 150.2. */
+    private askedRange: { lo: number; hi: number } | null = null;
     /**
      * The filter this visual has just applied. Power BI hands it back a moment later, so until
      * then a repaint or an update still carries the previous one, and the range jumped back and
@@ -589,6 +593,8 @@ export class Visual implements IVisual {
         ["valueLabels", "show",        "value labels"],
         ["zones",       "show",        "value zones"],
         ["style",       "template",    "style templates"],
+        ["rangeBar",    "inColor",     "bar styling"],
+        ["rangeBar",    "outColor",    "bar styling"],
     ];
 
     /**
@@ -1033,6 +1039,7 @@ export class Visual implements IVisual {
         this.selKeys.clear();
         this.curFilterVals = [];
         this.curFilterPanel = null;
+        this.askedRange = null;
         const tried = this.shortcutTried;
         this.shortcutTried = false;
         if (had || tried) this.repaint();
@@ -1062,6 +1069,7 @@ export class Visual implements IVisual {
         if (!filter) { this.repaint(); return; }
         this.selKeys.clear();
         this.setOwnFilter(filter);
+        this.askedRange = { lo: a, hi: b };
         const ent = (Array.isArray(filter) ? filter[0] : filter) as any;
         this.curFilterVals = Array.isArray(ent?.values) ? ent.values.slice() : [];
         this.curFilterPanel = null;
@@ -1123,6 +1131,7 @@ export class Visual implements IVisual {
         this.restoreFocus = this.keyboardNav && !!active && (this.container.node() as HTMLElement).contains(active);
         this.painting = true;
         this.svg.selectAll("*").remove();
+        this.container.selectAll(".hp-range-input").remove();
         this.painting = false;
         this.svg.attr("width", width).attr("height", height).style("font-family", "'Segoe UI', sans-serif");
 
@@ -1309,7 +1318,7 @@ export class Visual implements IVisual {
         // The shortcuts show to whoever can use them, and to an author without a licence as
         // part of the Pro preview. A reader without a licence gets the free bar alone.
         const shortcutsOn = rangeOn && settings.rangeShortcuts && width >= 380 && height >= 260 && (this.isPro || this.proPreview);
-        const rangeH = rangeOn ? 34 : 0, chipsH = shortcutsOn ? 26 : 0;
+        const rangeH = rangeOn ? 44 : 0, chipsH = shortcutsOn ? 26 : 0;
         const marginB = marginB0 + rangeH + chipsH + (rangeOn ? 12 : 0);
         const plotW = Math.max(20, width - marginL - marginR);
         const plotH = Math.max(20, height - marginT - marginB);
@@ -1363,13 +1372,19 @@ export class Visual implements IVisual {
         // The range in force, read back from the filter: a click, a bookmark or a reopened
         // report arrive the same way. Only a continuous run of values is a range.
         const usedRows = rawWithIds.filter(d => d.value >= loVal && d.value <= hiVal);
-        let rLo = xDomain[0], rHi = xDomain[1], rActive = false;
+        let rLo = xDomain[0], rHi = xDomain[1], rActive = false, rActLo = rLo, rActHi = rHi;
         if (rangeOn && selVals && !selPanels && categories) {
             const inSel = (d: RowT) => selVals!.has(String(categories.values[d.origIndex]));
             let a = Infinity, b = -Infinity, cnt = 0;
             for (const d of usedRows) if (inSel(d)) { a = Math.min(a, d.value); b = Math.max(b, d.value); cnt++; }
             if (cnt && cnt < usedRows.length && usedRows.every(d => d.value < a || d.value > b || inSel(d))) {
                 rActive = true; rLo = clampToAxis(a); rHi = clampToAxis(b);
+                rActLo = rLo; rActHi = rHi;
+                const asked = this.askedRange;
+                if (asked && asked.lo <= a && asked.hi >= b
+                    && usedRows.filter(d => d.value >= asked.lo && d.value <= asked.hi).length === cnt) {
+                    rLo = clampToAxis(asked.lo); rHi = clampToAxis(asked.hi);
+                }
             }
         }
         const binSelectionIds: powerbi.extensibility.ISelectionId[][] = binRows.map(rows => rows.map(d => d.selId));
@@ -1713,7 +1728,10 @@ export class Visual implements IVisual {
             plotW, plotH, y: plotH + marginB0 + 10, xScale, dom: xDomain, rows: usedRows, data, sum: usedRows.reduce((t, d) => t + d.value, 0),
             bars: bins.map((bin, i) => ({ x: xScale(bin.x0 ?? 0) + gap / 2, w: Math.max(0, xScale(bin.x1 ?? 0) - xScale(bin.x0 ?? 0) - gap),
                 y: yScale(bin.length), h: plotH - yScale(bin.length), fill: binFill(i, bin) })),
-            barOpacity, dim: look.dim ?? 0.25, rLo, rHi, rActive, shortcutsOn, step: (xDomain[1] - xDomain[0]) / effectiveBins, stroke: borderColor, strokeW: borderWidth,
+            left: ox + marginL, top: oy + titleH + marginT,
+            inColor: this.allow("bar styling") && !isHighContrast ? settings.rangeInColor : "",
+            outColor: this.allow("bar styling") && !isHighContrast ? settings.rangeOutColor : "",
+            barOpacity, dim: look.dim ?? 0.25, rLo, rHi, rActLo, rActHi, rActive, shortcutsOn, step: (xDomain[1] - xDomain[0]) / effectiveBins, stroke: borderColor, strokeW: borderWidth,
             hc: isHighContrast, axisColor: effectiveAxisColor, gridColor: effectiveGridColor,
             accent: isHighContrast ? (this.host.colorPalette.foregroundSelected?.value ?? "#FFFF00") : (settings.rangeColor || look.accent),
             fmt: (v: number) => formatValue(v, formatStr), fs: settings.axisFontSize,
@@ -2097,7 +2115,8 @@ export class Visual implements IVisual {
         plotW: number; plotH: number; y: number; xScale: d3.ScaleLinear<number, number>; dom: number[];
         rows: { value: number; origIndex: number }[]; data: number[]; sum: number;
         bars: { x: number; y: number; w: number; h: number; fill: string }[];
-        barOpacity: number; dim: number; rLo: number; rHi: number; rActive: boolean; shortcutsOn: boolean; step: number;
+        left: number; top: number; inColor: string; outColor: string;
+        barOpacity: number; dim: number; rLo: number; rHi: number; rActLo: number; rActHi: number; rActive: boolean; shortcutsOn: boolean; step: number;
         stroke: string; strokeW: number; hc: boolean; axisColor: string; gridColor: string; accent: string;
         fmt: (v: number) => string; fs: number;
     }): void {
@@ -2112,7 +2131,7 @@ export class Visual implements IVisual {
         for (const b of o.bars) {
             if (b.w <= 0 || b.h <= 0) continue;
             over.append("rect").attr("x", b.x).attr("y", b.y).attr("width", b.w).attr("height", b.h)
-                .attr("fill", b.fill).attr("fill-opacity", o.barOpacity).attr("stroke", o.stroke).attr("stroke-width", o.strokeW);
+                .attr("fill", o.inColor || b.fill).attr("fill-opacity", o.barOpacity).attr("stroke", o.stroke).attr("stroke-width", o.strokeW);
         }
 
         const rg = g.append("g").attr("class", "hp-range").attr("transform", `translate(0,${o.y})`);
@@ -2140,13 +2159,58 @@ export class Visual implements IVisual {
             clipRect.attr("x", a).attr("width", Math.max(0, b - a));
             over.attr("display", active ? null : "none");
             barsG.selectAll(".hp-bar").attr("fill-opacity", (_d, i, nodes) => active
-                ? o.barOpacity * o.dim
-                : (nodes[i] as SVGRectElement).getAttribute("data-op") ?? o.barOpacity);
+                ? (o.outColor ? o.barOpacity : o.barOpacity * o.dim)
+                : (nodes[i] as SVGRectElement).getAttribute("data-op") ?? o.barOpacity)
+                .attr("fill", (_d, i, nodes) => active && o.outColor ? o.outColor
+                    : (nodes[i] as SVGRectElement).getAttribute("data-fill"));
+            if (inLo) inLo.value = active ? plain(lo) : "";
+            if (inHi) inHi.value = active ? plain(hi) : "";
             const mid = Math.max(40, Math.min(plotW - 40, (a + b) / 2));
             label.attr("x", mid).attr("text-anchor", "middle").attr("display", active ? null : "none")
                 .text(`${o.fmt(lo)} – ${o.fmt(hi)}${hi >= dom[1] && o.data[o.data.length - 1] > dom[1] ? "+" : ""}`);
         };
-        barsG.selectAll(".hp-bar").attr("data-op", (_d, i, nodes) => (nodes[i] as SVGRectElement).getAttribute("fill-opacity"));
+        barsG.selectAll(".hp-bar")
+            .attr("data-op", (_d, i, nodes) => (nodes[i] as SVGRectElement).getAttribute("fill-opacity"))
+            .attr("data-fill", (_d, i, nodes) => (nodes[i] as SVGRectElement).getAttribute("fill"));
+
+        // Minimum and maximum, typed: the exact value, and the way in on touch and with a screen reader.
+        const plain = (v: number) => String(Math.round(v * 100) / 100);
+        const field = (side: "lo" | "hi", aria: string, value: string, on: boolean, x: number): HTMLInputElement | null => {
+            if (plotW < 240) return null;
+            const inp = this.container.append("input").classed("hp-range-input", true)
+                .attr("type", "text").attr("inputmode", "decimal").attr("aria-label", aria).attr("placeholder", side === "lo" ? "Min" : "Max")
+                .style("position", "absolute").style("left", `${o.left + x}px`).style("top", `${o.top + o.y + 13}px`)
+                .style("width", "62px").style("height", "20px").style("padding", "0 4px").style("box-sizing", "border-box")
+                .style("font-size", "11px").style("font-family", "inherit").style("color", o.axisColor).style("background", "transparent")
+                .style("border", `1px solid ${o.axisColor}`).style("border-radius", "4px")
+                .style("text-align", side === "lo" ? "left" : "right").node() as HTMLInputElement;
+            inp.value = on ? value : "";
+            const start = inp.value;
+            let done = false;
+            const commit = () => {
+                // Enter and the blur that follows the repaint would both fire: one edit, one filter.
+                if (done || inp.value === start) return;
+                done = true;
+                const txt = inp.value.trim().replace(",", ".");
+                const v = Number(txt);
+                if (txt === "" || !isFinite(v)) {
+                    if (side === "lo") lo = dom[0]; else hi = dom[1];
+                } else if (side === "lo") lo = Math.min(bound(v), hi);
+                else hi = Math.max(bound(v), lo);
+                active = lo > dom[0] || hi < dom[1];
+                this.applyRange(o.rows, lo, hi, dom);
+            };
+            inp.addEventListener("keydown", (e: KeyboardEvent) => {
+                e.stopPropagation();
+                if (e.key === "Enter") { e.preventDefault(); commit(); }
+                else if (e.key === "Escape") { this.clearSelection(); }
+            });
+            inp.addEventListener("change", commit);
+            inp.addEventListener("click", (e: MouseEvent) => e.stopPropagation());
+            return inp;
+        };
+        const inLo = field("lo", this.t("UI_RangeMin", "Range minimum"), plain(lo), active, 0);
+        const inHi = field("hi", this.t("UI_RangeMax", "Range maximum"), plain(hi), active, plotW - 62);
         paint();
 
         // Mouse and touch: a press near a handle moves it, inside the range moves both, and
@@ -2229,12 +2293,12 @@ export class Visual implements IVisual {
             for (const v of d) if (v >= c.lo && v <= c.hi) { a = Math.min(a, v); b = Math.max(b, v); }
             return [bound(a), bound(b)];
         };
-        const cg = g.append("g").attr("class", "hp-chips").attr("transform", `translate(0,${o.y + 34})`);
+        const cg = g.append("g").attr("class", "hp-chips").attr("transform", `translate(0,${o.y + 44})`);
         let cx = 0;
         const eps = (dom[1] - dom[0]) / 1000;
         for (const c of chips) {
             const [ca, cb] = ends(c);
-            const on = o.rActive && Math.abs(ca - o.rLo) < eps && Math.abs(cb - o.rHi) < eps;
+            const on = o.rActive && Math.abs(ca - o.rActLo) < eps && Math.abs(cb - o.rActHi) < eps;
             const b = cg.append("g").attr("transform", `translate(${cx},0)`).style("cursor", "pointer")
                 .attr("tabindex", 0).attr("role", "button").attr("aria-pressed", on ? "true" : "false").attr("aria-label", c.name);
             const r = b.append("rect").attr("y", -2).attr("height", 18).attr("rx", 9)
@@ -2263,7 +2327,7 @@ export class Visual implements IVisual {
             const parts = [this.tf("UI_RangeRows", "{0} rows", this.fmtInt(inRange.length)),
                 this.tf("UI_ZoneRows", "{0} of rows", this.pct(100 * inRange.length / Math.max(1, o.rows.length)))];
             if (o.sum > 0 && sum >= 0) parts.push(this.tf("UI_ZoneValue", "{0} of value", this.pct(100 * sum / o.sum)));
-            const line = g.append("text").attr("x", plotW).attr("y", o.y + 45).attr("text-anchor", "end")
+            const line = g.append("text").attr("x", plotW).attr("y", o.y + 55).attr("text-anchor", "end")
                 .attr("font-size", 10).attr("font-weight", "600").attr("fill", o.axisColor).text(parts.join(" · "));
             if (((line.node() as SVGTextElement).getComputedTextLength?.() ?? 0) > plotW - cx - 8) line.text(parts.slice(1).join(" · "));
             if (((line.node() as SVGTextElement).getComputedTextLength?.() ?? 0) > plotW - cx - 8) line.remove();
@@ -2409,6 +2473,8 @@ export class Visual implements IVisual {
                     tog("range_show", "Show range bar", "rangeBar", "show", s.rangeShow),
                     tog("range_short", lbl("Shortcuts and summary"), "rangeBar", "shortcuts", s.rangeShortcuts),
                     col("range_color", "Range colour", "rangeBar", "color", s.rangeColor || (STYLES[s.template]?.accent ?? STYLES.classic.accent)),
+                    col("range_in", lbl("Bars inside the range"), "rangeBar", "inColor", s.rangeInColor || s.barColor),
+                    col("range_out", lbl("Bars outside the range"), "rangeBar", "outColor", s.rangeOutColor || s.gridColor),
                 ]),
                 card("ibcs_card", "IBCS", [
                     tog("ibcs_mode", "IBCS mode", "ibcs", "mode", s.ibcsMode),

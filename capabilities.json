@@ -155,6 +155,30 @@
               }
             }
           }
+        },
+        "inColor": {
+          "displayName": "Bars inside the range (Pro)",
+          "displayNameKey": "Prop_rangeBar_inColor",
+          "description": "Colour of the bars inside the range. Pro.",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "outColor": {
+          "displayName": "Bars outside the range (Pro)",
+          "displayNameKey": "Prop_rangeBar_outColor",
+          "description": "Colour of the bars outside the range. Empty: dimmed. Pro.",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
         }
       }
     },

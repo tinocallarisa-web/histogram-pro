@@ -139,5 +139,7 @@
   "UI_Top10": "Top 10 %",
   "UI_RangeRows": "{0} filas",
   "UI_OversizedRange": "Este rango tiene más de {0} valores distintos: más de los {1} que Power BI puede filtrar a la vez. Redúcelo.",
-  "Enum_style_report": "Tema del informe"
+  "Enum_style_report": "Tema del informe",
+  "Prop_rangeBar_inColor": "Barras dentro del rango",
+  "Prop_rangeBar_outColor": "Barras fuera del rango"
 }
