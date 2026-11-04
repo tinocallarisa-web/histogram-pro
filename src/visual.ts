@@ -76,7 +76,8 @@ const BASE_DEFAULTS = {
 // report nobody touches does not change. The fonts are system fonts: a visual cannot count on
 // any other being installed.
 
-interface StyleLook { bg?: string; grad?: [string, string, string]; font?: string; accent: string; values: Partial<Settings>; }
+// dim: strength of the bars outside a range. On a dark background the usual 0.25 turns them muddy.
+interface StyleLook { bg?: string; grad?: [string, string, string]; font?: string; accent: string; dim?: number; values: Partial<Settings>; }
 
 const lines = (mean: string, median: string, q: string, iqr: string, normal: string, cum: string, target: string) => ({
     meanColor: mean, medianColor: median, p25Color: q, p75Color: q, iqrColor: iqr, normalColor: normal, cumulativeColor: cum, benchmarkColor: target,
@@ -84,12 +85,12 @@ const lines = (mean: string, median: string, q: string, iqr: string, normal: str
 
 const STYLES: Record<string, StyleLook> = {
     classic: { accent: "#0B7285", values: {} },
-    boardroom: { bg: "#0F1B2D", accent: "#C9A45C", values: {
-        barColor: "#C9A45C", borderColor: "#0F1B2D", axisColor: "#9FB0C6", gridColor: "#2A3E5C",
+    boardroom: { bg: "#16263D", accent: "#C9A45C", dim: 0.4, values: {
+        barColor: "#C9A45C", borderColor: "#16263D", axisColor: "#9FB0C6", gridColor: "#2A3E5C",
         ...lines("#F2F0E8", "#6FCF97", "#9FB0C6", "#C9A45C", "#8FB8E8", "#6FCF97", "#EB8A7B"),
         bmAboveColor: "#6FCF97", bmBelowColor: "#EB8A7B", zColor1: "#6FCF97", zColor2: "#C9A45C", zColor3: "#EB8A7B",
-        smTitleColor: "#F2F0E8", statsBgColor: "#16263D", statsBgOpacity: 90, statsColor: "#F2F0E8",
-        labelBgColor: "#16263D", labelBgOpacity: 85, legendColor: "#9FB0C6", vlColor: "#F2F0E8" } },
+        smTitleColor: "#F2F0E8", statsBgColor: "#0F1B2D", statsBgOpacity: 90, statsColor: "#F2F0E8",
+        labelBgColor: "#0F1B2D", labelBgOpacity: 85, legendColor: "#9FB0C6", vlColor: "#F2F0E8" } },
     ledger: { bg: "#FBF8EF", font: "Georgia, serif", accent: "#7A1F1F", values: {
         barColor: "#3A3528", borderColor: "#FBF8EF", axisColor: "#6E6652", gridColor: "#D9D2BE",
         ...lines("#7A1F1F", "#2F6B3B", "#6E6652", "#B7AD92", "#946A10", "#2F6B3B", "#7A1F1F"),
@@ -108,7 +109,7 @@ const STYLES: Record<string, StyleLook> = {
         bmAboveColor: "#1F7A4D", bmBelowColor: "#C0392B", zColor1: "#1F7A4D", zColor2: "#B7791F", zColor3: "#C0392B",
         smTitleColor: "#14202B", statsBgColor: "#EEF1F4", statsBgOpacity: 95, statsColor: "#14202B",
         labelBgColor: "#FFFFFF", labelBgOpacity: 90, legendColor: "#566472", vlColor: "#14202B" } },
-    aurora: { grad: ["#1B1147", "#10395E", "#0B5A5E"], accent: "#7CE7D0", values: {
+    aurora: { grad: ["#1B1147", "#10395E", "#0B5A5E"], accent: "#7CE7D0", dim: 0.4, values: {
         barColor: "#7CE7D0", borderColor: "#10395E", axisColor: "#C5D3E3", gridColor: "#3A5C7E",
         ...lines("#FFFFFF", "#FFD27D", "#C5D3E3", "#7CE7D0", "#FF9DB0", "#FFD27D", "#FF9DB0"),
         bmAboveColor: "#7CE7D0", bmBelowColor: "#FF9DB0", zColor1: "#7CE7D0", zColor2: "#FFD27D", zColor3: "#FF9DB0",
@@ -1557,7 +1558,8 @@ export class Visual implements IVisual {
                     && rowIdx.every(i => selVals!.has(String(categories?.values[i])))
                     && (!selPanels || panelValue === undefined || panelValue === null || selPanels.has(String(panelValue))))
                 || this.selKeys.has(binKey);
-            const dimmedOpacity = rActive ? barOpacity * 0.25 : anySel ? (isSel ? barOpacity : barOpacity * 0.25)
+            const dimF = look.dim ?? 0.25;
+            const dimmedOpacity = rActive ? barOpacity * dimF : anySel ? (isSel ? barOpacity : barOpacity * 0.25)
                 : (hasHighlights ? barOpacity * 0.25 : barOpacity);
 
             barsG.append("rect")
@@ -1711,7 +1713,7 @@ export class Visual implements IVisual {
             plotW, plotH, y: plotH + marginB0 + 10, xScale, dom: xDomain, rows: usedRows, data, sum: usedRows.reduce((t, d) => t + d.value, 0),
             bars: bins.map((bin, i) => ({ x: xScale(bin.x0 ?? 0) + gap / 2, w: Math.max(0, xScale(bin.x1 ?? 0) - xScale(bin.x0 ?? 0) - gap),
                 y: yScale(bin.length), h: plotH - yScale(bin.length), fill: binFill(i, bin) })),
-            barOpacity, rLo, rHi, rActive, shortcutsOn, step: (xDomain[1] - xDomain[0]) / effectiveBins, stroke: borderColor, strokeW: borderWidth,
+            barOpacity, dim: look.dim ?? 0.25, rLo, rHi, rActive, shortcutsOn, step: (xDomain[1] - xDomain[0]) / effectiveBins, stroke: borderColor, strokeW: borderWidth,
             hc: isHighContrast, axisColor: effectiveAxisColor, gridColor: effectiveGridColor,
             accent: isHighContrast ? (this.host.colorPalette.foregroundSelected?.value ?? "#FFFF00") : (settings.rangeColor || look.accent),
             fmt: (v: number) => formatValue(v, formatStr), fs: settings.axisFontSize,
@@ -2095,7 +2097,7 @@ export class Visual implements IVisual {
         plotW: number; plotH: number; y: number; xScale: d3.ScaleLinear<number, number>; dom: number[];
         rows: { value: number; origIndex: number }[]; data: number[]; sum: number;
         bars: { x: number; y: number; w: number; h: number; fill: string }[];
-        barOpacity: number; rLo: number; rHi: number; rActive: boolean; shortcutsOn: boolean; step: number;
+        barOpacity: number; dim: number; rLo: number; rHi: number; rActive: boolean; shortcutsOn: boolean; step: number;
         stroke: string; strokeW: number; hc: boolean; axisColor: string; gridColor: string; accent: string;
         fmt: (v: number) => string; fs: number;
     }): void {
@@ -2138,7 +2140,7 @@ export class Visual implements IVisual {
             clipRect.attr("x", a).attr("width", Math.max(0, b - a));
             over.attr("display", active ? null : "none");
             barsG.selectAll(".hp-bar").attr("fill-opacity", (_d, i, nodes) => active
-                ? o.barOpacity * 0.25
+                ? o.barOpacity * o.dim
                 : (nodes[i] as SVGRectElement).getAttribute("data-op") ?? o.barOpacity);
             const mid = Math.max(40, Math.min(plotW - 40, (a + b) / 2));
             label.attr("x", mid).attr("text-anchor", "middle").attr("display", active ? null : "none")
