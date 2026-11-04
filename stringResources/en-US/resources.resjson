@@ -138,5 +138,6 @@
   "UI_NoOutliers": "No outliers",
   "UI_Top10": "Top 10%",
   "UI_RangeRows": "{0} rows",
-  "UI_OversizedRange": "This range holds over {0} distinct values — more than the {1} Power BI can cross-filter at once. Narrow it."
+  "UI_OversizedRange": "This range holds over {0} distinct values — more than the {1} Power BI can cross-filter at once. Narrow it.",
+  "Enum_style_report": "Report theme"
 }

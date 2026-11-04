@@ -144,6 +144,26 @@ const IBCS = {
     label:      "#000000",
 };
 
+/**
+ * "Report theme": the colours of the report's own theme, so the visual sits with a client's
+ * corporate look without anyone picking colours. No background of its own: Power BI paints it.
+ */
+function reportLook(host: IVisualHost): StyleLook {
+    const pal: any = host.colorPalette;
+    const fg: string = pal.foreground?.value ?? "#252423";
+    const soft: string = pal.foregroundNeutralSecondary?.value ?? fg;
+    const line: string = pal.backgroundNeutral?.value ?? pal.backgroundLight?.value ?? "#E1DFDD";
+    const panel: string = pal.background?.value ?? "#FFFFFF";
+    const c = (k: string) => pal.getColor(k).value as string;
+    const bar = c("hp-bars"), c2 = c("hp-2"), c3 = c("hp-3"), c4 = c("hp-4");
+    return { accent: bar, values: {
+        barColor: bar, borderColor: panel, axisColor: soft, gridColor: line,
+        ...lines(fg, c2, soft, bar, c3, c2, c4),
+        bmAboveColor: bar, bmBelowColor: c4, zColor1: c2, zColor2: c3, zColor3: c4,
+        smTitleColor: fg, statsBgColor: panel, statsBgOpacity: 90, statsColor: fg,
+        labelBgColor: panel, labelBgOpacity: 85, legendColor: soft, vlColor: fg } };
+}
+
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
 interface Settings {
@@ -590,6 +610,8 @@ export class Visual implements IVisual {
             // para siempre una vez tocada, asi que mirar si existe dejaba la marca de agua
             // puesta aunque el usuario devolviera el ajuste a su valor gratuito.
             if (this.esValorPorDefecto(prop, v)) continue;
+            // Following the report's theme is what a native visual does: it is not a Pro look.
+            if (card === "style" && v === "report") continue;
             found.add(label);
         }
         return [...found];
@@ -1108,7 +1130,9 @@ export class Visual implements IVisual {
             return;
         }
 
-        const styleOk = this.allow("style templates");
+        const tplStored = String(dataView.metadata?.objects?.["style"]?.["template"] ?? "");
+        if (tplStored === "report") STYLES.report = reportLook(this.host);
+        const styleOk = tplStored === "report" || this.allow("style templates");
         const settings = parseSettings(dataView, styleOk);
         this.currentSettings = settings;
         const look = (styleOk && STYLES[settings.template]) || STYLES.classic;
@@ -2374,7 +2398,7 @@ export class Visual implements IVisual {
             cards: [
                 card("style_card", "Style", [
                     dropdown("style_template", lbl("Style template"), "style", "template", s.template, [
-                        ["classic", "Enum_style_classic", "Classic"], ["boardroom", "Enum_style_boardroom", "Boardroom"],
+                        ["classic", "Enum_style_classic", "Classic"], ["report", "Enum_style_report", "Report theme"], ["boardroom", "Enum_style_boardroom", "Boardroom"],
                         ["ledger", "Enum_style_ledger", "Ledger"], ["editorial", "Enum_style_editorial", "Editorial"],
                         ["signal", "Enum_style_signal", "Signal"], ["aurora", "Enum_style_aurora", "Aurora"],
                         ["terrace", "Enum_style_terrace", "Terrace"]]),

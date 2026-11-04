@@ -85,6 +85,11 @@
                 "displayNameKey": "Enum_style_classic"
               },
               {
+                "value": "report",
+                "displayName": "Report theme",
+                "displayNameKey": "Enum_style_report"
+              },
+              {
                 "value": "boardroom",
                 "displayName": "Boardroom",
                 "displayNameKey": "Enum_style_boardroom"
