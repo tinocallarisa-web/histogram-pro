@@ -74,20 +74,20 @@
       "displayNameKey": "Obj_style",
       "properties": {
         "template": {
-          "displayName": "Style template (Pro)",
+          "displayName": "Style template",
           "displayNameKey": "Prop_style_template",
-          "description": "A look for the whole visual. It only fills what you have not set yourself. Pro.",
+          "description": "Report theme, the default, follows the theme of the report. Classic is the look of earlier versions. The others are Pro.",
           "type": {
             "enumeration": [
-              {
-                "value": "classic",
-                "displayName": "Classic",
-                "displayNameKey": "Enum_style_classic"
-              },
               {
                 "value": "report",
                 "displayName": "Report theme",
                 "displayNameKey": "Enum_style_report"
+              },
+              {
+                "value": "classic",
+                "displayName": "Classic",
+                "displayNameKey": "Enum_style_classic"
               },
               {
                 "value": "boardroom",

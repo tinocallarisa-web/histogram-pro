@@ -68,13 +68,13 @@ const BASE_DEFAULTS = {
     showCumulative: false, cumulativeColor: "#FF9F43",
     showStats: true, statsColor: "#B0BEC5",
     showValueLabels: false, vlFontSize: 9, vlColor: "#E0E6FF", vlShowPercent: false,
-    template: "classic", rangeShow: true, rangeShortcuts: true, rangeColor: "", rangeInColor: "", rangeOutColor: "",
+    template: "report", rangeShow: true, rangeShortcuts: true, rangeColor: "", rangeInColor: "", rangeOutColor: "",
 };
 
 // ─── Style templates ──────────────────────────────────────────────────────────
-// A style only fills what the user has not set. Classic is the look of earlier versions, so a
-// report nobody touches does not change. The fonts are system fonts: a visual cannot count on
-// any other being installed.
+// A style only fills what the user has not set. The default since 1.5 is the report's theme, as
+// in a native visual (Tino, 04-11-2026); Classic is the look of earlier versions. The fonts are
+// system fonts: a visual cannot count on any other being installed.
 
 // dim: strength of the bars outside a range. On a dark background the usual 0.25 turns them muddy.
 interface StyleLook { bg?: string; grad?: [string, string, string]; font?: string; accent: string; dim?: number; values: Partial<Settings>; }
@@ -204,8 +204,8 @@ function getValue<T>(obj: powerbi.DataViewObjects, o: string, p: string, fb: T):
 function parseSettings(dv: DataView, styleOk: boolean): Settings {
     const obj = dv?.metadata?.objects;
     const template = String(getValue<string>(obj, "style", "template", BASE_DEFAULTS.template));
-    // Without Pro the style is Classic, whatever is stored: the stored choice comes back with the licence.
-    const DEFAULTS: typeof BASE_DEFAULTS = { ...BASE_DEFAULTS, ...(styleOk ? STYLES[template]?.values : {}) };
+    // Without Pro the style is the report's theme, whatever is stored: the choice comes back with the licence.
+    const DEFAULTS: typeof BASE_DEFAULTS = { ...BASE_DEFAULTS, ...STYLES[styleOk ? template : "report"]?.values };
     return {
         template,
         rangeShow: getValue<boolean>(obj, "rangeBar", "show", DEFAULTS.rangeShow),
@@ -642,8 +642,9 @@ export class Visual implements IVisual {
             // para siempre una vez tocada, asi que mirar si existe dejaba la marca de agua
             // puesta aunque el usuario devolviera el ajuste a su valor gratuito.
             if (this.esValorPorDefecto(prop, v)) continue;
-            // Following the report's theme is what a native visual does: it is not a Pro look.
-            if (card === "style" && v === "report") continue;
+            // Following the report's theme is what a native visual does, and Classic is the old
+            // free look: neither is a Pro style.
+            if (card === "style" && (v === "report" || v === "classic")) continue;
             found.add(label);
         }
         return [...found];
@@ -1165,12 +1166,12 @@ export class Visual implements IVisual {
             return;
         }
 
-        const tplStored = String(dataView.metadata?.objects?.["style"]?.["template"] ?? "");
-        if (tplStored === "report") STYLES.report = reportLook(this.host);
-        const styleOk = tplStored === "report" || this.allow("style templates");
+        const tplStored = String(dataView.metadata?.objects?.["style"]?.["template"] ?? DEFAULTS.template);
+        STYLES.report = reportLook(this.host);
+        const styleOk = tplStored === "report" || tplStored === "classic" || this.allow("style templates");
         const settings = parseSettings(dataView, styleOk);
         this.currentSettings = settings;
-        const look = (styleOk && STYLES[settings.template]) || STYLES.classic;
+        const look = (styleOk && STYLES[settings.template]) || STYLES.report;
         const baseLook: Partial<Settings> = { ...DEFAULTS, ...look.values };
         const hcOn = this.host.colorPalette.isHighContrast;
         if (!hcOn && (look.bg || look.grad)) {
@@ -2486,7 +2487,8 @@ export class Visual implements IVisual {
         });
 
         const dropdown = (uid: string, name: string, obj: string, prop: string, val: string, items: [string, string, string][]) => {
-            const list = items.map(([value, key, f]) => ({ value, displayName: T(key, f) }));
+            const list = items.map(([value, key, f]) => ({ value,
+                displayName: value === "report" || value === "classic" ? T(key, f) : lbl(T(key, f)) }));
             return { uid, displayName: dn(obj, prop, name), control: { type: powerbi.visuals.FormattingComponent.Dropdown,
                 properties: { descriptor: { objectName: obj, propertyName: prop }, value: list.find(x => x.value === val) ?? list[0], items: list } as any } };
         };
@@ -2494,8 +2496,8 @@ export class Visual implements IVisual {
         return {
             cards: [
                 card("style_card", "Style", [
-                    dropdown("style_template", lbl("Style template"), "style", "template", s.template, [
-                        ["classic", "Enum_style_classic", "Classic"], ["report", "Enum_style_report", "Report theme"], ["boardroom", "Enum_style_boardroom", "Boardroom"],
+                    dropdown("style_template", "Style template", "style", "template", s.template, [
+                        ["report", "Enum_style_report", "Report theme"], ["classic", "Enum_style_classic", "Classic"], ["boardroom", "Enum_style_boardroom", "Boardroom"],
                         ["ledger", "Enum_style_ledger", "Ledger"], ["editorial", "Enum_style_editorial", "Editorial"],
                         ["signal", "Enum_style_signal", "Signal"], ["aurora", "Enum_style_aurora", "Aurora"],
                         ["terrace", "Enum_style_terrace", "Terrace"]]),
