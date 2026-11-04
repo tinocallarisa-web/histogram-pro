@@ -141,5 +141,9 @@
   "UI_OversizedRange": "This range holds over {0} distinct values — more than the {1} Power BI can cross-filter at once. Narrow it.",
   "Enum_style_report": "Report theme",
   "Prop_rangeBar_inColor": "Bars inside the range",
-  "Prop_rangeBar_outColor": "Bars outside the range"
+  "Prop_rangeBar_outColor": "Bars outside the range",
+  "Prop_zones_labelBg": "Label background",
+  "Prop_zones_labelBgOpacity": "Label background opacity %",
+  "Prop_zones_labelColor": "Label text colour",
+  "Prop_zones_labelSize": "Label font size (0 = automatic)"
 }

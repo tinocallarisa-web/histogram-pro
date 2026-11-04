@@ -57,7 +57,7 @@ const BASE_DEFAULTS = {
     showBenchmark: false, benchmarkValue: 0, benchmarkColor: "#FF6B6B", benchmarkLabel: "Target",
     bmColorBars: false, bmAboveColor: "#FF6B6B", bmBelowColor: "#00E5FF",
     zShow: false, zCut1: 0, zCut2: 0, zColor1: "#69F0AE", zColor2: "#FFD740", zColor3: "#FF6B6B",
-    zLabels: true, zValueShare: true,
+    zLabels: true, zValueShare: true, zLabelBg: "", zLabelBgOpacity: 75, zLabelColor: "", zLabelSize: 0,
     smColumns: 0, smTitleSize: 12, smTitleColor: "#6B7785",
     statsBgColor: "#000000", statsBgOpacity: 35, labelBgColor: "#FFFFFF", labelBgOpacity: 75,
     legendFontSize: 9, legendColor: "#B0BEC5",
@@ -180,7 +180,7 @@ interface Settings {
     showBenchmark: boolean; benchmarkValue: number; benchmarkColor: string; benchmarkLabel: string;
     bmColorBars: boolean; bmAboveColor: string; bmBelowColor: string;
     zShow: boolean; zCut1: number; zCut2: number; zColor1: string; zColor2: string; zColor3: string;
-    zLabels: boolean; zValueShare: boolean;
+    zLabels: boolean; zValueShare: boolean; zLabelBg: string; zLabelBgOpacity: number; zLabelColor: string; zLabelSize: number;
     smColumns: number; smTitleSize: number; smTitleColor: string;
     statsBgColor: string; statsBgOpacity: number; labelBgColor: string; labelBgOpacity: number;
     legendFontSize: number; legendColor: string;
@@ -251,6 +251,10 @@ function parseSettings(dv: DataView, styleOk: boolean): Settings {
         zColor3: getColor(obj, "zones", "color3", DEFAULTS.zColor3),
         zLabels: getValue<boolean>(obj, "zones", "showLabels", DEFAULTS.zLabels),
         zValueShare: getValue<boolean>(obj, "zones", "showValueShare", DEFAULTS.zValueShare),
+        zLabelBg: getColor(obj, "zones", "labelBg", DEFAULTS.zLabelBg),
+        zLabelBgOpacity: getValue<number>(obj, "zones", "labelBgOpacity", DEFAULTS.zLabelBgOpacity),
+        zLabelColor: getColor(obj, "zones", "labelColor", DEFAULTS.zLabelColor),
+        zLabelSize: getValue<number>(obj, "zones", "labelSize", DEFAULTS.zLabelSize),
         smColumns: getValue<number>(obj, "smallMultiples", "columns", DEFAULTS.smColumns),
         smTitleSize: getValue<number>(obj, "smallMultiples", "titleFontSize", DEFAULTS.smTitleSize),
         smTitleColor: getColor(obj, "smallMultiples", "titleColor", DEFAULTS.smTitleColor),
@@ -279,6 +283,27 @@ function parseSettings(dv: DataView, styleOk: boolean): Settings {
         vlColor: getColor(obj, "valueLabels", "color", DEFAULTS.vlColor),
         vlShowPercent: getValue<boolean>(obj, "valueLabels", "showPercent", DEFAULTS.vlShowPercent),
     };
+}
+
+// ─── Contrast ─────────────────────────────────────────────────────────────────
+
+function luminance(hex: string): number {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+    if (!m) return 1;
+    const n = parseInt(m[1], 16);
+    const ch = (c: number) => { const v = c / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * ch(n >> 16) + 0.7152 * ch((n >> 8) & 255) + 0.0722 * ch(n & 255);
+}
+
+function contrast(a: string, b: string): number {
+    const x = luminance(a), y = luminance(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+
+/** The colour itself when it can be read on that background; if not, black or white. */
+function readableOn(color: string, bg: string): string {
+    if (contrast(color, bg) >= 4.5) return color;
+    return contrast("#111111", bg) >= contrast("#FFFFFF", bg) ? "#111111" : "#FFFFFF";
 }
 
 // ─── Math helpers ─────────────────────────────────────────────────────────────
@@ -1350,7 +1375,8 @@ export class Visual implements IVisual {
         // value label was hidden.
         const refFs = settings.axisFontSize;
         const zoneLabelsOn = this.allow("value zones") && settings.zShow && settings.zLabels && settings.zCut1 !== settings.zCut2;
-        const zoneBand = zoneLabelsOn ? Math.max(8, settings.axisFontSize - 1) + 8 : 0;
+        const zoneFs = settings.zLabelSize > 0 ? Math.max(6, settings.zLabelSize) : Math.max(8, settings.axisFontSize - 1);
+        const zoneBand = zoneLabelsOn ? zoneFs + 8 : 0;
         const refRows = [settings.showMean, settings.showMedian, settings.showP25, settings.showP75].filter(Boolean).length;
         const vlBand = this.allow("value labels") && settings.showValueLabels ? settings.vlFontSize + 4 : 0;
         const headroom = Math.min(plotH * 0.4, zoneBand + (refRows ? 4 + refRows * (refFs + 4) : 0) + vlBand);
@@ -1768,13 +1794,13 @@ export class Visual implements IVisual {
         // halo picked from the text colour looked heavy on light report backgrounds.
         const labelBg = isHighContrast ? (this.host.colorPalette.background?.value ?? "#000000") : settings.labelBgColor;
         const labelBgOp = isHighContrast ? 1 : Math.min(100, Math.max(0, settings.labelBgOpacity)) / 100;
-        const withHalo = (sel: d3.Selection<SVGTextElement, unknown, null, undefined>, _c?: string) => {
+        const withHalo = (sel: d3.Selection<SVGTextElement, unknown, null, undefined>, _c?: string, bg = labelBg, bgOp = labelBgOp) => {
             const node = sel.node();
-            if (!node || typeof node.getBBox !== "function" || labelBgOp <= 0) return sel;
+            if (!node || typeof node.getBBox !== "function" || bgOp <= 0) return sel;
             const bb = node.getBBox();
             d3.select(node.parentNode as SVGGElement).insert("rect", () => node)
                 .attr("x", bb.x - 3).attr("y", bb.y - 1).attr("width", bb.width + 6).attr("height", bb.height + 2)
-                .attr("rx", 3).attr("fill", labelBg).attr("fill-opacity", labelBgOp).attr("pointer-events", "none");
+                .attr("rx", 3).attr("fill", bg).attr("fill-opacity", bgOp).attr("pointer-events", "none");
             return sel;
         };
 
@@ -1782,12 +1808,17 @@ export class Visual implements IVisual {
         // longest wording that fits its zone, measured, not estimated.
         let refTop = 0;
         if (zoneLabels.length) {
-            const zfs = Math.max(8, settings.axisFontSize - 1);
+            const zfs = zoneFs;
+            const zBg = isHighContrast ? labelBg : (settings.zLabelBg || labelBg);
+            const zOp = isHighContrast ? 1 : Math.min(100, Math.max(0, settings.zLabelBgOpacity)) / 100;
+            // Con poco fondo propio, el texto se lee sobre lo que hay detrás: el fondo del visual.
+            const behind = zOp >= 0.5 ? zBg : (look.bg ?? look.grad?.[1] ?? this.host.colorPalette.background?.value ?? "#FFFFFF");
             const zl = g.append("g").attr("class", "zone-labels").attr("pointer-events", "none");
             for (const zl0 of zoneLabels) {
                 const avail = zl0.x1 - zl0.x0 - 8;
                 const el = zl.append("text").attr("x", zl0.x0 + 4).attr("y", zfs + 2)
-                    .attr("font-size", zfs).attr("font-weight", "600").attr("fill", zl0.color);
+                    .attr("font-size", zfs).attr("font-weight", "600")
+                    .attr("fill", isHighContrast ? zl0.color : (settings.zLabelColor || readableOn(zl0.color, behind)));
                 let ok = false;
                 for (const c of zl0.candidates) {
                     el.text(c);
@@ -1795,7 +1826,7 @@ export class Visual implements IVisual {
                     if (w <= avail) { ok = true; break; }
                 }
                 if (!ok) { el.remove(); continue; }
-                withHalo(el);
+                withHalo(el, undefined, zBg, zOp);
             }
             refTop = zfs + 8;
         }
@@ -2536,6 +2567,10 @@ export class Visual implements IVisual {
                     col("z_c3",     lbl("High zone color"),   "zones", "color3", s.zColor3),
                     tog("z_labels", lbl("Show zone labels"),  "zones", "showLabels", s.zLabels),
                     tog("z_value",  lbl("Show share of total value"), "zones", "showValueShare", s.zValueShare),
+                    col("z_lbg",    lbl("Label background"), "zones", "labelBg", s.zLabelBg || s.labelBgColor),
+                    num("z_lop",    lbl("Label background opacity %"), "zones", "labelBgOpacity", s.zLabelBgOpacity),
+                    col("z_lcol",   lbl("Label text colour"), "zones", "labelColor", s.zLabelColor || s.axisColor),
+                    num("z_lsize",  lbl("Label font size (0 = automatic)"), "zones", "labelSize", s.zLabelSize),
                 ]),
                 card("smallMultiples_card", lbl("Small multiples"), [
                     num("sm_cols",  lbl("Columns (0 = automatic)"), "smallMultiples", "columns", s.smColumns),

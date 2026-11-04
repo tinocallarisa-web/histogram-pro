@@ -141,5 +141,9 @@
   "UI_OversizedRange": "Este rango tiene más de {0} valores distintos: más de los {1} que Power BI puede filtrar a la vez. Redúcelo.",
   "Enum_style_report": "Tema del informe",
   "Prop_rangeBar_inColor": "Barras dentro del rango",
-  "Prop_rangeBar_outColor": "Barras fuera del rango"
+  "Prop_rangeBar_outColor": "Barras fuera del rango",
+  "Prop_zones_labelBg": "Fondo de la etiqueta",
+  "Prop_zones_labelBgOpacity": "Opacidad del fondo de la etiqueta %",
+  "Prop_zones_labelColor": "Color del texto de la etiqueta",
+  "Prop_zones_labelSize": "Tamaño de la etiqueta (0 = automático)"
 }

@@ -750,6 +750,44 @@
           "type": {
             "bool": true
           }
+        },
+        "labelBg": {
+          "displayName": "Label background (Pro)",
+          "displayNameKey": "Prop_zones_labelBg",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "labelBgOpacity": {
+          "displayName": "Label background opacity % (Pro)",
+          "displayNameKey": "Prop_zones_labelBgOpacity",
+          "type": {
+            "numeric": true
+          }
+        },
+        "labelColor": {
+          "displayName": "Label text colour (Pro)",
+          "displayNameKey": "Prop_zones_labelColor",
+          "description": "Empty: the zone colour, or black or white when that cannot be read.",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "labelSize": {
+          "displayName": "Label font size (Pro)",
+          "displayNameKey": "Prop_zones_labelSize",
+          "description": "0 = automatic.",
+          "type": {
+            "numeric": true
+          }
         }
       }
     },
