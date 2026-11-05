@@ -3,6 +3,7 @@
 import { STRINGS } from "./strings";
 import powerbi from "powerbi-visuals-api";
 import * as d3 from "d3";
+import "./../style/visual.less";
 
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
@@ -382,6 +383,10 @@ export class Visual implements IVisual {
     public visualOnObjectFormatting: powerbi.extensibility.visual.VisualOnObjectFormatting;
     private subSelectionHelper: HtmlSubSelectionHelper;
     private formatMode = false;
+    private guideEl: HTMLDivElement;
+    private guideStep = 2;
+    /** Stays open while the session lasts: choosing a style stores a property, and that must not close it. */
+    private guideOpen = false;
     private lastDataView: DataView | null = null;
     private lastCatCol: powerbi.DataViewCategoryColumn | null = null;
     private lastPanCol: powerbi.DataViewCategoryColumn | null = null;
@@ -474,6 +479,8 @@ export class Visual implements IVisual {
             .style("width", "100%").style("height", "100%").style("position", "relative");
 
         this.svg = this.container.append("svg");
+        this.guideEl = (this.container.node() as HTMLElement).appendChild(document.createElement("div"));
+        this.guideEl.className = "hp-guide";
         this.checkLicense();
     }
 
@@ -2465,6 +2472,128 @@ export class Visual implements IVisual {
             .attr("font-size", 12).attr("fill", "#B0BEC5").attr("font-family", "Segoe UI, sans-serif").text(this.t("UI_Landing", "Add a numeric field to get started"));
     }
 
+    // ── Setup guide ───────────────────────────────────────────────────────────
+
+    /**
+     * Opens by itself only on a visual nobody has touched, so that a report already built does not
+     * greet its author with it; the format pane can bring it back. Only for whoever is editing.
+     */
+    private updateGuide(): void {
+        const el = this.guideEl;
+        const dv = this.lastDataView;
+        const objects = dv?.metadata?.objects;
+        const stored = objects?.["style"]?.["guide"];
+        if (stored === false) this.guideOpen = false;
+        else if (stored === true || !objects || Object.keys(objects).length === 0) this.guideOpen = true;
+        const vp = this.lastOptions?.viewport;
+        el.style.display = "none";
+        if (!this.guideOpen || !this.editing || this.formatMode || !this.canInteract) return;
+        if (!dv?.categorical?.values?.[0] || !vp || vp.width < 360 || vp.height < 260) return;
+        this.renderGuide();
+    }
+
+    private roleBound(role: string): boolean {
+        return !!this.lastDataView?.metadata?.columns?.some(c => c.roles?.[role]);
+    }
+
+    private renderGuide(): void {
+        const el = this.guideEl;
+        while (el.firstChild) el.removeChild(el.firstChild);
+        const hc = this.host.colorPalette.isHighContrast;
+        const main = hc ? (this.host.colorPalette.foregroundSelected?.value ?? "#FFFF00") : "#2B6CB0";
+        const fg = hc ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : "#252423";
+        const muted = hc ? fg : "#605E5C";
+        const bg = hc ? (this.host.colorPalette.background?.value ?? "#000000") : "#FFFFFF";
+        el.style.display = "block";
+        el.style.background = bg;
+        el.style.borderColor = main;
+        el.style.color = fg;
+        el.setAttribute("role", "dialog");
+        el.setAttribute("aria-label", this.t("Guide_Title", "Setup guide"));
+        el.onclick = (e) => e.stopPropagation();
+        el.onkeydown = (e) => e.stopPropagation();
+        const add = <K extends keyof HTMLElementTagNameMap>(parent: HTMLElement, tag: K, cls: string, text = ""): HTMLElementTagNameMap[K] => {
+            const n = document.createElement(tag);
+            n.className = cls;
+            if (text) n.textContent = text;
+            return parent.appendChild(n);
+        };
+        const persist = (properties: Record<string, powerbi.DataViewPropertyValue>) =>
+            this.host.persistProperties({ merge: [{ objectName: "style", selector: null as any, properties }] });
+        const finish = () => { this.guideOpen = false; this.guideStep = 2; el.style.display = "none"; persist({ guide: false }); };
+        const button = (parent: HTMLElement, text: string, primary: boolean, action: () => void) => {
+            const b = add(parent, "button", primary ? "hp-g-btn hp-g-main" : "hp-g-btn", text);
+            b.type = "button";
+            b.style.borderColor = main;
+            b.style.background = primary ? main : "transparent";
+            b.style.color = primary ? bg : main;
+            b.addEventListener("click", action);
+        };
+
+        const head = add(el, "div", "hp-g-head");
+        add(head, "div", "", this.t("Guide_Step", "Setup · step {0} of 3").replace("{0}", String(this.guideStep))).style.color = main;
+        const close = add(head, "button", "hp-g-close", "✕");
+        close.type = "button";
+        close.title = this.t("Guide_Close", "Close the guide");
+        close.setAttribute("aria-label", close.title);
+        close.style.color = muted;
+        close.addEventListener("click", finish);
+
+        if (this.guideStep !== 3) {
+            add(el, "div", "hp-g-title", this.t("Guide_Distribution", "Get the distribution"));
+            const list = add(el, "div", "");
+            list.setAttribute("role", "list");
+            const items: [string, string, string, string, string][] = [
+                ["category", "Role_category", "Detail (rows)", "Guide_DetailWhy", "one row per order, employee or ticket: without it there is no distribution"],
+                ["panel", "Role_panel", "Small multiples (Pro)", "Guide_PanelWhy", "one histogram per region or product, on the same axis"],
+                ["tooltips", "Role_tooltips", "Tooltips", "Guide_TooltipsWhy", "extra values, as the average per bar"],
+            ];
+            for (const [role, nameKey, name, whyKey, why] of items) {
+                const done = this.roleBound(role);
+                const row = add(list, "div", "hp-g-item");
+                row.setAttribute("role", "listitem");
+                const mark = add(row, "span", "", done ? "✓" : "○");
+                mark.setAttribute("aria-label", done ? this.t("Guide_Done", "added") : this.t("Guide_Todo", "not added"));
+                mark.style.color = done ? (hc ? fg : "#107C10") : muted;
+                const txt = add(row, "span", "");
+                add(txt, "b", "", this.t(nameKey, name));
+                txt.appendChild(document.createTextNode(" — " + this.t(whyKey, why)));
+                txt.style.color = done ? muted : fg;
+            }
+            add(el, "div", "hp-g-note", this.t("Guide_Wells", "Drag the fields into the field wells; this list updates by itself. Only Detail is needed.")).style.color = muted;
+            button(add(el, "div", "hp-g-foot"), this.t("Guide_Next", "Next"), true, () => { this.guideStep = 3; this.renderGuide(); });
+        } else {
+            add(el, "div", "hp-g-title", this.t("Guide_Style", "Pick a style"));
+            const grid = add(el, "div", "hp-g-grid");
+            const current = this.currentSettings?.template;
+            for (const name of ["report", "classic", "boardroom", "ledger", "editorial", "signal", "aurora", "terrace"]) {
+                const look = STYLES[name];
+                const chip = add(grid, "button", "hp-g-chip");
+                chip.type = "button";
+                chip.setAttribute("aria-pressed", String(name === current));
+                chip.style.borderColor = name === current ? main : "#C8C6C4";
+                chip.style.borderWidth = name === current ? "2px" : "1px";
+                chip.style.background = bg;
+                chip.style.color = fg;
+                const mini = add(chip, "div", "hp-g-mini");
+                mini.style.background = hc ? bg : (look.bg ?? (look.grad ? `linear-gradient(135deg, ${look.grad.join(", ")})` : "transparent"));
+                const bar = hc ? fg : String(look.values?.barColor ?? DEFAULTS.barColor);
+                for (const h of [30, 75, 100, 60, 35, 15]) {
+                    const b = add(mini, "i", "");
+                    b.style.height = `${h}%`;
+                    b.style.background = bar;
+                }
+                const paid = !this.isPro && name !== "report" && name !== "classic";
+                const label = this.t(`Enum_style_${name}`, name.charAt(0).toUpperCase() + name.slice(1));
+                add(chip, "div", "", paid ? `${label} (Pro)` : label);
+                chip.addEventListener("click", () => persist({ template: name }));
+            }
+            const foot = add(el, "div", "hp-g-foot");
+            button(foot, this.t("Guide_Back", "Back"), false, () => { this.guideStep = 2; this.renderGuide(); });
+            button(foot, this.t("Guide_Finish", "Finish"), true, finish);
+        }
+    }
+
     // ── On-object formatting ──────────────────────────────────────────────────
 
     /** Every parent of what can be formatted, with the object it edits. */
@@ -2484,6 +2613,7 @@ export class Visual implements IVisual {
      * helper, which listens on the host element.
      */
     private afterRender(options: VisualUpdateOptions): void {
+        this.updateGuide();
         if (!this.formatMode) return;
         const root = this.svg.node() as SVGSVGElement;
         const types = "click contextmenu keydown blur mousedown mousemove mouseover mouseout pointerdown pointermove pointerup pointercancel";
@@ -2635,6 +2765,7 @@ export class Visual implements IVisual {
                         ["ledger", "Enum_style_ledger", "Ledger"], ["editorial", "Enum_style_editorial", "Editorial"],
                         ["signal", "Enum_style_signal", "Signal"], ["aurora", "Enum_style_aurora", "Aurora"],
                         ["terrace", "Enum_style_terrace", "Terrace"]]),
+                    tog("style_guide", "Setup guide", "style", "guide", this.guideOpen),
                 ]),
                 card("rangeBar_card", "Range bar", [
                     tog("range_show", "Show range bar", "rangeBar", "show", s.rangeShow),

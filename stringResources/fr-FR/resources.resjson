@@ -157,5 +157,20 @@
   "UI_ShowStats": "Afficher le panneau de statistiques",
   "UI_HideZoneLabels": "Masquer les étiquettes des zones",
   "UI_HideShortcuts": "Masquer les raccourcis",
-  "UI_ShowShortcuts": "Afficher les raccourcis"
+  "UI_ShowShortcuts": "Afficher les raccourcis",
+  "Guide_Title": "Guide de configuration",
+  "Guide_Step": "Configuration · étape {0} sur 3",
+  "Guide_Close": "Fermer le guide",
+  "Guide_Done": "ajouté",
+  "Guide_Todo": "non ajouté",
+  "Guide_Next": "Suivant",
+  "Guide_Style": "Choisissez un style",
+  "Guide_Back": "Retour",
+  "Guide_Finish": "Terminer",
+  "Prop_style_guide": "Guide de configuration",
+  "Guide_Distribution": "Obtenir la distribution",
+  "Guide_DetailWhy": "une ligne par commande, employé ou ticket : sans lui, pas de distribution",
+  "Guide_PanelWhy": "un histogramme par région ou produit, sur le même axe",
+  "Guide_TooltipsWhy": "valeurs supplémentaires, en moyenne par barre",
+  "Guide_Wells": "Faites glisser les champs dans leurs emplacements ; cette liste se met à jour toute seule. Seul Détail est nécessaire."
 }

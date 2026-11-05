@@ -157,5 +157,20 @@
   "UI_ShowStats": "統計パネルを表示",
   "UI_HideZoneLabels": "ゾーンのラベルを非表示",
   "UI_HideShortcuts": "ショートカットを非表示",
-  "UI_ShowShortcuts": "ショートカットを表示"
+  "UI_ShowShortcuts": "ショートカットを表示",
+  "Guide_Title": "セットアップ ガイド",
+  "Guide_Step": "セットアップ · 手順 {0}/3",
+  "Guide_Close": "ガイドを閉じる",
+  "Guide_Done": "追加済み",
+  "Guide_Todo": "未追加",
+  "Guide_Next": "次へ",
+  "Guide_Style": "スタイルを選択",
+  "Guide_Back": "戻る",
+  "Guide_Finish": "完了",
+  "Prop_style_guide": "セットアップ ガイド",
+  "Guide_Distribution": "分布を表示する",
+  "Guide_DetailWhy": "注文、従業員、チケットごとに 1 行: これがないと分布になりません",
+  "Guide_PanelWhy": "地域または製品ごとに 1 つのヒストグラム、軸は共通",
+  "Guide_TooltipsWhy": "追加の値、棒ごとの平均",
+  "Guide_Wells": "フィールドをフィールド ウェルにドラッグします。この一覧は自動で更新されます。必要なのは明細だけです。"
 }

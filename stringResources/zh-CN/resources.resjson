@@ -157,5 +157,20 @@
   "UI_ShowStats": "显示统计面板",
   "UI_HideZoneLabels": "隐藏区域标签",
   "UI_HideShortcuts": "隐藏快捷方式",
-  "UI_ShowShortcuts": "显示快捷方式"
+  "UI_ShowShortcuts": "显示快捷方式",
+  "Guide_Title": "设置向导",
+  "Guide_Step": "设置 · 第 {0} 步，共 3 步",
+  "Guide_Close": "关闭向导",
+  "Guide_Done": "已添加",
+  "Guide_Todo": "未添加",
+  "Guide_Next": "下一步",
+  "Guide_Style": "选择样式",
+  "Guide_Back": "上一步",
+  "Guide_Finish": "完成",
+  "Prop_style_guide": "设置向导",
+  "Guide_Distribution": "获取分布",
+  "Guide_DetailWhy": "每个订单、员工或工单一行：没有它就没有分布",
+  "Guide_PanelWhy": "每个区域或产品一个直方图，使用同一坐标轴",
+  "Guide_TooltipsWhy": "其他值，显示为每个条形的平均值",
+  "Guide_Wells": "将字段拖到字段井中；此列表会自动更新。只需要明细。"
 }

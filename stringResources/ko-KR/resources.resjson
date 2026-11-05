@@ -157,5 +157,20 @@
   "UI_ShowStats": "통계 패널 표시",
   "UI_HideZoneLabels": "구간 레이블 숨기기",
   "UI_HideShortcuts": "바로 가기 숨기기",
-  "UI_ShowShortcuts": "바로 가기 표시"
+  "UI_ShowShortcuts": "바로 가기 표시",
+  "Guide_Title": "설정 가이드",
+  "Guide_Step": "설정 · {0}/3단계",
+  "Guide_Close": "가이드 닫기",
+  "Guide_Done": "추가됨",
+  "Guide_Todo": "추가 안 됨",
+  "Guide_Next": "다음",
+  "Guide_Style": "스타일 선택",
+  "Guide_Back": "뒤로",
+  "Guide_Finish": "마침",
+  "Prop_style_guide": "설정 가이드",
+  "Guide_Distribution": "분포 만들기",
+  "Guide_DetailWhy": "주문, 직원 또는 티켓당 한 행: 이것이 없으면 분포가 없습니다",
+  "Guide_PanelWhy": "지역 또는 제품별 히스토그램 하나, 같은 축 사용",
+  "Guide_TooltipsWhy": "추가 값, 막대별 평균",
+  "Guide_Wells": "필드를 필드 웰로 끌어 놓으세요. 이 목록은 자동으로 업데이트됩니다. 세부 정보만 있으면 됩니다."
 }

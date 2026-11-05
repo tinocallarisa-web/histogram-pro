@@ -157,5 +157,20 @@
   "UI_ShowStats": "Mostra pannello statistiche",
   "UI_HideZoneLabels": "Nascondi etichette delle zone",
   "UI_HideShortcuts": "Nascondi scorciatoie",
-  "UI_ShowShortcuts": "Mostra scorciatoie"
+  "UI_ShowShortcuts": "Mostra scorciatoie",
+  "Guide_Title": "Guida alla configurazione",
+  "Guide_Step": "Configurazione · passo {0} di 3",
+  "Guide_Close": "Chiudi la guida",
+  "Guide_Done": "aggiunto",
+  "Guide_Todo": "non aggiunto",
+  "Guide_Next": "Avanti",
+  "Guide_Style": "Scegli uno stile",
+  "Guide_Back": "Indietro",
+  "Guide_Finish": "Fine",
+  "Prop_style_guide": "Guida alla configurazione",
+  "Guide_Distribution": "Ottieni la distribuzione",
+  "Guide_DetailWhy": "una riga per ordine, dipendente o ticket: senza non c'è distribuzione",
+  "Guide_PanelWhy": "un istogramma per regione o prodotto, sullo stesso asse",
+  "Guide_TooltipsWhy": "valori aggiuntivi, come media per barra",
+  "Guide_Wells": "Trascina i campi nei rispettivi riquadri; questo elenco si aggiorna da solo. Serve solo Dettaglio."
 }

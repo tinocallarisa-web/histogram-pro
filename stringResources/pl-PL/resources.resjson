@@ -157,5 +157,20 @@
   "UI_ShowStats": "Pokaż panel statystyk",
   "UI_HideZoneLabels": "Ukryj etykiety stref",
   "UI_HideShortcuts": "Ukryj skróty",
-  "UI_ShowShortcuts": "Pokaż skróty"
+  "UI_ShowShortcuts": "Pokaż skróty",
+  "Guide_Title": "Przewodnik konfiguracji",
+  "Guide_Step": "Konfiguracja · krok {0} z 3",
+  "Guide_Close": "Zamknij przewodnik",
+  "Guide_Done": "dodano",
+  "Guide_Todo": "nie dodano",
+  "Guide_Next": "Dalej",
+  "Guide_Style": "Wybierz styl",
+  "Guide_Back": "Wstecz",
+  "Guide_Finish": "Zakończ",
+  "Prop_style_guide": "Przewodnik konfiguracji",
+  "Guide_Distribution": "Uzyskaj rozkład",
+  "Guide_DetailWhy": "jeden wiersz na zamówienie, pracownika lub zgłoszenie: bez tego nie ma rozkładu",
+  "Guide_PanelWhy": "jeden histogram na region lub produkt, na tej samej osi",
+  "Guide_TooltipsWhy": "dodatkowe wartości, jako średnia na słupek",
+  "Guide_Wells": "Przeciągnij pola do ich obszarów; ta lista aktualizuje się sama. Potrzebne jest tylko pole Szczegóły."
 }

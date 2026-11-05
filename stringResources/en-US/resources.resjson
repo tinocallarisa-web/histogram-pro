@@ -157,5 +157,20 @@
   "UI_ShowStats": "Show stats panel",
   "UI_HideZoneLabels": "Hide zone labels",
   "UI_HideShortcuts": "Hide shortcuts",
-  "UI_ShowShortcuts": "Show shortcuts"
+  "UI_ShowShortcuts": "Show shortcuts",
+  "Guide_Title": "Setup guide",
+  "Guide_Step": "Setup · step {0} of 3",
+  "Guide_Close": "Close the guide",
+  "Guide_Done": "added",
+  "Guide_Todo": "not added",
+  "Guide_Next": "Next",
+  "Guide_Style": "Pick a style",
+  "Guide_Back": "Back",
+  "Guide_Finish": "Finish",
+  "Prop_style_guide": "Setup guide",
+  "Guide_Distribution": "Get the distribution",
+  "Guide_DetailWhy": "one row per order, employee or ticket: without it there is no distribution",
+  "Guide_PanelWhy": "one histogram per region or product, on the same axis",
+  "Guide_TooltipsWhy": "extra values, as the average per bar",
+  "Guide_Wells": "Drag the fields into the field wells; this list updates by itself. Only Detail is needed."
 }

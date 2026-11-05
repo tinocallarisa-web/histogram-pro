@@ -157,5 +157,20 @@
   "UI_ShowStats": "Statistiekenpaneel weergeven",
   "UI_HideZoneLabels": "Zonelabels verbergen",
   "UI_HideShortcuts": "Snelkoppelingen verbergen",
-  "UI_ShowShortcuts": "Snelkoppelingen weergeven"
+  "UI_ShowShortcuts": "Snelkoppelingen weergeven",
+  "Guide_Title": "Installatiehulp",
+  "Guide_Step": "Instellen · stap {0} van 3",
+  "Guide_Close": "Hulp sluiten",
+  "Guide_Done": "toegevoegd",
+  "Guide_Todo": "niet toegevoegd",
+  "Guide_Next": "Volgende",
+  "Guide_Style": "Kies een stijl",
+  "Guide_Back": "Terug",
+  "Guide_Finish": "Voltooien",
+  "Prop_style_guide": "Installatiehulp",
+  "Guide_Distribution": "De verdeling maken",
+  "Guide_DetailWhy": "één rij per order, medewerker of ticket: zonder dit is er geen verdeling",
+  "Guide_PanelWhy": "één histogram per regio of product, op dezelfde as",
+  "Guide_TooltipsWhy": "extra waarden, als gemiddelde per balk",
+  "Guide_Wells": "Sleep de velden naar de veldvakken; deze lijst werkt zichzelf bij. Alleen Detail is nodig."
 }

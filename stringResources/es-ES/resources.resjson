@@ -157,5 +157,20 @@
   "UI_ShowStats": "Mostrar panel de estadísticas",
   "UI_HideZoneLabels": "Ocultar etiquetas de zona",
   "UI_HideShortcuts": "Ocultar atajos",
-  "UI_ShowShortcuts": "Mostrar atajos"
+  "UI_ShowShortcuts": "Mostrar atajos",
+  "Guide_Title": "Guía de configuración",
+  "Guide_Step": "Configuración · paso {0} de 3",
+  "Guide_Close": "Cerrar la guía",
+  "Guide_Done": "añadido",
+  "Guide_Todo": "sin añadir",
+  "Guide_Next": "Siguiente",
+  "Guide_Style": "Elige un estilo",
+  "Guide_Back": "Atrás",
+  "Guide_Finish": "Terminar",
+  "Prop_style_guide": "Guía de configuración",
+  "Guide_Distribution": "Obtén la distribución",
+  "Guide_DetailWhy": "una fila por pedido, empleado o ticket: sin él no hay distribución",
+  "Guide_PanelWhy": "un histograma por región o producto, con el mismo eje",
+  "Guide_TooltipsWhy": "valores adicionales, como media por barra",
+  "Guide_Wells": "Arrastra los campos a sus casillas; esta lista se actualiza sola. Solo hace falta Detalle."
 }

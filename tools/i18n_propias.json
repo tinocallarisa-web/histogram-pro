@@ -1175,5 +1175,159 @@
 "ショートカットを表示",
 "显示快捷方式",
 "바로 가기 표시"
+],
+"Setup guide": [
+"Guia de configuração",
+"Guide de configuration",
+"Einrichtungsassistent",
+"Guida alla configurazione",
+"Installatiehulp",
+"Przewodnik konfiguracji",
+"セットアップ ガイド",
+"设置向导",
+"설정 가이드"
+],
+"Setup · step {0} of 3": [
+"Configuração · etapa {0} de 3",
+"Configuration · étape {0} sur 3",
+"Einrichtung · Schritt {0} von 3",
+"Configurazione · passo {0} di 3",
+"Instellen · stap {0} van 3",
+"Konfiguracja · krok {0} z 3",
+"セットアップ · 手順 {0}/3",
+"设置 · 第 {0} 步，共 3 步",
+"설정 · {0}/3단계"
+],
+"Close the guide": [
+"Fechar o guia",
+"Fermer le guide",
+"Assistent schließen",
+"Chiudi la guida",
+"Hulp sluiten",
+"Zamknij przewodnik",
+"ガイドを閉じる",
+"关闭向导",
+"가이드 닫기"
+],
+"added": [
+"adicionado",
+"ajouté",
+"hinzugefügt",
+"aggiunto",
+"toegevoegd",
+"dodano",
+"追加済み",
+"已添加",
+"추가됨"
+],
+"not added": [
+"não adicionado",
+"non ajouté",
+"nicht hinzugefügt",
+"non aggiunto",
+"niet toegevoegd",
+"nie dodano",
+"未追加",
+"未添加",
+"추가 안 됨"
+],
+"Next": [
+"Avançar",
+"Suivant",
+"Weiter",
+"Avanti",
+"Volgende",
+"Dalej",
+"次へ",
+"下一步",
+"다음"
+],
+"Pick a style": [
+"Escolha um estilo",
+"Choisissez un style",
+"Stil wählen",
+"Scegli uno stile",
+"Kies een stijl",
+"Wybierz styl",
+"スタイルを選択",
+"选择样式",
+"스타일 선택"
+],
+"Back": [
+"Voltar",
+"Retour",
+"Zurück",
+"Indietro",
+"Terug",
+"Wstecz",
+"戻る",
+"上一步",
+"뒤로"
+],
+"Finish": [
+"Concluir",
+"Terminer",
+"Fertig",
+"Fine",
+"Voltooien",
+"Zakończ",
+"完了",
+"完成",
+"마침"
+],
+"Get the distribution": [
+"Obtenha a distribuição",
+"Obtenir la distribution",
+"Verteilung erstellen",
+"Ottieni la distribuzione",
+"De verdeling maken",
+"Uzyskaj rozkład",
+"分布を表示する",
+"获取分布",
+"분포 만들기"
+],
+"one row per order, employee or ticket: without it there is no distribution": [
+"uma linha por pedido, funcionário ou ticket: sem ele não há distribuição",
+"une ligne par commande, employé ou ticket : sans lui, pas de distribution",
+"eine Zeile je Auftrag, Mitarbeiter oder Ticket: ohne sie gibt es keine Verteilung",
+"una riga per ordine, dipendente o ticket: senza non c'è distribuzione",
+"één rij per order, medewerker of ticket: zonder dit is er geen verdeling",
+"jeden wiersz na zamówienie, pracownika lub zgłoszenie: bez tego nie ma rozkładu",
+"注文、従業員、チケットごとに 1 行: これがないと分布になりません",
+"每个订单、员工或工单一行：没有它就没有分布",
+"주문, 직원 또는 티켓당 한 행: 이것이 없으면 분포가 없습니다"
+],
+"one histogram per region or product, on the same axis": [
+"um histograma por região ou produto, no mesmo eixo",
+"un histogramme par région ou produit, sur le même axe",
+"ein Histogramm je Region oder Produkt, auf derselben Achse",
+"un istogramma per regione o prodotto, sullo stesso asse",
+"één histogram per regio of product, op dezelfde as",
+"jeden histogram na region lub produkt, na tej samej osi",
+"地域または製品ごとに 1 つのヒストグラム、軸は共通",
+"每个区域或产品一个直方图，使用同一坐标轴",
+"지역 또는 제품별 히스토그램 하나, 같은 축 사용"
+],
+"extra values, as the average per bar": [
+"valores adicionais, como média por barra",
+"valeurs supplémentaires, en moyenne par barre",
+"zusätzliche Werte, als Durchschnitt je Balken",
+"valori aggiuntivi, come media per barra",
+"extra waarden, als gemiddelde per balk",
+"dodatkowe wartości, jako średnia na słupek",
+"追加の値、棒ごとの平均",
+"其他值，显示为每个条形的平均值",
+"추가 값, 막대별 평균"
+],
+"Drag the fields into the field wells; this list updates by itself. Only Detail is needed.": [
+"Arraste os campos para os respetivos poços; esta lista atualiza-se sozinha. Só o Detalhe é necessário.",
+"Faites glisser les champs dans leurs emplacements ; cette liste se met à jour toute seule. Seul Détail est nécessaire.",
+"Ziehen Sie die Felder in die Feldbereiche; diese Liste aktualisiert sich selbst. Nur Detail ist erforderlich.",
+"Trascina i campi nei rispettivi riquadri; questo elenco si aggiorna da solo. Serve solo Dettaglio.",
+"Sleep de velden naar de veldvakken; deze lijst werkt zichzelf bij. Alleen Detail is nodig.",
+"Przeciągnij pola do ich obszarów; ta lista aktualizuje się sama. Potrzebne jest tylko pole Szczegóły.",
+"フィールドをフィールド ウェルにドラッグします。この一覧は自動で更新されます。必要なのは明細だけです。",
+"将字段拖到字段井中；此列表会自动更新。只需要明细。",
+"필드를 필드 웰로 끌어 놓으세요. 이 목록은 자동으로 업데이트됩니다. 세부 정보만 있으면 됩니다."
 ]
 }

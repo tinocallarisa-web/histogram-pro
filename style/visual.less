@@ -63,3 +63,34 @@
     color: #00E5FF;
     pointer-events: none;
 }
+
+.hp-guide {
+    display: none;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    // Compact, in a corner: the histogram has to stay visible while it is set up.
+    width: 320px;
+    max-width: calc(100% - 16px);
+    max-height: calc(100% - 16px);
+    overflow: auto;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid;
+    border-radius: 8px;
+    font: 12px "Segoe UI", sans-serif;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 5;
+
+    .hp-g-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-weight: 700; div { flex: 1; } }
+    .hp-g-close { border: none; background: transparent; cursor: pointer; font-size: 13px; }
+    .hp-g-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+    .hp-g-item { display: flex; gap: 6px; align-items: baseline; margin: 2px 0; }
+    .hp-g-note { font-size: 11px; margin-top: 4px; }
+    .hp-g-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    .hp-g-btn { font: 600 12px "Segoe UI", sans-serif; border: 1px solid; border-radius: 4px; padding: 3px 12px; cursor: pointer; }
+    .hp-g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 6px; }
+    .hp-g-chip { border-style: solid; border-radius: 6px; padding: 4px; cursor: pointer; font: 11px "Segoe UI", sans-serif; }
+    .hp-g-mini { display: flex; align-items: flex-end; gap: 1px; height: 32px; padding: 3px; margin-bottom: 3px; border-radius: 3px; box-sizing: border-box; }
+    .hp-g-mini i { flex: 1; display: block; }
+}

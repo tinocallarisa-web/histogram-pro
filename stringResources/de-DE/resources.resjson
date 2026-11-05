@@ -157,5 +157,20 @@
   "UI_ShowStats": "Statistikbereich anzeigen",
   "UI_HideZoneLabels": "Zonenbeschriftungen ausblenden",
   "UI_HideShortcuts": "Schnellauswahl ausblenden",
-  "UI_ShowShortcuts": "Schnellauswahl anzeigen"
+  "UI_ShowShortcuts": "Schnellauswahl anzeigen",
+  "Guide_Title": "Einrichtungsassistent",
+  "Guide_Step": "Einrichtung · Schritt {0} von 3",
+  "Guide_Close": "Assistent schließen",
+  "Guide_Done": "hinzugefügt",
+  "Guide_Todo": "nicht hinzugefügt",
+  "Guide_Next": "Weiter",
+  "Guide_Style": "Stil wählen",
+  "Guide_Back": "Zurück",
+  "Guide_Finish": "Fertig",
+  "Prop_style_guide": "Einrichtungsassistent",
+  "Guide_Distribution": "Verteilung erstellen",
+  "Guide_DetailWhy": "eine Zeile je Auftrag, Mitarbeiter oder Ticket: ohne sie gibt es keine Verteilung",
+  "Guide_PanelWhy": "ein Histogramm je Region oder Produkt, auf derselben Achse",
+  "Guide_TooltipsWhy": "zusätzliche Werte, als Durchschnitt je Balken",
+  "Guide_Wells": "Ziehen Sie die Felder in die Feldbereiche; diese Liste aktualisiert sich selbst. Nur Detail ist erforderlich."
 }

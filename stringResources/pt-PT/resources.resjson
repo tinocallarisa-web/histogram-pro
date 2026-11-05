@@ -157,5 +157,20 @@
   "UI_ShowStats": "Mostrar painel de estatísticas",
   "UI_HideZoneLabels": "Ocultar rótulos das zonas",
   "UI_HideShortcuts": "Ocultar atalhos",
-  "UI_ShowShortcuts": "Mostrar atalhos"
+  "UI_ShowShortcuts": "Mostrar atalhos",
+  "Guide_Title": "Guia de configuração",
+  "Guide_Step": "Configuração · etapa {0} de 3",
+  "Guide_Close": "Fechar o guia",
+  "Guide_Done": "adicionado",
+  "Guide_Todo": "não adicionado",
+  "Guide_Next": "Avançar",
+  "Guide_Style": "Escolha um estilo",
+  "Guide_Back": "Voltar",
+  "Guide_Finish": "Concluir",
+  "Prop_style_guide": "Guia de configuração",
+  "Guide_Distribution": "Obtenha a distribuição",
+  "Guide_DetailWhy": "uma linha por pedido, funcionário ou ticket: sem ele não há distribuição",
+  "Guide_PanelWhy": "um histograma por região ou produto, no mesmo eixo",
+  "Guide_TooltipsWhy": "valores adicionais, como média por barra",
+  "Guide_Wells": "Arraste os campos para os respetivos poços; esta lista atualiza-se sozinha. Só o Detalhe é necessário."
 }
