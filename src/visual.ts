@@ -1424,7 +1424,7 @@ export class Visual implements IVisual {
         const marginR = showCum ? 40 : 16;
         // With small multiples the legend lives in a shared band, not in every panel.
         const ownLegend = settings.showLegend && !shared;
-        const marginT = 16 + (ownLegend && !settings.legendBottom ? legendRowH + 16 : 0);
+        const marginT = (shared ? 6 : 16) + (ownLegend && !settings.legendBottom ? legendRowH + 16 : 0);
         const marginB0 = (settings.showXLabel ? 46 : 32) + (ownLegend && settings.legendBottom ? legendRowH + 16 : 0);
         // Small multiples get one bar under the whole grid, drawn after the panels.
         const rangeOn = !shared && !compact && rangeAllowed;
