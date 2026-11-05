@@ -151,5 +151,11 @@
   "Role_tooltips_Desc": "Dodatkowe wartości w etykietce, jako średnia na słupek.",
   "Role_panel_Desc": "Jeden histogram na wartość tego pola: region, produkt, kanał. Mają wspólną oś.",
   "UI_Min": "Min",
-  "UI_Max": "Maks"
+  "UI_Max": "Maks",
+  "UI_HideLegend": "Ukryj legendę",
+  "UI_HideStats": "Ukryj panel statystyk",
+  "UI_ShowStats": "Pokaż panel statystyk",
+  "UI_HideZoneLabels": "Ukryj etykiety stref",
+  "UI_HideShortcuts": "Ukryj skróty",
+  "UI_ShowShortcuts": "Pokaż skróty"
 }

@@ -151,5 +151,11 @@
   "Role_tooltips_Desc": "도구 설명의 추가 값으로, 막대별 평균으로 표시됩니다.",
   "Role_panel_Desc": "이 필드의 값마다 히스토그램 하나(지역, 제품, 채널). 축을 공유합니다.",
   "UI_Min": "최소",
-  "UI_Max": "최대"
+  "UI_Max": "최대",
+  "UI_HideLegend": "범례 숨기기",
+  "UI_HideStats": "통계 패널 숨기기",
+  "UI_ShowStats": "통계 패널 표시",
+  "UI_HideZoneLabels": "구간 레이블 숨기기",
+  "UI_HideShortcuts": "바로 가기 숨기기",
+  "UI_ShowShortcuts": "바로 가기 표시"
 }

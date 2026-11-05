@@ -151,5 +151,11 @@
   "Role_tooltips_Desc": "ツールヒントの追加の値。棒ごとの平均で表示します。",
   "Role_panel_Desc": "このフィールドの値ごとに 1 つのヒストグラム (地域、製品、チャネル)。軸は共通です。",
   "UI_Min": "最小",
-  "UI_Max": "最大"
+  "UI_Max": "最大",
+  "UI_HideLegend": "凡例を非表示",
+  "UI_HideStats": "統計パネルを非表示",
+  "UI_ShowStats": "統計パネルを表示",
+  "UI_HideZoneLabels": "ゾーンのラベルを非表示",
+  "UI_HideShortcuts": "ショートカットを非表示",
+  "UI_ShowShortcuts": "ショートカットを表示"
 }

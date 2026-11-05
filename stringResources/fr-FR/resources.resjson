@@ -151,5 +151,11 @@
   "Role_tooltips_Desc": "Valeurs supplémentaires dans l'info-bulle, en moyenne par barre.",
   "Role_panel_Desc": "Un histogramme par valeur de ce champ : région, produit, canal. Ils partagent le même axe.",
   "UI_Min": "Min",
-  "UI_Max": "Max"
+  "UI_Max": "Max",
+  "UI_HideLegend": "Masquer la légende",
+  "UI_HideStats": "Masquer le panneau de statistiques",
+  "UI_ShowStats": "Afficher le panneau de statistiques",
+  "UI_HideZoneLabels": "Masquer les étiquettes des zones",
+  "UI_HideShortcuts": "Masquer les raccourcis",
+  "UI_ShowShortcuts": "Afficher les raccourcis"
 }

@@ -151,5 +151,11 @@
   "Role_tooltips_Desc": "Extra values in the tooltip, shown as the average per bar.",
   "Role_panel_Desc": "One histogram per value of this field: region, product, channel. They share an axis.",
   "UI_Min": "Min",
-  "UI_Max": "Max"
+  "UI_Max": "Max",
+  "UI_HideLegend": "Hide legend",
+  "UI_HideStats": "Hide stats panel",
+  "UI_ShowStats": "Show stats panel",
+  "UI_HideZoneLabels": "Hide zone labels",
+  "UI_HideShortcuts": "Hide shortcuts",
+  "UI_ShowShortcuts": "Show shortcuts"
 }

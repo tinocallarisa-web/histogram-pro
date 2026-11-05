@@ -15,6 +15,10 @@ import ServicePlanState = powerbi.ServicePlanState;
 import DataView = powerbi.DataView;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
+import {
+    HtmlSubSelectableClass, HtmlSubSelectionHelper, SubSelectableDisplayNameAttribute,
+    SubSelectableObjectNameAttribute, SubSelectableTypeAttribute,
+} from "powerbi-visuals-utils-onobjectutils";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -375,6 +379,9 @@ export class Visual implements IVisual {
     private licenseNoticeShown: boolean = false;
     private notifiedFeatures: string = "";
     private lastOptions: VisualUpdateOptions | null = null;
+    public visualOnObjectFormatting: powerbi.extensibility.visual.VisualOnObjectFormatting;
+    private subSelectionHelper: HtmlSubSelectionHelper;
+    private formatMode = false;
     private lastDataView: DataView | null = null;
     private lastCatCol: powerbi.DataViewCategoryColumn | null = null;
     private lastPanCol: powerbi.DataViewCategoryColumn | null = null;
@@ -450,6 +457,16 @@ export class Visual implements IVisual {
             this.repaint();
         });
         this.loc = options.host.createLocalizationManager();
+        this.subSelectionHelper = HtmlSubSelectionHelper.createHtmlSubselectionHelper({
+            hostElement: options.element,
+            subSelectionService: options.host.subSelectionService,
+            selectionIdCallback: () => undefined,
+        });
+        this.visualOnObjectFormatting = {
+            getSubSelectionStyles: (subs) => this.getSubSelectionStyles(subs),
+            getSubSelectionShortcuts: (subs) => this.getSubSelectionShortcuts(subs),
+            getSubSelectables: (filter) => this.subSelectionHelper.getAllSubSelectables(filter),
+        };
 
         this.container = d3.select(options.element)
             .append("div")
@@ -583,7 +600,7 @@ export class Visual implements IVisual {
             this.attemptedPro = this.isPro ? [] : this.attemptedProFeatures();
             this.proPreview = this.computePreview();
             if (this.lastOptions) {
-                try { this.render(this.lastOptions); } catch { /* el render ya reporta */ }
+                try { this.render(this.lastOptions); this.afterRender(this.lastOptions); } catch { /* el render ya reporta */ }
             }
             this.applyLicenseNotifications();
         }
@@ -1008,7 +1025,7 @@ export class Visual implements IVisual {
     private repaint(): void {
         if (!this.lastOptions) return;
         this.attemptedPro = this.isPro ? [] : this.attemptedProFeatures();
-        try { this.render(this.lastOptions); } catch (e) { console.error("[HistogramPro]", e); }
+        try { this.render(this.lastOptions); this.afterRender(this.lastOptions); } catch (e) { console.error("[HistogramPro]", e); }
     }
 
     /**
@@ -1120,6 +1137,8 @@ export class Visual implements IVisual {
     public update(options: VisualUpdateOptions): void {
         this.events.renderingStarted(options);
         this.lastOptions = options;
+        this.formatMode = !!(options as any).formatMode;
+        this.subSelectionHelper.setFormatMode(this.formatMode);
         this.lastDataView = options.dataViews?.[0] ?? null;
         // viewMode 0 es vista de lectura. La previa es cosa de quien edita: un informe
         // publicado nunca debe usar una funcion que no se ha pagado.
@@ -1149,6 +1168,7 @@ export class Visual implements IVisual {
                 return;
             }
             this.render(options);
+            this.afterRender(options);
             this.applyLicenseNotifications();
             this.events.renderingFinished(options);
         } catch (e) {
@@ -1503,7 +1523,7 @@ export class Visual implements IVisual {
         const barOpacity = (this.isPro ? Math.min(100, Math.max(0, settings.barOpacity)) : 80) / 100;
 
         if (title) {
-            this.svg.append("text")
+            this.svg.append("text").attr("class", "hp-sm-title")
                 .attr("x", ox + 4).attr("y", oy + Math.max(9, settings.smTitleSize))
                 .attr("font-size", Math.max(9, settings.smTitleSize)).attr("font-weight", "600")
                 .attr("fill", isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : settings.smTitleColor)
@@ -1756,7 +1776,7 @@ export class Visual implements IVisual {
         }
 
         // X axis
-        g.append("g").attr("transform", `translate(0,${plotH})`)
+        g.append("g").attr("class", "hp-axis").attr("transform", `translate(0,${plotH})`)
             .call(d3.axisBottom(xScale).tickFormat(d => formatValue(+d, formatStr)).ticks(Math.min(effectiveBins, 8, Math.max(2, Math.floor(plotW / (settings.axisFontSize * 4.5))))))
             .call(sel => {
                 sel.select(".domain").attr("stroke", effectiveAxisColor);
@@ -1778,7 +1798,7 @@ export class Visual implements IVisual {
         });
 
         // Y axis
-        g.append("g").call(d3.axisLeft(yScale).ticks(5).tickFormat(d => fmtNum(+d)))
+        g.append("g").attr("class", "hp-axis").call(d3.axisLeft(yScale).ticks(5).tickFormat(d => fmtNum(+d)))
             .call(sel => {
                 sel.select(".domain").attr("stroke", effectiveAxisColor);
                 sel.selectAll("text").attr("fill", effectiveAxisColor).attr("font-size", settings.axisFontSize);
@@ -1977,12 +1997,13 @@ export class Visual implements IVisual {
             ];
             const px = plotW - 110, py = 8 + refTop;
             const lh = settings.axisFontSize + 3;
-            g.append("rect").attr("x", px - 6).attr("y", py - 4).attr("width", 116).attr("height", lines.length * lh + 6)
+            const sg = g.append("g").attr("class", "hp-stats");
+            sg.append("rect").attr("x", px - 6).attr("y", py - 4).attr("width", 116).attr("height", lines.length * lh + 6)
                 .attr("fill", isHighContrast ? (this.host.colorPalette.background?.value ?? "#000000") : settings.statsBgColor)
                 .attr("fill-opacity", isHighContrast ? 1 : Math.min(100, Math.max(0, settings.statsBgOpacity)) / 100)
                 .attr("rx", 4);
             lines.forEach((line, i) => {
-                g.append("text").attr("x", px).attr("y", py + i * lh + settings.axisFontSize)
+                sg.append("text").attr("x", px).attr("y", py + i * lh + settings.axisFontSize)
                     .attr("fill", settings.statsColor).attr("font-size", settings.axisFontSize).attr("font-family", "monospace").text(line);
             });
         }
@@ -2035,25 +2056,26 @@ export class Visual implements IVisual {
                     : settings.legendColor;
 
                 let cx = lx0;
+                const lg = g.append("g").attr("class", "hp-legend");
                 items.forEach((item, i) => {
                     if (item.kind === "vline") {
                         // Vertical bar icon (like "Target" in Bullet)
                         const midX = cx + iconW / 2;
-                        g.append("line")
+                        lg.append("line")
                             .attr("x1", midX).attr("y1", cy - iconH / 2)
                             .attr("x2", midX).attr("y2", cy + iconH / 2)
                             .attr("stroke", item.color).attr("stroke-width", item.w)
                             .attr("pointer-events", "none");
                     } else {
                         // Horizontal line icon
-                        g.append("line")
+                        lg.append("line")
                             .attr("x1", cx).attr("y1", cy)
                             .attr("x2", cx + iconW).attr("y2", cy)
                             .attr("stroke", item.color).attr("stroke-width", item.w)
                             .attr("stroke-dasharray", item.dash || null!)
                             .attr("pointer-events", "none");
                     }
-                    g.append("text")
+                    lg.append("text")
                         .attr("x", cx + iconW + gap)
                         .attr("y", cy + fs * 0.35)   // optical vertical alignment
                         .attr("fill", textFill).attr("font-size", fs)
@@ -2441,6 +2463,105 @@ export class Visual implements IVisual {
             .attr("font-size", 16).attr("font-weight", "600").attr("fill", "#E0E6FF").attr("font-family", "Segoe UI, sans-serif").text("Histogram Pro");
         this.svg.append("text").attr("x", cx).attr("y", cy - 30).attr("text-anchor", "middle")
             .attr("font-size", 12).attr("fill", "#B0BEC5").attr("font-family", "Segoe UI, sans-serif").text(this.t("UI_Landing", "Add a numeric field to get started"));
+    }
+
+    // ── On-object formatting ──────────────────────────────────────────────────
+
+    /** Every parent of what can be formatted, with the object it edits. */
+    private static readonly SUB_SELECTABLES: [string, string, string, string, "Text" | "Shape"][] = [
+        [".bars", "histogram", "Obj_histogram", "Histogram", "Shape"],
+        [".hp-axis", "axes", "Obj_axes", "Axes", "Text"],
+        [".hp-legend", "legend", "Obj_legend", "Legend", "Text"],
+        [".hp-stats", "statistics", "Obj_statistics", "Statistics", "Text"],
+        [".zone-labels", "zones", "Obj_zones", "Value zones", "Text"],
+        [".hp-range", "rangeBar", "Obj_rangeBar", "Range bar", "Shape"],
+        [".hp-sm-title", "smallMultiples", "Obj_smallMultiples", "Small multiples", "Text"],
+    ];
+
+    /**
+     * In format mode a click chooses what to format: nothing filters, and the handlers are taken
+     * off here, in one place, so that no click on a bar or a handle can stop on its way to the
+     * helper, which listens on the host element.
+     */
+    private afterRender(options: VisualUpdateOptions): void {
+        if (!this.formatMode) return;
+        const root = this.svg.node() as SVGSVGElement;
+        const types = "click contextmenu keydown blur mousedown mousemove mouseover mouseout pointerdown pointermove pointerup pointercancel";
+        this.svg.on(types, null);
+        this.svg.selectAll("*").on(types, null);
+        this.container.selectAll<HTMLElement, unknown>(".hp-range-input").style("pointer-events", "none");
+        for (const [sel, obj, key, fb, kind] of Visual.SUB_SELECTABLES) {
+            const name = this.t(key, fb).replace(/\s*\(Pro\)\s*$/, "");
+            root.querySelectorAll(sel).forEach(el => {
+                el.classList.add(HtmlSubSelectableClass);
+                el.setAttribute("pointer-events", "auto");
+                el.setAttribute(SubSelectableObjectNameAttribute, obj);
+                el.setAttribute(SubSelectableDisplayNameAttribute, name);
+                el.setAttribute(SubSelectableTypeAttribute, String(kind === "Text" ? powerbi.visuals.SubSelectionStylesType.Text : powerbi.visuals.SubSelectionStylesType.Shape));
+            });
+        }
+        this.subSelectionHelper.updateOutlinesFromSubSelections((options as any).subSelections ?? [], true);
+    }
+
+    private getSubSelectionStyles(subs: powerbi.visuals.CustomVisualSubSelection[]): powerbi.visuals.SubSelectionStyles | undefined {
+        const ref = (objectName: string, propertyName: string, fb: string) => ({
+            reference: { objectName, propertyName },
+            label: this.t(`Prop_${objectName}_${propertyName}`, fb).replace(/\s*\(Pro\)\s*$/, ""),
+        });
+        const shape = powerbi.visuals.SubSelectionStylesType.Shape, text = powerbi.visuals.SubSelectionStylesType.Text;
+        switch (subs[0]?.customVisualObjects[0]?.objectName) {
+            case "histogram":
+                return { type: shape, fill: ref("histogram", "barColor", "Bar color"),
+                    stroke: ref("histogram", "borderColor", "Border color"), strokeWidth: ref("histogram", "borderWidth", "Border width") } as any;
+            case "axes":
+                return { type: text, fontSize: ref("axes", "fontSize", "Font size"), fontColor: ref("axes", "axisColor", "Axis text color") } as any;
+            case "legend":
+                return { type: text, fontSize: ref("legend", "fontSize", "Font size"), fontColor: ref("legend", "color", "Font color") } as any;
+            case "statistics":
+                return { type: text, fontColor: ref("statistics", "statsColor", "Stats text color") } as any;
+            case "zones":
+                return { type: text, fontSize: ref("zones", "labelSize", "Label font size"), fontColor: ref("zones", "labelColor", "Label text color") } as any;
+            case "rangeBar":
+                return { type: shape, fill: ref("rangeBar", "color", "Range color") } as any;
+            case "smallMultiples":
+                return { type: text, fontSize: ref("smallMultiples", "titleFontSize", "Title font size"), fontColor: ref("smallMultiples", "titleColor", "Title color") } as any;
+        }
+        return undefined;
+    }
+
+    private getSubSelectionShortcuts(subs: powerbi.visuals.CustomVisualSubSelection[]): powerbi.visuals.VisualSubSelectionShortcuts | undefined {
+        const name = subs[0]?.customVisualObjects[0]?.objectName;
+        if (!name) return undefined;
+        const id = (objectName: string, propertyName: string) => ({ objectName, propertyName });
+        const toggle = (obj: string, prop: string, hideKey: string, hide: string, showKey: string, show: string) => (
+            { type: powerbi.visuals.VisualShortcutType.Toggle, ...id(obj, prop), relatedToggledFormattingIds: [id(obj, prop)], disabledLabel: this.t(hideKey, hide), enabledLabel: this.t(showKey, show) });
+        const ends = (resets: [string, string][], key: string, fb: string) => [
+            { type: powerbi.visuals.VisualShortcutType.Divider },
+            { type: powerbi.visuals.VisualShortcutType.Reset, relatedResetFormattingIds: resets.map(([o, q]) => id(o, q)) },
+            { type: powerbi.visuals.VisualShortcutType.Navigate, destinationInfo: { cardUid: `Visual-${name}_card` }, label: this.t(key, fb).replace(/\s*\(Pro\)\s*$/, "") },
+        ];
+        switch (name) {
+            case "histogram":
+                return [{ type: powerbi.visuals.VisualShortcutType.Picker, ...id("style", "template"), label: this.t("Prop_style_template", "Style template") },
+                    ...ends([["histogram", "barColor"], ["histogram", "borderColor"], ["histogram", "borderWidth"]], "Obj_histogram", "Histogram")] as any;
+            case "axes":
+                return ends([["axes", "fontSize"], ["axes", "axisColor"]], "Obj_axes", "Axes") as any;
+            case "legend":
+                return [toggle("legend", "show", "UI_HideLegend", "Hide legend", "Prop_legend_show", "Show legend"),
+                    ...ends([["legend", "fontSize"], ["legend", "color"]], "Obj_legend", "Legend")] as any;
+            case "statistics":
+                return [toggle("statistics", "showStats", "UI_HideStats", "Hide stats panel", "UI_ShowStats", "Show stats panel"),
+                    ...ends([["statistics", "statsColor"]], "Obj_statistics", "Statistics")] as any;
+            case "zones":
+                return [toggle("zones", "showLabels", "UI_HideZoneLabels", "Hide zone labels", "Prop_zones_showLabels", "Show zone labels"),
+                    ...ends([["zones", "labelSize"], ["zones", "labelColor"]], "Obj_zones", "Value zones")] as any;
+            case "rangeBar":
+                return [toggle("rangeBar", "shortcuts", "UI_HideShortcuts", "Hide shortcuts", "UI_ShowShortcuts", "Show shortcuts"),
+                    ...ends([["rangeBar", "color"]], "Obj_rangeBar", "Range bar")] as any;
+            case "smallMultiples":
+                return ends([["smallMultiples", "titleFontSize"], ["smallMultiples", "titleColor"]], "Obj_smallMultiples", "Small multiples") as any;
+        }
+        return undefined;
     }
 
     // ── Format Pane ───────────────────────────────────────────────────────────

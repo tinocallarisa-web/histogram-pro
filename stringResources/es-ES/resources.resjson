@@ -151,5 +151,11 @@
   "Role_tooltips_Desc": "Valores adicionales en la información sobre herramientas, como media por barra.",
   "Role_panel_Desc": "Un histograma por valor de este campo: región, producto, canal. Comparten el eje.",
   "UI_Min": "Mín",
-  "UI_Max": "Máx"
+  "UI_Max": "Máx",
+  "UI_HideLegend": "Ocultar leyenda",
+  "UI_HideStats": "Ocultar panel de estadísticas",
+  "UI_ShowStats": "Mostrar panel de estadísticas",
+  "UI_HideZoneLabels": "Ocultar etiquetas de zona",
+  "UI_HideShortcuts": "Ocultar atajos",
+  "UI_ShowShortcuts": "Mostrar atajos"
 }

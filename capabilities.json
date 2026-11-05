@@ -887,5 +887,7 @@
   "sorting": {
     "default": {}
   },
-  "privileges": []
+  "privileges": [],
+  "supportsOnObjectFormatting": true,
+  "enablePointerEventsFormatMode": true
 }

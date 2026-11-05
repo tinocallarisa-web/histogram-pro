@@ -151,5 +151,11 @@
   "Role_tooltips_Desc": "Zusätzliche Werte in der QuickInfo, als Durchschnitt je Balken.",
   "Role_panel_Desc": "Ein Histogramm je Wert dieses Felds: Region, Produkt, Kanal. Sie teilen sich eine Achse.",
   "UI_Min": "Min",
-  "UI_Max": "Max"
+  "UI_Max": "Max",
+  "UI_HideLegend": "Legende ausblenden",
+  "UI_HideStats": "Statistikbereich ausblenden",
+  "UI_ShowStats": "Statistikbereich anzeigen",
+  "UI_HideZoneLabels": "Zonenbeschriftungen ausblenden",
+  "UI_HideShortcuts": "Schnellauswahl ausblenden",
+  "UI_ShowShortcuts": "Schnellauswahl anzeigen"
 }

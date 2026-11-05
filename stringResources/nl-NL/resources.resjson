@@ -151,5 +151,11 @@
   "Role_tooltips_Desc": "Extra waarden in de knopinfo, als gemiddelde per balk.",
   "Role_panel_Desc": "Eén histogram per waarde van dit veld: regio, product, kanaal. Ze delen een as.",
   "UI_Min": "Min",
-  "UI_Max": "Max"
+  "UI_Max": "Max",
+  "UI_HideLegend": "Legenda verbergen",
+  "UI_HideStats": "Statistiekenpaneel verbergen",
+  "UI_ShowStats": "Statistiekenpaneel weergeven",
+  "UI_HideZoneLabels": "Zonelabels verbergen",
+  "UI_HideShortcuts": "Snelkoppelingen verbergen",
+  "UI_ShowShortcuts": "Snelkoppelingen weergeven"
 }

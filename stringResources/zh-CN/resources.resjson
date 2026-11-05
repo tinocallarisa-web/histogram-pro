@@ -151,5 +151,11 @@
   "Role_tooltips_Desc": "工具提示中的其他值，显示为每个条形的平均值。",
   "Role_panel_Desc": "此字段每个值一个直方图：区域、产品、渠道。它们共用坐标轴。",
   "UI_Min": "最小",
-  "UI_Max": "最大"
+  "UI_Max": "最大",
+  "UI_HideLegend": "隐藏图例",
+  "UI_HideStats": "隐藏统计面板",
+  "UI_ShowStats": "显示统计面板",
+  "UI_HideZoneLabels": "隐藏区域标签",
+  "UI_HideShortcuts": "隐藏快捷方式",
+  "UI_ShowShortcuts": "显示快捷方式"
 }

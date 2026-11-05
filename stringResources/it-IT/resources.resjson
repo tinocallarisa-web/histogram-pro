@@ -151,5 +151,11 @@
   "Role_tooltips_Desc": "Valori aggiuntivi nella descrizione comando, come media per barra.",
   "Role_panel_Desc": "Un istogramma per valore di questo campo: regione, prodotto, canale. Condividono l'asse.",
   "UI_Min": "Min",
-  "UI_Max": "Max"
+  "UI_Max": "Max",
+  "UI_HideLegend": "Nascondi legenda",
+  "UI_HideStats": "Nascondi pannello statistiche",
+  "UI_ShowStats": "Mostra pannello statistiche",
+  "UI_HideZoneLabels": "Nascondi etichette delle zone",
+  "UI_HideShortcuts": "Nascondi scorciatoie",
+  "UI_ShowShortcuts": "Mostra scorciatoie"
 }
