@@ -64,7 +64,7 @@ bands, test and survey scores, manufacturing tolerances, claim amounts.
 | Field well | Kind | What it does |
 |---|---|---|
 | **Values** | Measure | The numeric field to distribute. Required. |
-| **Detail (rows)** | Grouping | Optional category giving row-level detail. Adding a hierarchy here enables Power BI's drill-up / drill-down controls. |
+| **Detail (rows)** | Grouping | Required category giving row-level detail. Adding a hierarchy here enables Power BI's drill-up / drill-down controls. |
 | **Small multiples** (Pro) | Grouping | One histogram per value, on shared bins and a shared vertical scale. |
 | **Tooltips** | Measure | Optional extra measures shown on hover, displayed as averages. |
 
