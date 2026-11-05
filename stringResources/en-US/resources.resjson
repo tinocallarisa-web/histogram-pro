@@ -130,7 +130,7 @@
   "Obj_rangeBar": "Range bar",
   "Prop_rangeBar_show": "Show range bar",
   "Prop_rangeBar_shortcuts": "Shortcuts and summary",
-  "Prop_rangeBar_color": "Range colour",
+  "Prop_rangeBar_color": "Range color",
   "Feat_templates": "style templates",
   "Feat_shortcuts": "range shortcuts",
   "UI_RangeMin": "Range minimum",
@@ -144,6 +144,12 @@
   "Prop_rangeBar_outColor": "Bars outside the range",
   "Prop_zones_labelBg": "Label background",
   "Prop_zones_labelBgOpacity": "Label background opacity %",
-  "Prop_zones_labelColor": "Label text colour",
-  "Prop_zones_labelSize": "Label font size (0 = automatic)"
+  "Prop_zones_labelColor": "Label text color",
+  "Prop_zones_labelSize": "Label font size (0 = automatic)",
+  "Role_measure_Desc": "The measure whose distribution is drawn, evaluated per Detail row.",
+  "Role_category_Desc": "The ID of each observation: order, employee, ticket. Without it there is no distribution.",
+  "Role_tooltips_Desc": "Extra values in the tooltip, shown as the average per bar.",
+  "Role_panel_Desc": "One histogram per value of this field: region, product, channel. They share an axis.",
+  "UI_Min": "Min",
+  "UI_Max": "Max"
 }

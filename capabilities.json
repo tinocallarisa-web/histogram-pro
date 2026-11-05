@@ -5,28 +5,32 @@
       "displayNameKey": "Role_measure",
       "name": "measure",
       "kind": "Measure",
-      "description": "Numeric field to plot as histogram"
+      "description": "The measure whose distribution is drawn, evaluated per Detail row.",
+      "descriptionKey": "Role_measure_Desc"
     },
     {
       "displayName": "Detail (rows)",
       "displayNameKey": "Role_category",
       "name": "category",
       "kind": "Grouping",
-      "description": "Optional category for row-level data"
+      "description": "The ID of each observation: order, employee, ticket. Without it there is no distribution.",
+      "descriptionKey": "Role_category_Desc"
     },
     {
       "displayName": "Tooltips",
       "displayNameKey": "Role_tooltips",
       "name": "tooltips",
       "kind": "Measure",
-      "description": "Optional measures shown in the tooltip (displayed as average per bin)"
+      "description": "Extra values in the tooltip, shown as the average per bar.",
+      "descriptionKey": "Role_tooltips_Desc"
     },
     {
       "displayName": "Small multiples (Pro)",
       "displayNameKey": "Role_panel",
       "name": "panel",
       "kind": "Grouping",
-      "description": "One histogram per value of this field — region, product, channel — on a shared axis."
+      "description": "One histogram per value of this field: region, product, channel. They share an axis.",
+      "descriptionKey": "Role_panel_Desc"
     }
   ],
   "dataViewMappings": [
@@ -145,9 +149,9 @@
           }
         },
         "color": {
-          "displayName": "Range colour",
+          "displayName": "Range color",
           "displayNameKey": "Prop_rangeBar_color",
-          "description": "Colour of the range and its handles.",
+          "description": "Color of the range and its handles.",
           "type": {
             "fill": {
               "solid": {
@@ -159,7 +163,7 @@
         "inColor": {
           "displayName": "Bars inside the range (Pro)",
           "displayNameKey": "Prop_rangeBar_inColor",
-          "description": "Colour of the bars inside the range. Pro.",
+          "description": "Color of the bars inside the range. Pro.",
           "type": {
             "fill": {
               "solid": {
@@ -171,7 +175,7 @@
         "outColor": {
           "displayName": "Bars outside the range (Pro)",
           "displayNameKey": "Prop_rangeBar_outColor",
-          "description": "Colour of the bars outside the range. Empty: dimmed. Pro.",
+          "description": "Color of the bars outside the range. Empty: dimmed. Pro.",
           "type": {
             "fill": {
               "solid": {
@@ -770,9 +774,9 @@
           }
         },
         "labelColor": {
-          "displayName": "Label text colour (Pro)",
+          "displayName": "Label text color (Pro)",
           "displayNameKey": "Prop_zones_labelColor",
-          "description": "Empty: the zone colour, or black or white when that cannot be read.",
+          "description": "Empty: the zone color, or black or white when that cannot be read.",
           "type": {
             "fill": {
               "solid": {

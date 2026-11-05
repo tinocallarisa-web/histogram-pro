@@ -145,5 +145,11 @@
   "Prop_zones_labelBg": "Fondo de la etiqueta",
   "Prop_zones_labelBgOpacity": "Opacidad del fondo de la etiqueta %",
   "Prop_zones_labelColor": "Color del texto de la etiqueta",
-  "Prop_zones_labelSize": "Tamaño de la etiqueta (0 = automático)"
+  "Prop_zones_labelSize": "Tamaño de la etiqueta (0 = automático)",
+  "Role_measure_Desc": "La medida cuya distribución se dibuja, evaluada por cada fila de Detalle.",
+  "Role_category_Desc": "El ID de cada observación: pedido, empleado, ticket. Sin él no hay distribución.",
+  "Role_tooltips_Desc": "Valores adicionales en la información sobre herramientas, como media por barra.",
+  "Role_panel_Desc": "Un histograma por valor de este campo: región, producto, canal. Comparten el eje.",
+  "UI_Min": "Mín",
+  "UI_Max": "Máx"
 }

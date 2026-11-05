@@ -1,5 +1,6 @@
 "use strict";
 
+import { STRINGS } from "./strings";
 import powerbi from "powerbi-visuals-api";
 import * as d3 from "d3";
 
@@ -461,10 +462,22 @@ export class Visual implements IVisual {
 
     // ── Localization and number format ────────────────────────────────────────
     private t(key: string, fallback: string): string {
+        const own = this.stringsFor()?.[key];
+        if (own) return own;
         try {
             const s = this.loc?.getDisplayName(key);
             return s && s !== key ? s : fallback;
         } catch { return fallback; }
+    }
+
+    /** Desktop only resolves the keys declared in capabilities.json: the rest travel in the bundle. */
+    private stringsFor(): Record<string, string> | undefined {
+        const loc = String((this.host as any)?.locale || "");
+        if (!loc || /^en/i.test(loc)) return undefined;
+        if (STRINGS[loc]) return STRINGS[loc];
+        const lang = loc.split("-")[0].toLowerCase();
+        const k = Object.keys(STRINGS).sort().find(x => x.toLowerCase().startsWith(lang + "-"));
+        return k ? STRINGS[k] : undefined;
     }
 
     private tf(key: string, fallback: string, ...args: string[]): string {
@@ -2210,7 +2223,7 @@ export class Visual implements IVisual {
         const field = (side: "lo" | "hi", aria: string, value: string, on: boolean, x: number): HTMLInputElement | null => {
             if (plotW < 240) return null;
             const inp = this.container.append("input").classed("hp-range-input", true)
-                .attr("type", "text").attr("inputmode", "decimal").attr("aria-label", aria).attr("placeholder", side === "lo" ? "Min" : "Max")
+                .attr("type", "text").attr("inputmode", "decimal").attr("aria-label", aria).attr("placeholder", side === "lo" ? this.t("UI_Min", "Min") : this.t("UI_Max", "Max"))
                 .style("position", "absolute").style("left", `${o.left + x}px`).style("top", `${o.top + o.y + 13}px`)
                 .style("width", "62px").style("height", "20px").style("padding", "0 4px").style("box-sizing", "border-box")
                 .style("font-size", "11px").style("font-family", "inherit").style("color", o.axisColor).style("background", "transparent")
@@ -2571,7 +2584,7 @@ export class Visual implements IVisual {
                     tog("z_value",  lbl("Show share of total value"), "zones", "showValueShare", s.zValueShare),
                     col("z_lbg",    lbl("Label background"), "zones", "labelBg", s.zLabelBg || s.labelBgColor),
                     num("z_lop",    lbl("Label background opacity %"), "zones", "labelBgOpacity", s.zLabelBgOpacity),
-                    col("z_lcol",   lbl("Label text colour"), "zones", "labelColor", s.zLabelColor || s.axisColor),
+                    col("z_lcol",   lbl("Label text color"), "zones", "labelColor", s.zLabelColor || s.axisColor),
                     num("z_lsize",  lbl("Label font size (0 = automatic)"), "zones", "labelSize", s.zLabelSize),
                 ]),
                 card("smallMultiples_card", lbl("Small multiples"), [
