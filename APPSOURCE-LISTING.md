@@ -155,7 +155,7 @@ comes from Partner Center, so correcting it in `pbiviz.json` alone changes nothi
 - [ ] Support, privacy and terms URLs checked with a real request, not assumed
 - [ ] Certification notes pasted from `CERTIFICATION-NOTES-SHORT.txt`
 - [ ] Version 1.5.0.0 is above the published 1.4.0.0
-- [ ] Screenshots show the visual, not the whole Power BI Desktop window — the current
-      captures in `assets/` include the ribbon, the format pane and the signed-in user's
-      name
+- [ ] Screenshots in the offer are `assets/Screenshot_1`, `_2` and `_3` (1366×768, with no
+      watermark and no Desktop window). Remove the old fourth one in Partner Center: it
+      shows the ribbon, the taskbar and the signed-in user's name
 - [ ] Sample `.pbix` includes a Tips & Hints page, updated for this version

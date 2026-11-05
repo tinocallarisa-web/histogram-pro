@@ -1,16 +1,17 @@
 =========================================================
-HISTOGRAM PRO — YouTube Description (v1.4.0.0)
-Video: https://www.youtube.com/watch?v=elLjSnxd8tw
+HISTOGRAM PRO — YouTube Description (v1.5.0.0)
+Video: PENDING. Put the new video here in its watch?v= form; until then the 1.4 video stays live.
 =========================================================
 
 --- TITLE ---
 
-How to Build a Histogram in Power BI — Zones, Small Multiples, No DAX
+How to Filter a Power BI Report by a Range — Histogram with a Range Bar
 
-(69 characters. Same "how to X in Power BI — no DAX" pattern as the Pareto video: it is how
-people search. "Zones" and "Small multiples" name what is new in 1.4.)
+(70 characters. Same "how to X in Power BI" pattern as the Pareto video: it is how people
+search. The range bar is what is new in 1.5.)
 
 Alternatives:
+- How to Build a Histogram in Power BI — Range Bar, Styles, No DAX
 - Power BI Histogram: See Where 46% of Your Revenue Hides
 - Power BI Has No Histogram. Here's One With Zones and Small Multiples.
 
@@ -22,23 +23,25 @@ Every other visual on your page tells you how much. A histogram tells you how it
 Power BI has no native histogram. The usual workaround is a calculated column of bins in DAX: it fixes the bin count at design time and gives you no mean, no median and no quartiles. Histogram Pro is two field wells and no formulas.
 
 WHAT YOU SEE IN THIS VIDEO
-• A normal distribution: mean, median, quartiles, the normal curve and the cumulative line
-• Small multiples: one histogram per plant, on the same bins and the same scale
-• Value zones on sales data: "Over 13K: 20% of rows, 77% of value"
-• A long-tailed measure: the clipped axis, and why the normal curve goes flat
-• Click, Ctrl+click and a bookmark that brings the selection back
+• From a new visual to a histogram, with the setup guide
+• It takes its colours from the report's theme
+• The range bar: drag two handles or type a value, and the report filters to that range
+• Q1 to Q4, No outliers and Top 10% in one click (Pro), with what the range holds
+• Style templates (Pro), chosen in one click
+• Small multiples (Pro): one histogram per plant, and one range bar for all of them
+• Formatting on the canvas
 
-NEW IN 1.4
-• Value zones (Pro): two cuts, three zones, each with its share of rows and of total value
-• Small multiples (Pro): shared bins and scale, statistics per panel
-• Cumulative frequency line (Pro) on its own 0–100% axis
-• Bars coloured by the benchmark
-• Visible selection, Ctrl+click and bookmarks
-• Working drill-down and conditional formatting (fx) on bar colour
-• Number formats from your model; English and Spanish
+NEW IN 1.5
+• Range bar: filter the report by a range of values, by dragging, typing or keyboard
+• Range shortcuts and summary (Pro)
+• The default look follows the report's theme; Classic keeps the previous one
+• Six style templates (Pro)
+• On-object formatting and a setup guide
+• More options for small multiples
+• Twelve languages
 
 WHAT IT DOES
-• The distribution over your whole table, not a sample — verified at 500,000 rows
+• The distribution over your whole table in the Power BI service, verified at 500,000 rows; Desktop draws the first 30,000 and says so
 • An axis built for skewed data: it focuses on where the data lives, and every row is still counted
 • Mean, median, quartiles and IQR shading, a benchmark line, IBCS mode
 • One click filters the report by every row behind the bar
