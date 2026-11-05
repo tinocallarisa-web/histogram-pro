@@ -1,6 +1,6 @@
 # Histogram Pro — TCViz Web Product Page Content
 
-Content for the four tabs of the TCViz product page. Current version: **1.4.0.0**. Publish these changes to tcviz.com only once 1.4.0.0 is live on AppSource.
+Content for the four tabs of the TCViz product page. Current version: **1.5.0.0**. Publish these changes to tcviz.com only once 1.4.0.0 is live on AppSource.
 
 **Source of truth:** this file is the draft. What tcviz.com actually serves lives in
 `src/data.jsx` of the `tcviz-web` repository — **the `.jsx`, not the `.js`**, which is
@@ -81,6 +81,9 @@ Everything below is free except the items marked **(Pro)**.
 - **(Pro)** Statistics panel on the chart: n, mean, median, standard deviation, min and max
 
 ### Presentation
+- Follows the report's theme by default; Classic keeps the look of earlier versions
+- On-object formatting on the canvas, and a setup guide for new visuals
+- **(Pro)** Six style templates: Boardroom, Ledger, Editorial, Signal, Aurora and Terrace
 - IBCS monochrome mode for standards-based reporting
 - Backgrounds for the statistics panel and the labels, so they read over any bar
 - **(Pro)** Bar colour with conditional formatting (fx), opacity, border colour and width,
@@ -97,6 +100,11 @@ Everything below is free except the items marked **(Pro)**.
 - Report page tooltips as well as standard tooltips
 - Right-click context menu on a bar and on empty space
 
+### The range bar
+- Two handles, typed values or the keyboard filter the report by a range of values
+- With small multiples, one bar filters every panel
+- **(Pro)** Q1 to Q4, No outliers and Top 10%, with what the range holds
+
 ### Accessibility
 - Keyboard focus and activation on every bar, with descriptive ARIA labels
 - High-contrast themes follow the Power BI palette
@@ -110,7 +118,10 @@ Everything below is free except the items marked **(Pro)**.
 | Quartiles and IQR shading | ✓ | ✓ |
 | Benchmark line, legend, IBCS mode | ✓ | ✓ |
 | Cross-filtering, bookmarks, keyboard, high contrast | ✓ | ✓ |
+| Range bar, Report theme and Classic styles | ✓ | ✓ |
 | **Bin count** | 10 | **2 to 100** |
+| **Six more styles** | — | **✓** |
+| **Range shortcuts and summary** | — | **✓** |
 | **Outlier trimming** | — | **✓** |
 | **Value zones** | — | **✓** |
 | **Small multiples** | — | **✓** |
@@ -130,7 +141,7 @@ and the link to obtain a licence. In reading view the free chart is shown.
 
 **Specs**
 - Platform: Power BI Desktop, Service and mobile
-- Interface: English and Spanish, following Power BI's language
+- Interface: 12 languages, following Power BI's language
 
 **Field wells**
 - **Values** (measure, required) — the numeric field to distribute
@@ -168,6 +179,13 @@ export — never prompt a paying customer to buy what they already own.
 ---
 
 ## TAB 4: CHANGELOG
+
+### 1.5.0.0 — November 2026
+- **Changed:** the default look follows the report's theme; Classic keeps the previous one
+- **Added:** range bar, on-object formatting, setup guide, twelve languages, more options
+  for small multiples
+- **Added (Pro):** six style templates, range shortcuts and summary, formatting of zone labels
+- **Fixed:** the last bar of a clipped axis left the rows above the axis out of the filter
 
 ### 1.4.0.0 — October 2026
 - **Added (Pro):** value zones with share of rows and of value, small multiples, cumulative

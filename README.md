@@ -10,7 +10,7 @@ line, a normal curve — and small multiples to compare groups on the same bins.
 colour · drilldown · cross-filtering by the whole bar, Ctrl+click multi-select and
 highlighting · bookmarks · standard and report page tooltips · context menu · keyboard
 navigation with ARIA labels · high contrast · number formats from the model ·
-localization (English, Spanish) · IBCS mode · data streaming past 30,000 rows.
+localization (12 languages) · IBCS mode · data streaming past 30,000 rows.
 
 **[Get it on Microsoft Marketplace](https://marketplace.microsoft.com/en-us/product/tino_callarisa.histogram-pro-tcviz)** — free tier, no licence required.
 
@@ -128,7 +128,7 @@ that notation.
 - **Bookmarks** — the selection is stored with the report, so a bookmark restores both
   the filter and the highlighted bars.
 - **Number formats and language** — the measure's format string and the report's locale
-  are used everywhere; the format pane and chart texts are in English and Spanish.
+  are used everywhere; the format pane and chart texts are in 12 languages.
 - **High contrast** — under a Windows high-contrast theme, bars, borders, axes, grid and
   stat lines all take their colours from the theme palette.
 - **Keyboard focus** and **landing page** support.
@@ -159,12 +159,15 @@ counted, with values beyond it going into the end bar and a note saying so.
 
 The **free tier** is the histogram itself, over your whole dataset, with no watermark and
 no row limit of ours: the distribution, mean and median lines, quartiles and IQR shading,
-the benchmark line and bar colouring by benchmark, the legend, IBCS mode, axis controls,
+the benchmark line and bar colouring by benchmark, the range bar, the report's theme and
+the Classic style, on-object formatting, the legend, IBCS mode, axis controls,
 cross-filtering, bookmarks, drilldown, keyboard navigation and high contrast.
 
 **Pro** adds the analytical controls:
 
 - Configurable bins, 2 to 100
+- Six style templates: Boardroom, Ledger, Editorial, Signal, Aurora and Terrace
+- Range shortcuts and summary, colours inside and outside the range
 - Outlier trimming, lower and upper
 - Value zones with the share of rows and of value
 - Small multiples

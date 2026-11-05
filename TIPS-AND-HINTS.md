@@ -1,4 +1,4 @@
-# Histogram Pro — Tips & Hints (v1.4.0.0)
+# Histogram Pro — Tips & Hints (v1.5.0.0)
 
 A histogram answers one question: **where does my data actually sit?** Not the total, not
 the ranking — the shape. This page is the short version of everything worth knowing.
@@ -33,14 +33,20 @@ Full documentation, with search: https://tinocallarisa-web.github.io/histogram-p
 
 ## Format pane
 
+- **Style template** — Report theme (default) and Classic are free; Boardroom, Ledger,
+  Editorial, Signal, Aurora and Terrace are *(Pro)*; bring back the setup guide
 - **Histogram** — bin count *(Pro)*, outlier trimming *(Pro)*, bar colour with **fx**
   conditional formatting, opacity, border and gap *(Pro)*
+- **Range bar** — show it, its colour; shortcuts and summary, colours inside and outside
+  the range *(Pro)*
 - **Axes** — axis text colour, grid colour, font size, X and Y axis titles
 - **Statistics** — mean, median, P25, P75, IQR shading and their colours; background of the
   line labels; statistics panel and its background *(Pro)*; normal curve *(Pro)*;
   cumulative frequency line *(Pro)*
-- **Value zones (Pro)** — two cuts, three colours, labels with share of rows and of value
-- **Small multiples (Pro)** — columns (0 = automatic), title size and colour
+- **Value zones (Pro)** — two cuts, three colours, labels with share of rows and of value;
+  background, opacity, text colour and size of those labels
+- **Small multiples (Pro)** — columns (0 = automatic), space between panels, title size,
+  colour, bold and alignment, panel background and border
 - **Legend** — show, bottom position, font size and colour, the label of each line
 - **Benchmark** — a target or SLA line with value, colour and label; colour the bars by side
 - **IBCS** — monochrome presentation following the IBCS notation
@@ -67,7 +73,8 @@ such as scores or durations.
 Drop Region, Year or Segment into **Small multiples**. Every panel uses **the same bins and
 the same vertical scale**, so a taller bar really is more rows, and a shifted hump really is
 a shifted distribution. Mean, median, quartiles, zones and the statistics panel are computed
-per panel. The legend is drawn once, on top or at the bottom.
+per panel. The legend is drawn once, on top or at the bottom. One range bar under the grid
+filters across every panel; it is left out when the panels would be too short to read.
 
 ---
 
@@ -124,6 +131,16 @@ Bin count also decides how much one click filters: more bins means fewer rows pe
 
 ---
 
+## The range bar
+
+Two handles under the axis filter the report by a range of values. Drag them, type the
+minimum and maximum, or focus a handle and use the arrow keys. The report filters on release
+and the bars outside the range dim. With Pro, Q1 to Q4, No outliers and Top 10% set it in one
+click, and a line says how many rows it holds and their share of value. It needs a field in
+Detail (rows) and is not shown in drill mode.
+
+---
+
 ## Selection, cross-filtering and bookmarks
 
 - **Click a bar** — the report is filtered by **every row behind it**, not a sample, and the
@@ -149,7 +166,11 @@ part of it. Raise the bin count so each bar covers fewer rows.
 | Benchmark line and bar colouring by benchmark | ✓ | ✓ |
 | Legend, IBCS mode, high contrast, keyboard | ✓ | ✓ |
 | Cross-filtering, Ctrl+click, bookmarks, drill-down | ✓ | ✓ |
+| Range bar | ✓ | ✓ |
+| Report theme and Classic styles, on-object formatting | ✓ | ✓ |
 | Bin count | 10 | **2 to 100** |
+| Six more styles | — | **✓** |
+| Range shortcuts and summary | — | **✓** |
 | Outlier trimming | — | **✓** |
 | Value zones | — | **✓** |
 | Small multiples | — | **✓** |

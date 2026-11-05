@@ -1,4 +1,4 @@
-# AppSource Listing — Histogram Pro v1.4.0.0
+# AppSource Listing — Histogram Pro v1.5.0.0
 
 Copy ready to paste into Partner Center. **The marketplace description is the
 documentation most people read and the one that goes stale fastest** — update it on every
@@ -18,7 +18,7 @@ Histogram with value zones, small multiples, mean, median and quartiles. No DAX.
 
 ## Long description
 
-*(3176 characters; limit 5,000)*
+*(3637 characters; limit 5,000)*
 
 ```
 Every other visual on the page tells you how much. A histogram tells you how it is spread
@@ -42,11 +42,14 @@ WHAT YOU GET
   the first bar. The axis focuses on where the data lives, and every row is still counted.
 • Mean and median lines, quartiles and IQR shading, without a line of DAX
 • A benchmark line for a target or SLA, with the bars coloured by which side they fall on
+• Range bar: drag two handles or type a minimum and maximum, and the whole report filters
+  to that stretch of the distribution. With small multiples, one bar filters every panel.
 • Cross-filtering by the bar: one click filters the report by every row behind it, up to
   10,000 distinct values at once. Ctrl+click adds bars; the selection stays visible and
   bookmarks restore it.
+• Follows your report's theme, as a native visual does, and can be formatted on the canvas
 • Drill-up and drill-down when Detail (rows) holds a hierarchy
-• Report page tooltips, number formats from your model, English and Spanish
+• Report page tooltips, number formats from your model, twelve languages
 • Keyboard navigation with ARIA labels, high contrast support, IBCS mode
 
 READ THE CONCENTRATION, NOT JUST THE SHAPE (PRO)
@@ -56,6 +59,8 @@ READ THE CONCENTRATION, NOT JUST THE SHAPE (PRO)
   what the bars only imply.
 • Small multiples: one histogram per region, year or segment, on the same bins and the
   same vertical scale, so a taller bar really means more rows.
+• Six style templates, chosen in one click and drawn at once on your own data
+• Range shortcuts: Q1 to Q4, no outliers and top 10%, with what the range holds
 • Cumulative frequency line on its own 0–100% axis
 • Bin count from 2 to 100, outlier trimming, normal curve, statistics panel (n, mean,
   median, standard deviation, min, max), value labels, bar colour with conditional
@@ -65,7 +70,8 @@ FREE AND PRO
 
 The free tier is the histogram itself, over your whole dataset, with no watermark and no
 row limit of ours: ten bins, mean and median, quartiles and IQR, the benchmark, the
-legend, cross-filtering, bookmarks, drilldown, IBCS mode, keyboard and high contrast.
+legend, the range bar, the report's theme, cross-filtering, bookmarks, drilldown, IBCS
+mode, keyboard and high contrast.
 
 Turn on a Pro feature while editing and it is drawn working on your own data, under a
 "Pro preview" watermark that names it. Every paid setting says (Pro) in the format pane
@@ -88,20 +94,19 @@ Support: support@tcviz.com
 
 ---
 
-## What's new — v1.4.0.0
+## What's new — v1.5.0.0
 
 ```
-• Value zones (Pro): three zones from two cut points, each with its share of rows and of
-  total value.
-• Small multiples (Pro): one histogram per group, on shared bins and a shared scale.
-• Cumulative frequency line (Pro) on its own 0–100% axis.
-• Bars coloured by the benchmark, and an editable benchmark label.
-• The selected bars stay visible; Ctrl+click adds bars; bookmarks restore the selection.
-• Drill-down on a bar now works when Detail holds a hierarchy.
-• Conditional formatting (fx) on bar colour.
-• Number formats follow your model and locale; English and Spanish.
-• Configurable backgrounds for the statistics panel and labels; legend font, colour and
-  bottom position.
+• Range bar: drag two handles or type a minimum and maximum to filter the report by a
+  range of values. With small multiples, one bar filters every panel.
+• Range shortcuts and summary (Pro): Q1 to Q4, no outliers and top 10%.
+• The default look now follows the report's theme. Classic keeps the previous one.
+• Six style templates (Pro), drawn at once on your data while you choose.
+• On-object formatting and a setup guide for new visuals.
+• Small multiples: title alignment, space between panels, panel background and border.
+• Zone labels (Pro): their own background, text colour and size.
+• Twelve languages.
+• Fixed: clicking the last bar of a clipped axis left the rows above the axis out of the filter.
 ```
 
 ---
@@ -146,7 +151,7 @@ comes from Partner Center, so correcting it in `pbiviz.json` alone changes nothi
 - [ ] "What's new" pasted
 - [ ] Support, privacy and terms URLs checked with a real request, not assumed
 - [ ] Certification notes pasted from `CERTIFICATION-NOTES-SHORT.txt`
-- [ ] Version 1.4.0.0 is above the published 1.3.0.0
+- [ ] Version 1.5.0.0 is above the published 1.4.0.0
 - [ ] Screenshots show the visual, not the whole Power BI Desktop window — the current
       captures in `assets/` include the ribbon, the format pane and the signed-in user's
       name

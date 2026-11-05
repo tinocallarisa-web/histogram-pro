@@ -176,13 +176,13 @@
 
 <div class="wrap">
 
-  <div class="verpill">Visual v1.4.0.0 &nbsp;·&nbsp; docs updated 8 Oct 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+  <div class="verpill">Visual v1.5.0.0 &nbsp;·&nbsp; docs updated Nov 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
 
   <p class="lead">Supported Power BI features: <strong>small multiples</strong> · <strong>conditional formatting (fx)</strong>
   on bar colour · drilldown on a hierarchy in Detail · cross-filtering by the whole bar, <strong>Ctrl+click
   multi-select</strong> and <strong>highlighting</strong> · <strong>bookmarks</strong> (the selected bars are restored and
   shown) · standard and <strong>report page tooltips</strong> · context menu · keyboard navigation with ARIA labels ·
-  high contrast · <strong>number formats from the model</strong> · <strong>localization</strong> (English, Spanish) ·
+  high contrast · <strong>number formats from the model</strong> · <strong>localization</strong> (12 languages) ·
   IBCS mode · data streaming past 30,000 rows. Analysis: mean, median, quartiles and IQR, a benchmark line,
   <strong>value zones</strong> with the share of rows and of value in each, a <strong>cumulative frequency</strong>
   line, a normal curve and a statistics panel.</p>
@@ -211,6 +211,10 @@
     <h3>4. Compare groups</h3>
     <p>Drop a field such as Region or Year into <code>Small multiples</code> (Pro). You get one histogram per value, on the same
     bins and the same vertical scale, so the panels can be compared bar by bar.</p>
+
+    <h3>The setup guide</h3>
+    <p>On a new visual, a short panel in the corner says which fields are missing and offers the styles. It only appears to whoever
+    is editing. Close it with the cross; <strong>Style template → Setup guide</strong> brings it back.</p>
   </div>
 
   <!-- Reading -->
@@ -279,14 +283,37 @@
   <h2 id="format">Format Pane</h2>
   <p>Every setting that needs a licence says <strong>(Pro)</strong> in the format pane. None is hidden.</p>
 
+  <p>You can also format on the canvas: with on-object formatting on, click the bars, an axis, the legend, the statistics panel,
+  the zone labels, the range bar or a panel title. In that mode a click chooses what to format and does not filter.</p>
+
+  <div class="card">
+    <h3>Style template</h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>Template</td><td>Report theme</td><td><strong>Report theme</strong> takes its colours from the report's theme. <strong>Classic</strong> is the look of versions before 1.5. Both are free. <strong>Boardroom</strong>, <strong>Ledger</strong>, <strong>Editorial</strong>, <strong>Signal</strong>, <strong>Aurora</strong> and <strong>Terrace</strong> are Pro. A colour you set yourself always wins over the template.</td></tr>
+      <tr><td>Setup guide</td><td>On for a new visual</td><td>Brings the guide back.</td></tr>
+    </table>
+  </div>
+
   <div class="card">
     <h3>Histogram</h3>
     <table>
       <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
       <tr><td>Number of bins <span class="badge badge-pro">Pro</span></td><td>10</td><td>2 to 100. Free uses 10.</td></tr>
       <tr><td>Lower trim % / Upper trim % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Leaves out that percentage of rows from each tail, before binning. Unlike the clipped axis, trimmed rows are excluded from the statistics, and the panel says how many.</td></tr>
-      <tr><td>Bar color <span class="badge badge-pro">Pro</span></td><td>Cyan</td><td>Has an <strong>fx</strong> button: colour bars by a rule or a field instead of one colour.</td></tr>
+      <tr><td>Bar color <span class="badge badge-pro">Pro</span></td><td>From the template</td><td>Has an <strong>fx</strong> button: colour bars by a rule or a field instead of one colour.</td></tr>
       <tr><td>Bar opacity %, Border color, Border width, Bar gap px <span class="badge badge-pro">Pro</span></td><td>80 · dark · 1 · 2</td><td>Bar styling.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Range bar</h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>Show range bar</td><td>On</td><td>Two handles under the axis to filter the report by a range of values.</td></tr>
+      <tr><td>Shortcuts and summary <span class="badge badge-pro">Pro</span></td><td>On</td><td>Q1 to Q4, No outliers and Top 10%, and what the range holds.</td></tr>
+      <tr><td>Range color</td><td>From the template</td><td>The selected stretch and its handles.</td></tr>
+      <tr><td>Bars inside / outside the range <span class="badge badge-pro">Pro</span></td><td>Empty</td><td>Empty: the bars keep their colour, and those outside dim.</td></tr>
     </table>
   </div>
 
@@ -350,7 +377,10 @@
     <table>
       <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
       <tr><td>Columns</td><td>0 (automatic)</td><td>0 picks a grid that fits the visual's shape; any other number fixes the columns.</td></tr>
-      <tr><td>Title font size, Title color</td><td>12 · grey</td><td>Panel titles.</td></tr>
+      <tr><td>Title size, Title color, Bold title</td><td>12 · from the template · on</td><td>Panel titles.</td></tr>
+      <tr><td>Title alignment</td><td>Left</td><td>Left or center.</td></tr>
+      <tr><td>Space between panels</td><td>14</td><td>In pixels.</td></tr>
+      <tr><td>Panel background, Panel border, Panel border color</td><td>Empty · off · light grey</td><td>The border is the line that separates the panels.</td></tr>
     </table>
   </div>
 
@@ -377,6 +407,12 @@
     <h3>Click a bar</h3>
     <p>Filters the rest of the page to <strong>every row behind that bar</strong>, and the bar stays highlighted while the others dim.
     Click it again, or click empty space, to clear.</p>
+    <h3>The range bar</h3>
+    <p>Drag the two handles, type the minimum and maximum, or focus a handle and use the arrow keys. The report is filtered when you
+    release, by every row in the range; the bars outside it dim. It is limited, like a bar, to the 10,000 distinct values Power BI can
+    cross-filter at once. It needs a field in <code>Detail (rows)</code> and is not shown in drill mode or on a very small visual.
+    With small multiples there is one bar under the whole grid, which filters across every panel; it is left out when the panels would
+    be too short to read.</p>
     <h3>Ctrl+click</h3>
     <p>Adds bars to the selection (or takes one out). Within small multiples, Ctrl+click adds bars of the same panel; a click in another
     panel starts a new selection.</p>
@@ -398,7 +434,7 @@
       <li><strong>Screen readers:</strong> each bar is announced with its range, count and share of total, and whether it is selected.</li>
       <li><strong>High contrast:</strong> under a Windows high-contrast theme bars, lines, zones and text take the theme's colours;
       zones become dashed outlines instead of fills.</li>
-      <li><strong>Language:</strong> the format pane and every label on the chart follow Power BI's language — English and Spanish.</li>
+      <li><strong>Language:</strong> the format pane and every label on the chart follow Power BI's language, in 12: English, Spanish, Portuguese (Brazil and Portugal), French, German, Italian, Dutch, Polish, Japanese, Chinese (Simplified) and Korean.</li>
     </ul>
   </div>
 
@@ -420,7 +456,11 @@
     <tr><td>Mean, median, P25, P75, IQR shading</td><td>✓</td><td>✓</td></tr>
     <tr><td>Benchmark line and bar colouring by benchmark</td><td>✓</td><td>✓</td></tr>
     <tr><td>Legend, axes, IBCS mode, high contrast, keyboard, cross-filtering, bookmarks</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Range bar: drag, type or keyboard</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Report theme and Classic styles, on-object formatting, setup guide</td><td>✓</td><td>✓</td></tr>
     <tr><td>Number of bins</td><td>10</td><td>2–100</td></tr>
+    <tr><td>Six more styles: Boardroom, Ledger, Editorial, Signal, Aurora, Terrace</td><td>—</td><td>✓</td></tr>
+    <tr><td>Range shortcuts and summary, colours inside and outside the range</td><td>—</td><td>✓</td></tr>
     <tr><td>Outlier trimming</td><td>—</td><td>✓</td></tr>
     <tr><td>Value zones with share of rows and value</td><td>—</td><td>✓</td></tr>
     <tr><td>Small multiples</td><td>—</td><td>✓</td></tr>
