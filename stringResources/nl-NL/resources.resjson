@@ -118,8 +118,8 @@
   "UI_TipCum": "Cumulatief",
   "UI_LegCum": "Cumulatief",
   "UI_NormalFlat": "Normaalcurve vlak: gegevens wijken sterk af van normaal (σ = {0})",
-  "Obj_style": "Stijl",
-  "Prop_style_template": "Stijlsjabloon",
+  "Obj_style": "Stijlsjabloon",
+  "Prop_style_template": "Sjabloon",
   "Enum_style_classic": "Classic",
   "Enum_style_boardroom": "Boardroom",
   "Enum_style_ledger": "Ledger",
@@ -172,5 +172,13 @@
   "Guide_DetailWhy": "één rij per order, medewerker of ticket: zonder dit is er geen verdeling",
   "Guide_PanelWhy": "één histogram per regio of product, op dezelfde as",
   "Guide_TooltipsWhy": "extra waarden, als gemiddelde per balk",
-  "Guide_Wells": "Sleep de velden naar de veldvakken; deze lijst werkt zichzelf bij. Alleen Detail is nodig."
+  "Guide_Wells": "Sleep de velden naar de veldvakken; deze lijst werkt zichzelf bij. Alleen Detail is nodig.",
+  "Prop_smallMultiples_gap": "Ruimte tussen panelen",
+  "Prop_smallMultiples_titleBold": "Vette titel",
+  "Prop_smallMultiples_titleAlign": "Titeluitlijning",
+  "Prop_smallMultiples_background": "Achtergrond paneel",
+  "Prop_smallMultiples_border": "Paneelrand",
+  "Prop_smallMultiples_borderColor": "Kleur paneelrand",
+  "Enum_al_left": "Links",
+  "Enum_al_center": "Midden"
 }

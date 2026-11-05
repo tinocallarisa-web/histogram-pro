@@ -118,8 +118,8 @@
   "UI_TipCum": "Kumuliert",
   "UI_LegCum": "Kumuliert",
   "UI_NormalFlat": "Normalkurve flach: Daten weit von der Normalverteilung entfernt (σ = {0})",
-  "Obj_style": "Stil",
-  "Prop_style_template": "Stilvorlage",
+  "Obj_style": "Stilvorlage",
+  "Prop_style_template": "Vorlage",
   "Enum_style_classic": "Classic",
   "Enum_style_boardroom": "Boardroom",
   "Enum_style_ledger": "Ledger",
@@ -172,5 +172,13 @@
   "Guide_DetailWhy": "eine Zeile je Auftrag, Mitarbeiter oder Ticket: ohne sie gibt es keine Verteilung",
   "Guide_PanelWhy": "ein Histogramm je Region oder Produkt, auf derselben Achse",
   "Guide_TooltipsWhy": "zusätzliche Werte, als Durchschnitt je Balken",
-  "Guide_Wells": "Ziehen Sie die Felder in die Feldbereiche; diese Liste aktualisiert sich selbst. Nur Detail ist erforderlich."
+  "Guide_Wells": "Ziehen Sie die Felder in die Feldbereiche; diese Liste aktualisiert sich selbst. Nur Detail ist erforderlich.",
+  "Prop_smallMultiples_gap": "Abstand zwischen Feldern",
+  "Prop_smallMultiples_titleBold": "Fetter Titel",
+  "Prop_smallMultiples_titleAlign": "Titelausrichtung",
+  "Prop_smallMultiples_background": "Feldhintergrund",
+  "Prop_smallMultiples_border": "Feldrahmen",
+  "Prop_smallMultiples_borderColor": "Farbe des Feldrahmens",
+  "Enum_al_left": "Links",
+  "Enum_al_center": "Mitte"
 }

@@ -118,8 +118,8 @@
   "UI_TipCum": "Skumulowane",
   "UI_LegCum": "Skumulowane",
   "UI_NormalFlat": "Krzywa normalna płaska: dane dalekie od rozkładu normalnego (σ = {0})",
-  "Obj_style": "Styl",
-  "Prop_style_template": "Szablon stylu",
+  "Obj_style": "Szablon stylu",
+  "Prop_style_template": "Szablon",
   "Enum_style_classic": "Classic",
   "Enum_style_boardroom": "Boardroom",
   "Enum_style_ledger": "Ledger",
@@ -172,5 +172,13 @@
   "Guide_DetailWhy": "jeden wiersz na zamówienie, pracownika lub zgłoszenie: bez tego nie ma rozkładu",
   "Guide_PanelWhy": "jeden histogram na region lub produkt, na tej samej osi",
   "Guide_TooltipsWhy": "dodatkowe wartości, jako średnia na słupek",
-  "Guide_Wells": "Przeciągnij pola do ich obszarów; ta lista aktualizuje się sama. Potrzebne jest tylko pole Szczegóły."
+  "Guide_Wells": "Przeciągnij pola do ich obszarów; ta lista aktualizuje się sama. Potrzebne jest tylko pole Szczegóły.",
+  "Prop_smallMultiples_gap": "Odstęp między panelami",
+  "Prop_smallMultiples_titleBold": "Pogrubiony tytuł",
+  "Prop_smallMultiples_titleAlign": "Wyrównanie tytułu",
+  "Prop_smallMultiples_background": "Tło panelu",
+  "Prop_smallMultiples_border": "Obramowanie panelu",
+  "Prop_smallMultiples_borderColor": "Kolor obramowania panelu",
+  "Enum_al_left": "Do lewej",
+  "Enum_al_center": "Do środka"
 }

@@ -118,8 +118,8 @@
   "UI_TipCum": "누적",
   "UI_LegCum": "누적",
   "UI_NormalFlat": "정규 곡선이 평평합니다: 데이터가 정규 분포와 크게 다릅니다 (σ = {0})",
-  "Obj_style": "스타일",
-  "Prop_style_template": "스타일 템플릿",
+  "Obj_style": "스타일 템플릿",
+  "Prop_style_template": "템플릿",
   "Enum_style_classic": "Classic",
   "Enum_style_boardroom": "Boardroom",
   "Enum_style_ledger": "Ledger",
@@ -172,5 +172,13 @@
   "Guide_DetailWhy": "주문, 직원 또는 티켓당 한 행: 이것이 없으면 분포가 없습니다",
   "Guide_PanelWhy": "지역 또는 제품별 히스토그램 하나, 같은 축 사용",
   "Guide_TooltipsWhy": "추가 값, 막대별 평균",
-  "Guide_Wells": "필드를 필드 웰로 끌어 놓으세요. 이 목록은 자동으로 업데이트됩니다. 세부 정보만 있으면 됩니다."
+  "Guide_Wells": "필드를 필드 웰로 끌어 놓으세요. 이 목록은 자동으로 업데이트됩니다. 세부 정보만 있으면 됩니다.",
+  "Prop_smallMultiples_gap": "패널 간 간격",
+  "Prop_smallMultiples_titleBold": "굵은 제목",
+  "Prop_smallMultiples_titleAlign": "제목 맞춤",
+  "Prop_smallMultiples_background": "패널 배경",
+  "Prop_smallMultiples_border": "패널 테두리",
+  "Prop_smallMultiples_borderColor": "패널 테두리 색",
+  "Enum_al_left": "왼쪽",
+  "Enum_al_center": "가운데"
 }

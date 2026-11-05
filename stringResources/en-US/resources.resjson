@@ -118,8 +118,8 @@
   "UI_TipCum": "Cumulative",
   "UI_LegCum": "Cumulative",
   "UI_NormalFlat": "Normal curve flat: data far from normal (σ = {0})",
-  "Obj_style": "Style",
-  "Prop_style_template": "Style template",
+  "Obj_style": "Style template",
+  "Prop_style_template": "Template",
   "Enum_style_classic": "Classic",
   "Enum_style_boardroom": "Boardroom",
   "Enum_style_ledger": "Ledger",
@@ -172,5 +172,13 @@
   "Guide_DetailWhy": "one row per order, employee or ticket: without it there is no distribution",
   "Guide_PanelWhy": "one histogram per region or product, on the same axis",
   "Guide_TooltipsWhy": "extra values, as the average per bar",
-  "Guide_Wells": "Drag the fields into the field wells; this list updates by itself. Only Detail is needed."
+  "Guide_Wells": "Drag the fields into the field wells; this list updates by itself. Only Detail is needed.",
+  "Prop_smallMultiples_gap": "Space between panels",
+  "Prop_smallMultiples_titleBold": "Bold title",
+  "Prop_smallMultiples_titleAlign": "Title alignment",
+  "Prop_smallMultiples_background": "Panel background",
+  "Prop_smallMultiples_border": "Panel border",
+  "Prop_smallMultiples_borderColor": "Panel border color",
+  "Enum_al_left": "Left",
+  "Enum_al_center": "Center"
 }

@@ -118,8 +118,8 @@
   "UI_TipCum": "Cumul",
   "UI_LegCum": "Cumul",
   "UI_NormalFlat": "Courbe normale plate : données éloignées de la loi normale (σ = {0})",
-  "Obj_style": "Style",
-  "Prop_style_template": "Modèle de style",
+  "Obj_style": "Modèle de style",
+  "Prop_style_template": "Modèle",
   "Enum_style_classic": "Classic",
   "Enum_style_boardroom": "Boardroom",
   "Enum_style_ledger": "Ledger",
@@ -172,5 +172,13 @@
   "Guide_DetailWhy": "une ligne par commande, employé ou ticket : sans lui, pas de distribution",
   "Guide_PanelWhy": "un histogramme par région ou produit, sur le même axe",
   "Guide_TooltipsWhy": "valeurs supplémentaires, en moyenne par barre",
-  "Guide_Wells": "Faites glisser les champs dans leurs emplacements ; cette liste se met à jour toute seule. Seul Détail est nécessaire."
+  "Guide_Wells": "Faites glisser les champs dans leurs emplacements ; cette liste se met à jour toute seule. Seul Détail est nécessaire.",
+  "Prop_smallMultiples_gap": "Espace entre les panneaux",
+  "Prop_smallMultiples_titleBold": "Titre en gras",
+  "Prop_smallMultiples_titleAlign": "Alignement du titre",
+  "Prop_smallMultiples_background": "Arrière-plan du panneau",
+  "Prop_smallMultiples_border": "Bordure du panneau",
+  "Prop_smallMultiples_borderColor": "Couleur de bordure du panneau",
+  "Enum_al_left": "Gauche",
+  "Enum_al_center": "Centre"
 }

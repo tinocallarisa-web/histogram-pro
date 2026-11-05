@@ -118,8 +118,8 @@
   "UI_TipCum": "累積",
   "UI_LegCum": "累積",
   "UI_NormalFlat": "正規曲線が平坦です: データは正規分布から大きく外れています (σ = {0})",
-  "Obj_style": "スタイル",
-  "Prop_style_template": "スタイル テンプレート",
+  "Obj_style": "スタイル テンプレート",
+  "Prop_style_template": "テンプレート",
   "Enum_style_classic": "Classic",
   "Enum_style_boardroom": "Boardroom",
   "Enum_style_ledger": "Ledger",
@@ -172,5 +172,13 @@
   "Guide_DetailWhy": "注文、従業員、チケットごとに 1 行: これがないと分布になりません",
   "Guide_PanelWhy": "地域または製品ごとに 1 つのヒストグラム、軸は共通",
   "Guide_TooltipsWhy": "追加の値、棒ごとの平均",
-  "Guide_Wells": "フィールドをフィールド ウェルにドラッグします。この一覧は自動で更新されます。必要なのは明細だけです。"
+  "Guide_Wells": "フィールドをフィールド ウェルにドラッグします。この一覧は自動で更新されます。必要なのは明細だけです。",
+  "Prop_smallMultiples_gap": "パネル間の間隔",
+  "Prop_smallMultiples_titleBold": "タイトルを太字",
+  "Prop_smallMultiples_titleAlign": "タイトルの配置",
+  "Prop_smallMultiples_background": "パネルの背景",
+  "Prop_smallMultiples_border": "パネルの枠線",
+  "Prop_smallMultiples_borderColor": "パネルの枠線の色",
+  "Enum_al_left": "左",
+  "Enum_al_center": "中央"
 }

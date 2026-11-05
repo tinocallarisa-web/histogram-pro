@@ -74,11 +74,11 @@
   ],
   "objects": {
     "style": {
-      "displayName": "Style",
+      "displayName": "Style template",
       "displayNameKey": "Obj_style",
       "properties": {
         "template": {
-          "displayName": "Style template",
+          "displayName": "Template",
           "displayNameKey": "Prop_style_template",
           "description": "Report theme, the default, follows the theme of the report. Classic is the look of earlier versions. The others are Pro.",
           "type": {
@@ -823,6 +823,67 @@
         "titleColor": {
           "displayName": "Title color",
           "displayNameKey": "Prop_smallMultiples_titleColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "gap": {
+          "displayName": "Space between panels",
+          "displayNameKey": "Prop_smallMultiples_gap",
+          "type": {
+            "numeric": true
+          }
+        },
+        "titleBold": {
+          "displayName": "Bold title",
+          "displayNameKey": "Prop_smallMultiples_titleBold",
+          "type": {
+            "bool": true
+          }
+        },
+        "titleAlign": {
+          "displayName": "Title alignment",
+          "displayNameKey": "Prop_smallMultiples_titleAlign",
+          "type": {
+            "enumeration": [
+              {
+                "value": "left",
+                "displayName": "Left",
+                "displayNameKey": "Enum_al_left"
+              },
+              {
+                "value": "center",
+                "displayName": "Center",
+                "displayNameKey": "Enum_al_center"
+              }
+            ]
+          }
+        },
+        "background": {
+          "displayName": "Panel background",
+          "displayNameKey": "Prop_smallMultiples_background",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "border": {
+          "displayName": "Panel border",
+          "displayNameKey": "Prop_smallMultiples_border",
+          "type": {
+            "bool": true
+          }
+        },
+        "borderColor": {
+          "displayName": "Panel border color",
+          "displayNameKey": "Prop_smallMultiples_borderColor",
           "type": {
             "fill": {
               "solid": {

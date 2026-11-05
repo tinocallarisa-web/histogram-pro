@@ -118,8 +118,8 @@
   "UI_TipCum": "累计",
   "UI_LegCum": "累计",
   "UI_NormalFlat": "正态曲线平坦：数据远离正态分布 (σ = {0})",
-  "Obj_style": "样式",
-  "Prop_style_template": "样式模板",
+  "Obj_style": "样式模板",
+  "Prop_style_template": "模板",
   "Enum_style_classic": "Classic",
   "Enum_style_boardroom": "Boardroom",
   "Enum_style_ledger": "Ledger",
@@ -172,5 +172,13 @@
   "Guide_DetailWhy": "每个订单、员工或工单一行：没有它就没有分布",
   "Guide_PanelWhy": "每个区域或产品一个直方图，使用同一坐标轴",
   "Guide_TooltipsWhy": "其他值，显示为每个条形的平均值",
-  "Guide_Wells": "将字段拖到字段井中；此列表会自动更新。只需要明细。"
+  "Guide_Wells": "将字段拖到字段井中；此列表会自动更新。只需要明细。",
+  "Prop_smallMultiples_gap": "面板间距",
+  "Prop_smallMultiples_titleBold": "标题加粗",
+  "Prop_smallMultiples_titleAlign": "标题对齐",
+  "Prop_smallMultiples_background": "面板背景",
+  "Prop_smallMultiples_border": "面板边框",
+  "Prop_smallMultiples_borderColor": "面板边框颜色",
+  "Enum_al_left": "左",
+  "Enum_al_center": "居中"
 }

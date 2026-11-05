@@ -1329,5 +1329,115 @@
 "フィールドをフィールド ウェルにドラッグします。この一覧は自動で更新されます。必要なのは明細だけです。",
 "将字段拖到字段井中；此列表会自动更新。只需要明细。",
 "필드를 필드 웰로 끌어 놓으세요. 이 목록은 자동으로 업데이트됩니다. 세부 정보만 있으면 됩니다."
+],
+"Space between panels": [
+"Espaço entre painéis",
+"Espace entre les panneaux",
+"Abstand zwischen Feldern",
+"Spazio tra i pannelli",
+"Ruimte tussen panelen",
+"Odstęp między panelami",
+"パネル間の間隔",
+"面板间距",
+"패널 간 간격"
+],
+"Bold title": [
+"Título em negrito",
+"Titre en gras",
+"Fetter Titel",
+"Titolo in grassetto",
+"Vette titel",
+"Pogrubiony tytuł",
+"タイトルを太字",
+"标题加粗",
+"굵은 제목"
+],
+"Title alignment": [
+"Alinhamento do título",
+"Alignement du titre",
+"Titelausrichtung",
+"Allineamento titolo",
+"Titeluitlijning",
+"Wyrównanie tytułu",
+"タイトルの配置",
+"标题对齐",
+"제목 맞춤"
+],
+"Panel background": [
+"Fundo do painel",
+"Arrière-plan du panneau",
+"Feldhintergrund",
+"Sfondo del pannello",
+"Achtergrond paneel",
+"Tło panelu",
+"パネルの背景",
+"面板背景",
+"패널 배경"
+],
+"Panel border": [
+"Borda do painel",
+"Bordure du panneau",
+"Feldrahmen",
+"Bordo del pannello",
+"Paneelrand",
+"Obramowanie panelu",
+"パネルの枠線",
+"面板边框",
+"패널 테두리"
+],
+"Panel border color": [
+"Cor da borda do painel",
+"Couleur de bordure du panneau",
+"Farbe des Feldrahmens",
+"Colore bordo pannello",
+"Kleur paneelrand",
+"Kolor obramowania panelu",
+"パネルの枠線の色",
+"面板边框颜色",
+"패널 테두리 색"
+],
+"Left": [
+"Esquerda",
+"Gauche",
+"Links",
+"Sinistra",
+"Links",
+"Do lewej",
+"左",
+"左",
+"왼쪽"
+],
+"Center": [
+"Centro",
+"Centre",
+"Mitte",
+"Centro",
+"Midden",
+"Do środka",
+"中央",
+"居中",
+"가운데"
+],
+"Template": [
+"Modelo",
+"Modèle",
+"Vorlage",
+"Modello",
+"Sjabloon",
+"Szablon",
+"テンプレート",
+"模板",
+"템플릿"
+],
+"Style template": [
+"Modelo de estilo",
+"Modèle de style",
+"Stilvorlage",
+"Modello di stile",
+"Stijlsjabloon",
+"Szablon stylu",
+"スタイル テンプレート",
+"样式模板",
+"스타일 템플릿"
 ]
 }

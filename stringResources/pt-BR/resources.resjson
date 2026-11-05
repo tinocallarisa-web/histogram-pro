@@ -118,8 +118,8 @@
   "UI_TipCum": "Acumulado",
   "UI_LegCum": "Acumulado",
   "UI_NormalFlat": "Curva normal plana: dados longe da normal (σ = {0})",
-  "Obj_style": "Estilo",
-  "Prop_style_template": "Modelo de estilo",
+  "Obj_style": "Modelo de estilo",
+  "Prop_style_template": "Modelo",
   "Enum_style_classic": "Classic",
   "Enum_style_boardroom": "Boardroom",
   "Enum_style_ledger": "Ledger",
@@ -172,5 +172,13 @@
   "Guide_DetailWhy": "uma linha por pedido, funcionário ou ticket: sem ele não há distribuição",
   "Guide_PanelWhy": "um histograma por região ou produto, no mesmo eixo",
   "Guide_TooltipsWhy": "valores adicionais, como média por barra",
-  "Guide_Wells": "Arraste os campos para os respetivos poços; esta lista atualiza-se sozinha. Só o Detalhe é necessário."
+  "Guide_Wells": "Arraste os campos para os respetivos poços; esta lista atualiza-se sozinha. Só o Detalhe é necessário.",
+  "Prop_smallMultiples_gap": "Espaço entre painéis",
+  "Prop_smallMultiples_titleBold": "Título em negrito",
+  "Prop_smallMultiples_titleAlign": "Alinhamento do título",
+  "Prop_smallMultiples_background": "Fundo do painel",
+  "Prop_smallMultiples_border": "Borda do painel",
+  "Prop_smallMultiples_borderColor": "Cor da borda do painel",
+  "Enum_al_left": "Esquerda",
+  "Enum_al_center": "Centro"
 }

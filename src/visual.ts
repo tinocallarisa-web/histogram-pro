@@ -64,7 +64,8 @@ const BASE_DEFAULTS = {
     bmColorBars: false, bmAboveColor: "#FF6B6B", bmBelowColor: "#00E5FF",
     zShow: false, zCut1: 0, zCut2: 0, zColor1: "#69F0AE", zColor2: "#FFD740", zColor3: "#FF6B6B",
     zLabels: true, zValueShare: true, zLabelBg: "", zLabelBgOpacity: 75, zLabelColor: "", zLabelSize: 0,
-    smColumns: 0, smTitleSize: 12, smTitleColor: "#6B7785",
+    smColumns: 0, smGap: 14, smTitleSize: 12, smTitleColor: "#6B7785", smTitleBold: true, smTitleAlign: "left",
+    smBackground: "", smBorder: false, smBorderColor: "#E1DFDD",
     statsBgColor: "#000000", statsBgOpacity: 35, labelBgColor: "#FFFFFF", labelBgOpacity: 75,
     legendFontSize: 9, legendColor: "#B0BEC5",
     showLegend: false, legendBottom: false,
@@ -187,7 +188,8 @@ interface Settings {
     bmColorBars: boolean; bmAboveColor: string; bmBelowColor: string;
     zShow: boolean; zCut1: number; zCut2: number; zColor1: string; zColor2: string; zColor3: string;
     zLabels: boolean; zValueShare: boolean; zLabelBg: string; zLabelBgOpacity: number; zLabelColor: string; zLabelSize: number;
-    smColumns: number; smTitleSize: number; smTitleColor: string;
+    smColumns: number; smGap: number; smTitleSize: number; smTitleColor: string; smTitleBold: boolean; smTitleAlign: string;
+    smBackground: string; smBorder: boolean; smBorderColor: string;
     statsBgColor: string; statsBgOpacity: number; labelBgColor: string; labelBgOpacity: number;
     legendFontSize: number; legendColor: string;
     showLegend: boolean; legendBottom: boolean;
@@ -264,6 +266,12 @@ function parseSettings(dv: DataView, styleOk: boolean): Settings {
         smColumns: getValue<number>(obj, "smallMultiples", "columns", DEFAULTS.smColumns),
         smTitleSize: getValue<number>(obj, "smallMultiples", "titleFontSize", DEFAULTS.smTitleSize),
         smTitleColor: getColor(obj, "smallMultiples", "titleColor", DEFAULTS.smTitleColor),
+        smGap: getValue<number>(obj, "smallMultiples", "gap", DEFAULTS.smGap),
+        smTitleBold: getValue<boolean>(obj, "smallMultiples", "titleBold", DEFAULTS.smTitleBold),
+        smTitleAlign: getValue<string>(obj, "smallMultiples", "titleAlign", DEFAULTS.smTitleAlign),
+        smBackground: getColor(obj, "smallMultiples", "background", DEFAULTS.smBackground),
+        smBorder: getValue<boolean>(obj, "smallMultiples", "border", DEFAULTS.smBorder),
+        smBorderColor: getColor(obj, "smallMultiples", "borderColor", DEFAULTS.smBorderColor),
         statsBgColor: getColor(obj, "statistics", "statsBgColor", DEFAULTS.statsBgColor),
         statsBgOpacity: getValue<number>(obj, "statistics", "statsBgOpacity", DEFAULTS.statsBgOpacity),
         labelBgColor: getColor(obj, "statistics", "labelBgColor", DEFAULTS.labelBgColor),
@@ -1318,6 +1326,7 @@ export class Visual implements IVisual {
                            ox: number, oy: number, width: number, height: number,
                            shared: Shared | null, title: string, panelValue: powerbi.PrimitiveValue | undefined,
                            showLegendHere: boolean): void => {
+        const cellH = height;
         const titleH = title ? Math.max(9, settings.smTitleSize) + 8 : 0;
         if (raw.length < 2) return;
 
@@ -1530,9 +1539,18 @@ export class Visual implements IVisual {
         const barOpacity = (this.isPro ? Math.min(100, Math.max(0, settings.barOpacity)) : 80) / 100;
 
         if (title) {
+            if ((settings.smBackground && !isHighContrast) || settings.smBorder) {
+                const fgHc = this.host.colorPalette.foreground?.value ?? "#FFFFFF";
+                this.svg.append("rect").attr("class", "hp-sm-panel").attr("pointer-events", "none")
+                    .attr("x", ox + 0.5).attr("y", oy + 0.5).attr("width", Math.max(0, width - 1)).attr("height", Math.max(0, cellH - 1))
+                    .attr("fill", settings.smBackground && !isHighContrast ? settings.smBackground : "none")
+                    .attr("stroke", settings.smBorder ? (isHighContrast ? fgHc : settings.smBorderColor) : "none");
+            }
+            const centred = settings.smTitleAlign === "center";
             this.svg.append("text").attr("class", "hp-sm-title")
-                .attr("x", ox + 4).attr("y", oy + Math.max(9, settings.smTitleSize))
-                .attr("font-size", Math.max(9, settings.smTitleSize)).attr("font-weight", "600")
+                .attr("x", centred ? ox + width / 2 : ox + 4).attr("y", oy + Math.max(9, settings.smTitleSize))
+                .attr("text-anchor", centred ? "middle" : "start")
+                .attr("font-size", Math.max(9, settings.smTitleSize)).attr("font-weight", settings.smTitleBold ? "600" : "400")
                 .attr("fill", isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : settings.smTitleColor)
                 .attr("font-family", "Segoe UI, sans-serif")
                 .text(title);
@@ -2140,7 +2158,7 @@ export class Visual implements IVisual {
                 ? Math.min(np, Math.round(settings.smColumns))
                 : Math.max(1, Math.min(np, Math.round(Math.sqrt(np * (width / Math.max(1, height)) / 1.6))));
             const rows = Math.ceil(np / cols);
-            const gapPx = 14;
+            const gapPx = Math.min(60, Math.max(0, settings.smGap));
             // Bands outside the grid: the shared legend on top, and room at the bottom for
             // the clipped-axis notice so it does not sit on the last panel's axis title.
             legendBand = settings.showLegend
@@ -2672,7 +2690,7 @@ export class Visual implements IVisual {
         ];
         switch (name) {
             case "histogram":
-                return [{ type: powerbi.visuals.VisualShortcutType.Picker, ...id("style", "template"), label: this.t("Prop_style_template", "Style template") },
+                return [{ type: powerbi.visuals.VisualShortcutType.Picker, ...id("style", "template"), label: this.t("Prop_style_template", "Template") },
                     ...ends([["histogram", "barColor"], ["histogram", "borderColor"], ["histogram", "borderWidth"]], "Obj_histogram", "Histogram")] as any;
             case "axes":
                 return ends([["axes", "fontSize"], ["axes", "axisColor"]], "Obj_axes", "Axes") as any;
@@ -2759,23 +2777,13 @@ export class Visual implements IVisual {
 
         return {
             cards: [
-                card("style_card", "Style", [
-                    dropdown("style_template", "Style template", "style", "template", s.template, [
+                card("style_card", "Style template", [
+                    dropdown("style_template", "Template", "style", "template", s.template, [
                         ["report", "Enum_style_report", "Report theme"], ["classic", "Enum_style_classic", "Classic"], ["boardroom", "Enum_style_boardroom", "Boardroom"],
                         ["ledger", "Enum_style_ledger", "Ledger"], ["editorial", "Enum_style_editorial", "Editorial"],
                         ["signal", "Enum_style_signal", "Signal"], ["aurora", "Enum_style_aurora", "Aurora"],
                         ["terrace", "Enum_style_terrace", "Terrace"]]),
                     tog("style_guide", "Setup guide", "style", "guide", this.guideOpen),
-                ]),
-                card("rangeBar_card", "Range bar", [
-                    tog("range_show", "Show range bar", "rangeBar", "show", s.rangeShow),
-                    tog("range_short", lbl("Shortcuts and summary"), "rangeBar", "shortcuts", s.rangeShortcuts),
-                    col("range_color", "Range colour", "rangeBar", "color", s.rangeColor || (STYLES[s.template]?.accent ?? STYLES.classic.accent)),
-                    col("range_in", lbl("Bars inside the range"), "rangeBar", "inColor", s.rangeInColor || s.barColor),
-                    col("range_out", lbl("Bars outside the range"), "rangeBar", "outColor", s.rangeOutColor || s.gridColor),
-                ]),
-                card("ibcs_card", "IBCS", [
-                    tog("ibcs_mode", "IBCS mode", "ibcs", "mode", s.ibcsMode),
                 ]),
                 card("histogram_card", "Histogram", [
                     num("bins",        lbl("Number of bins"), "histogram", "bins",        s.bins),
@@ -2787,12 +2795,12 @@ export class Visual implements IVisual {
                     num("borderWidth", lbl("Border width"),   "histogram", "borderWidth", s.borderWidth),
                     num("barGap",      lbl("Bar gap px"),     "histogram", "barGap",      s.barGap),
                 ]),
-                card("axes_card", "Axes", [
-                    col("axisColor",  "Axis color",   "axes", "axisColor",  s.axisColor),
-                    col("gridColor",  "Grid color",   "axes", "gridColor",  s.gridColor),
-                    num("fontSize",   "Font size",    "axes", "fontSize",   s.axisFontSize),
-                    tog("showXLabel", "Show X label", "axes", "showXLabel", s.showXLabel),
-                    tog("showYLabel", "Show Y label", "axes", "showYLabel", s.showYLabel),
+                card("rangeBar_card", "Range bar", [
+                    tog("range_show", "Show range bar", "rangeBar", "show", s.rangeShow),
+                    tog("range_short", lbl("Shortcuts and summary"), "rangeBar", "shortcuts", s.rangeShortcuts),
+                    col("range_color", "Range colour", "rangeBar", "color", s.rangeColor || (STYLES[s.template]?.accent ?? STYLES.classic.accent)),
+                    col("range_in", lbl("Bars inside the range"), "rangeBar", "inColor", s.rangeInColor || s.barColor),
+                    col("range_out", lbl("Bars outside the range"), "rangeBar", "outColor", s.rangeOutColor || s.gridColor),
                 ]),
                 card("statistics_card", "Statistics", [
                     tog("showMean",    "Show mean",              "statistics", "showMean",    s.showMean),
@@ -2816,15 +2824,6 @@ export class Visual implements IVisual {
                     col("labelBg",     "Label background",        "statistics", "labelBgColor", s.labelBgColor),
                     num("labelBgOp",   "Label background opacity %", "statistics", "labelBgOpacity", s.labelBgOpacity),
                 ]),
-                card("benchmark_card", "Benchmark", [
-                    tog("bm_show",  "Show benchmark line", "benchmark", "show",  s.showBenchmark),
-                    num("bm_value", "Benchmark value",     "benchmark", "value", s.benchmarkValue),
-                    col("bm_color", "Line color",          "benchmark", "color", s.benchmarkColor),
-                    txt("bm_label", "Benchmark label",     "benchmark", "label", s.benchmarkLabel),
-                    tog("bm_colorBars", "Color bars by benchmark", "benchmark", "colorBars", s.bmColorBars),
-                    col("bm_above", "At or above benchmark", "benchmark", "aboveColor", s.bmAboveColor),
-                    col("bm_below", "Below benchmark",       "benchmark", "belowColor", s.bmBelowColor),
-                ]),
                 card("zones_card", lbl("Value zones"), [
                     tog("z_show",   lbl("Show value zones"), "zones", "show", s.zShow),
                     num("z_cut1",   lbl("First cut"),        "zones", "cut1", s.zCut1),
@@ -2839,10 +2838,30 @@ export class Visual implements IVisual {
                     col("z_lcol",   lbl("Label text color"), "zones", "labelColor", s.zLabelColor || s.axisColor),
                     num("z_lsize",  lbl("Label font size (0 = automatic)"), "zones", "labelSize", s.zLabelSize),
                 ]),
-                card("smallMultiples_card", lbl("Small multiples"), [
-                    num("sm_cols",  lbl("Columns (0 = automatic)"), "smallMultiples", "columns", s.smColumns),
-                    num("sm_tsize", lbl("Title font size"),          "smallMultiples", "titleFontSize", s.smTitleSize),
-                    col("sm_tcol",  lbl("Title color"),              "smallMultiples", "titleColor", s.smTitleColor),
+                card("benchmark_card", "Benchmark", [
+                    tog("bm_show",  "Show benchmark line", "benchmark", "show",  s.showBenchmark),
+                    num("bm_value", "Benchmark value",     "benchmark", "value", s.benchmarkValue),
+                    col("bm_color", "Line color",          "benchmark", "color", s.benchmarkColor),
+                    txt("bm_label", "Benchmark label",     "benchmark", "label", s.benchmarkLabel),
+                    tog("bm_colorBars", "Color bars by benchmark", "benchmark", "colorBars", s.bmColorBars),
+                    col("bm_above", "At or above benchmark", "benchmark", "aboveColor", s.bmAboveColor),
+                    col("bm_below", "Below benchmark",       "benchmark", "belowColor", s.bmBelowColor),
+                ]),
+                card("valueLabels_card", lbl("Value labels"), [
+                    tog("vl_show",    lbl("Show"),         "valueLabels", "show",        s.showValueLabels),
+                    num("vl_size",    lbl("Font size"),    "valueLabels", "fontSize",    s.vlFontSize),
+                    col("vl_color",   lbl("Color"),        "valueLabels", "color",       s.vlColor),
+                    tog("vl_percent", lbl("Show percent"), "valueLabels", "showPercent", s.vlShowPercent),
+                ]),
+                card("ibcs_card", "IBCS", [
+                    tog("ibcs_mode", "IBCS mode", "ibcs", "mode", s.ibcsMode),
+                ]),
+                card("axes_card", "Axes", [
+                    col("axisColor",  "Axis color",   "axes", "axisColor",  s.axisColor),
+                    col("gridColor",  "Grid color",   "axes", "gridColor",  s.gridColor),
+                    num("fontSize",   "Font size",    "axes", "fontSize",   s.axisFontSize),
+                    tog("showXLabel", "Show X label", "axes", "showXLabel", s.showXLabel),
+                    tog("showYLabel", "Show Y label", "axes", "showYLabel", s.showYLabel),
                 ]),
                 card("legend_card", "Legend", [
                     tog("legend_show",   "Show legend",      "legend", "show",   s.showLegend),
@@ -2855,11 +2874,17 @@ export class Visual implements IVisual {
                     txt("leg_p75_lbl", "P75 label", "legend", "p75Label", s.legendP75Label),
                     txt("leg_normal_lbl", "Normal label", "legend", "normalLabel", s.legendNormalLabel),
                 ]),
-                card("valueLabels_card", lbl("Value labels"), [
-                    tog("vl_show",    lbl("Show"),         "valueLabels", "show",        s.showValueLabels),
-                    num("vl_size",    lbl("Font size"),    "valueLabels", "fontSize",    s.vlFontSize),
-                    col("vl_color",   lbl("Color"),        "valueLabels", "color",       s.vlColor),
-                    tog("vl_percent", lbl("Show percent"), "valueLabels", "showPercent", s.vlShowPercent),
+                card("smallMultiples_card", lbl("Small multiples"), [
+                    num("sm_cols",  lbl("Columns (0 = automatic)"), "smallMultiples", "columns", s.smColumns),
+                    num("sm_tsize", lbl("Title font size"),          "smallMultiples", "titleFontSize", s.smTitleSize),
+                    num("sm_gap",   lbl("Space between panels"),     "smallMultiples", "gap", s.smGap),
+                    col("sm_tcol",  lbl("Title color"),              "smallMultiples", "titleColor", s.smTitleColor),
+                    tog("sm_tbold", lbl("Bold title"),               "smallMultiples", "titleBold", s.smTitleBold),
+                    dropdown("sm_talign", lbl("Title alignment"),    "smallMultiples", "titleAlign", s.smTitleAlign,
+                        [["left", "Enum_al_left", "Left"], ["center", "Enum_al_center", "Center"]]),
+                    col("sm_bg",    lbl("Panel background"),         "smallMultiples", "background", s.smBackground),
+                    tog("sm_bord",  lbl("Panel border"),             "smallMultiples", "border", s.smBorder),
+                    col("sm_bcol",  lbl("Panel border color"),       "smallMultiples", "borderColor", s.smBorderColor),
                 ]),
             ]
         };
