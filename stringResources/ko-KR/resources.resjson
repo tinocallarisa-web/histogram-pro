@@ -103,7 +103,7 @@
   "Role_panel": "작은 배수(Pro)",
   "Obj_smallMultiples": "작은 배수(Pro)",
   "Prop_smallMultiples_columns": "열(0 = 자동)",
-  "Prop_smallMultiples_titleFontSize": "제목 글꼴 크기",
+  "Prop_smallMultiples_titleFontSize": "제목 크기",
   "Prop_smallMultiples_titleColor": "제목 색",
   "Feat_panels": "작은 배수",
   "Prop_statistics_statsBgColor": "통계 패널 배경",

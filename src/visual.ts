@@ -90,6 +90,23 @@ const lines = (mean: string, median: string, q: string, iqr: string, normal: str
     meanColor: mean, medianColor: median, p25Color: q, p75Color: q, iqrColor: iqr, normalColor: normal, cumulativeColor: cum, benchmarkColor: target,
 });
 
+interface RangeState { rLo: number; rHi: number; rActLo: number; rActHi: number; rActive: boolean; }
+/** What a range paints in one panel: its bars have their own scale, the range is the same in all. */
+interface RangePanel {
+    g: d3.Selection<SVGGElement, unknown, null, undefined>; barsG: d3.Selection<SVGGElement, unknown, null, undefined>;
+    xScale: d3.ScaleLinear<number, number>; plotH: number;
+    bars: { x: number; y: number; w: number; h: number; fill: string }[];
+}
+interface RangeArgs extends RangeState {
+    plotW: number; y: number; xScale: d3.ScaleLinear<number, number>; dom: number[];
+    rows: { value: number; origIndex: number }[]; data: number[]; sum: number;
+    panels: RangePanel[];
+    left: number; top: number; inColor: string; outColor: string;
+    barOpacity: number; dim: number; shortcutsOn: boolean; step: number;
+    stroke: string; strokeW: number; hc: boolean; axisColor: string; gridColor: string; accent: string;
+    fmt: (v: number) => string; fs: number;
+}
+
 const STYLES: Record<string, StyleLook> = {
     classic: { accent: "#0B7285", values: {} },
     boardroom: { bg: "#16263D", accent: "#C9A45C", dim: 0.4, values: {
@@ -1316,8 +1333,35 @@ export class Visual implements IVisual {
                 if (hl) highlightedRaw.push(+v);
             }
         }
-        type Shared = { lo: number; hi: number; rd: { lo: number; hi: number; clamped: boolean }; scaleRef: number; yMax: number };
+        type Shared = { lo: number; hi: number; rd: { lo: number; hi: number; clamped: boolean }; scaleRef: number; yMax: number; range: RangeState | null };
         const fullW = width, fullH = height;
+        // Range bar: a detail field whose values can be filtered, and on the last level when drilling.
+        const dRoles = (this.lastDataView?.metadata as any)?.dataRoles;
+        const drillable = !dRoles?.isDrillDisabled
+            && ((dRoles?.drillableRoles?.["category"] ?? []) as number[]).indexOf(2 /* DrillType.Down */) >= 0;
+        const rangeTarget = (categories?.source?.queryName ?? "").split(".");
+        const rangeAllowed = settings.rangeShow && this.canInteract && !drillable
+            && rangeTarget.length === 2 && !!rangeTarget[0] && !!rangeTarget[1];
+        // The range in force, read back from the filter: a click, a bookmark or a reopened
+        // report arrive the same way. Only a continuous run of values is a range.
+        const readRange = (rows: RowT[], toAxis: (v: number) => number, dom: number[]): RangeState => {
+            const r: RangeState = { rLo: dom[0], rHi: dom[1], rActLo: dom[0], rActHi: dom[1], rActive: false };
+            if (!selVals || selPanels || !categories) return r;
+            const inSel = (d: RowT) => selVals!.has(String(categories.values[d.origIndex]));
+            let a = Infinity, b = -Infinity, cnt = 0;
+            for (const d of rows) if (inSel(d)) { a = Math.min(a, d.value); b = Math.max(b, d.value); cnt++; }
+            if (cnt && cnt < rows.length && rows.every(d => d.value < a || d.value > b || inSel(d))) {
+                r.rActive = true; r.rLo = r.rActLo = toAxis(a); r.rHi = r.rActHi = toAxis(b);
+                const asked = this.askedRange;
+                if (asked && asked.lo <= a && asked.hi >= b
+                    && rows.filter(d => d.value >= asked.lo && d.value <= asked.hi).length === cnt) {
+                    r.rLo = toAxis(asked.lo); r.rHi = toAxis(asked.hi);
+                }
+            }
+            return r;
+        };
+        let gridArgs: RangeArgs | null = null;
+        const gridPanels: RangePanel[] = [];
         // Small multiples: one legend for all panels, in a band across the top.
         let legendBand = 0;
         let bottomBandG = 0;
@@ -1382,14 +1426,8 @@ export class Visual implements IVisual {
         const ownLegend = settings.showLegend && !shared;
         const marginT = 16 + (ownLegend && !settings.legendBottom ? legendRowH + 16 : 0);
         const marginB0 = (settings.showXLabel ? 46 : 32) + (ownLegend && settings.legendBottom ? legendRowH + 16 : 0);
-        // Range bar: one panel only (each panel would need its own range), with a detail field
-        // whose values can be filtered, and on the last level when drilling.
-        const dRoles = (this.lastDataView?.metadata as any)?.dataRoles;
-        const drillable = !dRoles?.isDrillDisabled
-            && ((dRoles?.drillableRoles?.["category"] ?? []) as number[]).indexOf(2 /* DrillType.Down */) >= 0;
-        const rangeTarget = (categories?.source?.queryName ?? "").split(".");
-        const rangeOn = !shared && !compact && settings.rangeShow && this.canInteract && !drillable
-            && rangeTarget.length === 2 && !!rangeTarget[0] && !!rangeTarget[1];
+        // Small multiples get one bar under the whole grid, drawn after the panels.
+        const rangeOn = !shared && !compact && rangeAllowed;
         // The shortcuts show to whoever can use them, and to an author without a licence as
         // part of the Pro preview. A reader without a licence gets the free bar alone.
         const shortcutsOn = rangeOn && settings.rangeShortcuts && width >= 380 && height >= 260 && (this.isPro || this.proPreview);
@@ -1445,24 +1483,10 @@ export class Visual implements IVisual {
             })
         );
 
-        // The range in force, read back from the filter: a click, a bookmark or a reopened
-        // report arrive the same way. Only a continuous run of values is a range.
         const usedRows = rawWithIds.filter(d => d.value >= loVal && d.value <= hiVal);
-        let rLo = xDomain[0], rHi = xDomain[1], rActive = false, rActLo = rLo, rActHi = rHi;
-        if (rangeOn && selVals && !selPanels && categories) {
-            const inSel = (d: RowT) => selVals!.has(String(categories.values[d.origIndex]));
-            let a = Infinity, b = -Infinity, cnt = 0;
-            for (const d of usedRows) if (inSel(d)) { a = Math.min(a, d.value); b = Math.max(b, d.value); cnt++; }
-            if (cnt && cnt < usedRows.length && usedRows.every(d => d.value < a || d.value > b || inSel(d))) {
-                rActive = true; rLo = clampToAxis(a); rHi = clampToAxis(b);
-                rActLo = rLo; rActHi = rHi;
-                const asked = this.askedRange;
-                if (asked && asked.lo <= a && asked.hi >= b
-                    && usedRows.filter(d => d.value >= asked.lo && d.value <= asked.hi).length === cnt) {
-                    rLo = clampToAxis(asked.lo); rHi = clampToAxis(asked.hi);
-                }
-            }
-        }
+        const rState = shared ? shared.range : (rangeOn ? readRange(usedRows, clampToAxis, xDomain) : null);
+        const rLo = rState?.rLo ?? xDomain[0], rHi = rState?.rHi ?? xDomain[1], rActLo = rState?.rActLo ?? rLo, rActHi = rState?.rActHi ?? rHi;
+        const rActive = !!rState?.rActive;
         const binSelectionIds: powerbi.extensibility.ISelectionId[][] = binRows.map(rows => rows.map(d => d.selId));
         const binIndices: number[][] = binRows.map(rows => rows.map(d => d.origIndex));
 
@@ -1809,10 +1833,10 @@ export class Visual implements IVisual {
                 sel.selectAll(".tick line").attr("stroke", effectiveAxisColor);
             });
 
-        if (rangeOn) this.drawRange(g, barsG, {
-            plotW, plotH, y: plotH + marginB0 + 10, xScale, dom: xDomain, rows: usedRows, data, sum: usedRows.reduce((t, d) => t + d.value, 0),
-            bars: bins.map((bin, i) => ({ x: xScale(bin.x0 ?? 0) + gap / 2, w: Math.max(0, xScale(bin.x1 ?? 0) - xScale(bin.x0 ?? 0) - gap),
-                y: yScale(bin.length), h: plotH - yScale(bin.length), fill: binFill(i, bin) })),
+        const rangeArgs: RangeArgs = {
+            plotW, y: plotH + marginB0 + 10, xScale, dom: xDomain, rows: usedRows, data, sum: usedRows.reduce((t, d) => t + d.value, 0),
+            panels: [{ g, barsG, xScale, plotH, bars: bins.map((bin, i) => ({ x: xScale(bin.x0 ?? 0) + gap / 2, w: Math.max(0, xScale(bin.x1 ?? 0) - xScale(bin.x0 ?? 0) - gap),
+                y: yScale(bin.length), h: plotH - yScale(bin.length), fill: binFill(i, bin) })) }],
             left: ox + marginL, top: oy + titleH + marginT,
             inColor: this.allow("bar styling") && !isHighContrast ? settings.rangeInColor : "",
             outColor: this.allow("bar styling") && !isHighContrast ? settings.rangeOutColor : "",
@@ -1820,7 +1844,9 @@ export class Visual implements IVisual {
             hc: isHighContrast, axisColor: effectiveAxisColor, gridColor: effectiveGridColor,
             accent: isHighContrast ? (this.host.colorPalette.foregroundSelected?.value ?? "#FFFF00") : (settings.rangeColor || look.accent),
             fmt: (v: number) => formatValue(v, formatStr), fs: settings.axisFontSize,
-        });
+        };
+        if (rangeOn) this.drawRange(g, rangeArgs);
+        else if (shared?.range) { gridArgs = rangeArgs; gridPanels.push(rangeArgs.panels[0]); }
 
         // Y axis
         g.append("g").attr("class", "hp-axis").call(d3.axisLeft(yScale).ticks(5).tickFormat(d => fmtNum(+d)))
@@ -2151,7 +2177,8 @@ export class Visual implements IVisual {
                 const b = d3.bin().domain(xd as [number, number]).thresholds(thresholds)(vals);
                 yMax = Math.max(yMax, d3.max(b, x => x.length) ?? 0);
             }
-            const shared: Shared = { lo, hi, rd, scaleRef: Math.max(Math.abs(all[0]), Math.abs(all[all.length - 1])), yMax };
+            const gridRows = rawWithIds.filter(d => d.value >= lo && d.value <= hi);
+            const shared: Shared = { lo, hi, rd, scaleRef: Math.max(Math.abs(all[0]), Math.abs(all[all.length - 1])), yMax, range: null };
 
             const np = keys.length;
             const cols = settings.smColumns >= 1
@@ -2165,7 +2192,13 @@ export class Visual implements IVisual {
                 ? Math.max(6, settings.legendFontSize || Math.max(8, settings.axisFontSize - 1)) + 18 : 0;
             const bottomBand = rd.clamped ? 14 : 0;
             bottomBandG = bottomBand;
-            const gridH = height - legendBand - bottomBand;
+            // One range bar for the grid, if the panels keep a readable height without its band.
+            const gridShortcuts = settings.rangeShortcuts && width >= 380 && (this.isPro || this.proPreview);
+            const rangeBandH = 18 + 44 + (gridShortcuts ? 26 : 0);
+            const gridRange = rangeAllowed && width >= 320
+                && (height - legendBand - bottomBand - rangeBandH - gapPx * (rows - 1)) / rows >= 110;
+            if (gridRange) shared.range = readRange(gridRows, clamp, xd);
+            const gridH = height - legendBand - bottomBand - (gridRange ? rangeBandH : 0);
             // "Position: bottom" puts the shared legend under the grid instead of above it.
             const gridTop = settings.legendBottom ? 0 : legendBand;
             const cw = (width - gapPx * (cols - 1)) / cols;
@@ -2182,6 +2215,15 @@ export class Visual implements IVisual {
                 drawPanel(vals, rs, hlv, (i % cols) * (cw + gapPx), gridTop + Math.floor(i / cols) * (chh + gapPx),
                           cw, chh, shared, ttl, pv ?? null, i === 0);
             });
+            if (gridRange && gridArgs) {
+                const left = 52, top = gridTop + gridH + 16, barW = Math.max(20, width - left - 16);
+                const gridG = this.svg.append("g").attr("transform", `translate(${left},${top})`);
+                this.drawRange(gridG, {
+                    ...(gridArgs as RangeArgs), panels: gridPanels, plotW: barW, y: 0, left, top, shortcutsOn: gridShortcuts,
+                    xScale: d3.scaleLinear().domain(xd).range([0, barW]), dom: xd, rows: gridRows, data: kept,
+                    sum: gridRows.reduce((t, d) => t + d.value, 0),
+                });
+            }
         }
         this.renderTruncationNotice(width);
         this.renderWatermark(width, height);
@@ -2203,28 +2245,23 @@ export class Visual implements IVisual {
      * sits under the value it stands for. Dragging repaints only the bar and the overlay; the
      * report is filtered on release, not at every pixel.
      */
-    private drawRange(g: d3.Selection<SVGGElement, unknown, null, undefined>, barsG: d3.Selection<SVGGElement, unknown, null, undefined>, o: {
-        plotW: number; plotH: number; y: number; xScale: d3.ScaleLinear<number, number>; dom: number[];
-        rows: { value: number; origIndex: number }[]; data: number[]; sum: number;
-        bars: { x: number; y: number; w: number; h: number; fill: string }[];
-        left: number; top: number; inColor: string; outColor: string;
-        barOpacity: number; dim: number; rLo: number; rHi: number; rActLo: number; rActHi: number; rActive: boolean; shortcutsOn: boolean; step: number;
-        stroke: string; strokeW: number; hc: boolean; axisColor: string; gridColor: string; accent: string;
-        fmt: (v: number) => string; fs: number;
-    }): void {
-        const { plotW, plotH, xScale, dom } = o;
+    private drawRange(g: d3.Selection<SVGGElement, unknown, null, undefined>, o: RangeArgs): void {
+        const { plotW, xScale, dom } = o;
         let lo = o.rLo, hi = o.rHi, active = o.rActive;
         const bound = (v: number) => Math.min(dom[1], Math.max(dom[0], v));
 
         // The selected stretch of the bars, at full strength: a range can end inside a bar.
-        const clipId = "hp-range-clip";
-        const clipRect = g.append("clipPath").attr("id", clipId).append("rect").attr("y", -2).attr("height", plotH + 4);
-        const over = barsG.append("g").attr("class", "hp-range-over").attr("clip-path", `url(#${clipId})`).attr("pointer-events", "none");
-        for (const b of o.bars) {
-            if (b.w <= 0 || b.h <= 0) continue;
-            over.append("rect").attr("x", b.x).attr("y", b.y).attr("width", b.w).attr("height", b.h)
-                .attr("fill", o.inColor || b.fill).attr("fill-opacity", o.barOpacity).attr("stroke", o.stroke).attr("stroke-width", o.strokeW);
-        }
+        const overlays = o.panels.map((p, n) => {
+            const clipId = `hp-range-clip-${n}`;
+            const clipRect = p.g.append("clipPath").attr("id", clipId).append("rect").attr("y", -2).attr("height", p.plotH + 4);
+            const over = p.barsG.append("g").attr("class", "hp-range-over").attr("clip-path", `url(#${clipId})`).attr("pointer-events", "none");
+            for (const b of p.bars) {
+                if (b.w <= 0 || b.h <= 0) continue;
+                over.append("rect").attr("x", b.x).attr("y", b.y).attr("width", b.w).attr("height", b.h)
+                    .attr("fill", o.inColor || b.fill).attr("fill-opacity", o.barOpacity).attr("stroke", o.stroke).attr("stroke-width", o.strokeW);
+            }
+            return { p, clipRect, over };
+        });
 
         const rg = g.append("g").attr("class", "hp-range").attr("transform", `translate(0,${o.y})`);
         rg.append("line").attr("x1", 0).attr("x2", plotW).attr("stroke", o.axisColor).attr("stroke-opacity", 0.35).attr("stroke-width", 3).attr("stroke-linecap", "round");
@@ -2248,20 +2285,23 @@ export class Visual implements IVisual {
             seg.attr("x1", a).attr("x2", b).attr("display", active ? null : "none");
             hLo.attr("x", a - 5).attr("aria-valuenow", lo).attr("aria-valuetext", o.fmt(lo));
             hHi.attr("x", b - 5).attr("aria-valuenow", hi).attr("aria-valuetext", o.fmt(hi));
-            clipRect.attr("x", a).attr("width", Math.max(0, b - a));
-            over.attr("display", active ? null : "none");
-            barsG.selectAll(".hp-bar").attr("fill-opacity", (_d, i, nodes) => active
-                ? (o.outColor ? o.barOpacity : o.barOpacity * o.dim)
-                : (nodes[i] as SVGRectElement).getAttribute("data-op") ?? o.barOpacity)
-                .attr("fill", (_d, i, nodes) => active && o.outColor ? o.outColor
-                    : (nodes[i] as SVGRectElement).getAttribute("data-fill"));
+            for (const { p, clipRect, over } of overlays) {
+                const pa = p.xScale(lo), pb = p.xScale(hi);
+                clipRect.attr("x", pa).attr("width", Math.max(0, pb - pa));
+                over.attr("display", active ? null : "none");
+                p.barsG.selectAll(".hp-bar").attr("fill-opacity", (_d, i, nodes) => active
+                    ? (o.outColor ? o.barOpacity : o.barOpacity * o.dim)
+                    : (nodes[i] as SVGRectElement).getAttribute("data-op") ?? o.barOpacity)
+                    .attr("fill", (_d, i, nodes) => active && o.outColor ? o.outColor
+                        : (nodes[i] as SVGRectElement).getAttribute("data-fill"));
+            }
             if (inLo) inLo.value = active ? plain(lo) : "";
             if (inHi) inHi.value = active ? plain(hi) : "";
             const mid = Math.max(40, Math.min(plotW - 40, (a + b) / 2));
             label.attr("x", mid).attr("text-anchor", "middle").attr("display", active ? null : "none")
                 .text(`${o.fmt(lo)} – ${o.fmt(hi)}${hi >= dom[1] && o.data[o.data.length - 1] > dom[1] ? "+" : ""}`);
         };
-        barsG.selectAll(".hp-bar")
+        for (const p of o.panels) p.barsG.selectAll(".hp-bar")
             .attr("data-op", (_d, i, nodes) => (nodes[i] as SVGRectElement).getAttribute("fill-opacity"))
             .attr("data-fill", (_d, i, nodes) => (nodes[i] as SVGRectElement).getAttribute("fill"));
 
@@ -2672,7 +2712,7 @@ export class Visual implements IVisual {
             case "rangeBar":
                 return { type: shape, fill: ref("rangeBar", "color", "Range color") } as any;
             case "smallMultiples":
-                return { type: text, fontSize: ref("smallMultiples", "titleFontSize", "Title font size"), fontColor: ref("smallMultiples", "titleColor", "Title color") } as any;
+                return { type: text, fontSize: ref("smallMultiples", "titleFontSize", "Title size"), fontColor: ref("smallMultiples", "titleColor", "Title color") } as any;
         }
         return undefined;
     }
@@ -2876,7 +2916,7 @@ export class Visual implements IVisual {
                 ]),
                 card("smallMultiples_card", lbl("Small multiples"), [
                     num("sm_cols",  lbl("Columns (0 = automatic)"), "smallMultiples", "columns", s.smColumns),
-                    num("sm_tsize", lbl("Title font size"),          "smallMultiples", "titleFontSize", s.smTitleSize),
+                    num("sm_tsize", lbl("Title size"),          "smallMultiples", "titleFontSize", s.smTitleSize),
                     num("sm_gap",   lbl("Space between panels"),     "smallMultiples", "gap", s.smGap),
                     col("sm_tcol",  lbl("Title color"),              "smallMultiples", "titleColor", s.smTitleColor),
                     tog("sm_tbold", lbl("Bold title"),               "smallMultiples", "titleBold", s.smTitleBold),

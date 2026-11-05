@@ -103,7 +103,7 @@
   "Role_panel": "Small multiples (Pro)",
   "Obj_smallMultiples": "Small multiples (Pro)",
   "Prop_smallMultiples_columns": "Columns (0 = automatic)",
-  "Prop_smallMultiples_titleFontSize": "Title font size",
+  "Prop_smallMultiples_titleFontSize": "Title size",
   "Prop_smallMultiples_titleColor": "Title color",
   "Feat_panels": "small multiples",
   "Prop_statistics_statsBgColor": "Stats panel background",

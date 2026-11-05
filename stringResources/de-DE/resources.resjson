@@ -103,7 +103,7 @@
   "Role_panel": "Kleine Vielfache (Pro)",
   "Obj_smallMultiples": "Kleine Vielfache (Pro)",
   "Prop_smallMultiples_columns": "Spalten (0 = automatisch)",
-  "Prop_smallMultiples_titleFontSize": "Schriftgröße des Titels",
+  "Prop_smallMultiples_titleFontSize": "Titelgröße",
   "Prop_smallMultiples_titleColor": "Titelfarbe",
   "Feat_panels": "kleine Vielfache",
   "Prop_statistics_statsBgColor": "Hintergrund des Statistikbereichs",

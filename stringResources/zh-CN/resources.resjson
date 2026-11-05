@@ -103,7 +103,7 @@
   "Role_panel": "小型序列图 (Pro)",
   "Obj_smallMultiples": "小型序列图 (Pro)",
   "Prop_smallMultiples_columns": "列 (0 = 自动)",
-  "Prop_smallMultiples_titleFontSize": "标题字号",
+  "Prop_smallMultiples_titleFontSize": "标题大小",
   "Prop_smallMultiples_titleColor": "标题颜色",
   "Feat_panels": "小型序列图",
   "Prop_statistics_statsBgColor": "统计面板背景",
