@@ -1371,7 +1371,9 @@ export class Visual implements IVisual {
                            shared: Shared | null, title: string, panelValue: powerbi.PrimitiveValue | undefined,
                            showLegendHere: boolean): void => {
         const cellH = height;
-        const titleH = title ? Math.max(9, settings.smTitleSize) + 8 : 0;
+        // With a frame or a background the title needs air between it and the edge.
+        const titlePad = title && (settings.smBorder || settings.smBackground) ? 6 : 0;
+        const titleH = title ? Math.max(9, settings.smTitleSize) + 8 + titlePad : 0;
         if (raw.length < 2) return;
 
         raw.sort((a, b) => a - b);
@@ -1572,7 +1574,7 @@ export class Visual implements IVisual {
             }
             const centred = settings.smTitleAlign === "center";
             this.svg.append("text").attr("class", "hp-sm-title")
-                .attr("x", centred ? ox + width / 2 : ox + 4).attr("y", oy + Math.max(9, settings.smTitleSize))
+                .attr("x", centred ? ox + width / 2 : ox + 4 + titlePad).attr("y", oy + titlePad + Math.max(9, settings.smTitleSize))
                 .attr("text-anchor", centred ? "middle" : "start")
                 .attr("font-size", Math.max(9, settings.smTitleSize)).attr("font-weight", settings.smTitleBold ? "600" : "400")
                 .attr("fill", isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : settings.smTitleColor)
