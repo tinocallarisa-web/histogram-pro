@@ -17,13 +17,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Range shortcuts and summary (Pro).** Q1 to Q4, No outliers and Top 10% in one click, and a line that says how many rows the range holds and their share of rows and of value. Colours for the bars inside and outside the range.
 - **Style templates.** *Report theme* and *Classic* are free. *Boardroom*, *Ledger*, *Editorial*, *Signal*, *Aurora* and *Terrace* are Pro, and choosing one draws it at once on your data under the Pro preview watermark.
 - **On-object formatting.** Bars, axes, legend, statistics panel, zone labels, range bar and panel titles can be selected on the canvas and formatted there. In that mode a click chooses what to format and does not filter. Free.
-- **Setup guide.** On a new visual, a short panel says which fields are missing and offers the styles. It can be brought back from the format pane.
-- **Small multiples.** Title alignment and bold, space between panels, panel background and panel border. One range bar under the whole grid filters the report and dims the bars of every panel. It is left out when the panels would be too short to read.
+- **Setup guide.** Once a field is in Values, a visual with no stored settings shows a short panel that says which fields are missing and offers the styles. It can be brought back from the format pane.
+- **Small multiples (Pro).** Title alignment and bold, space between panels, panel background and panel border. One range bar under the whole grid filters the report and dims the bars of every panel. It is left out when the panels would be too short to read.
 - **Zone labels (Pro).** Their own background, opacity, text colour and size. Without a colour of your own, the text turns black or white when the zone colour cannot be read.
 - **Localization.** Twelve languages: English, Spanish, Portuguese (Brazil and Portugal), French, German, Italian, Dutch, Polish, Japanese, Chinese (Simplified) and Korean.
 
 ### Fixed
 
+- **The statistics panel could not be previewed.** Without a licence, the switch showed on and no panel was drawn. It now starts off and, turned on, is drawn under the watermark. Opacity and the legend entry of the normal curve also follow the preview.
+- **`allowInteractions`** was read from the wrong place, so range bar and clicks stayed active in hosts that turn interactions off.
+- **A bar with a hierarchy in Detail selected only its first 100 rows.** It now selects all of them, or declines and says so above 10,000.
+- **High contrast.** Statistics text, normal curve, value labels, legend entries, notices and the landing page now take the theme's colours.
+- **A typed range with a thousands separator** such as 1,234.5 reset the range.
 - **The last bar of a clipped axis filtered too little.** With a long tail, that bar holds everything above the axis, but clicking it left those rows and the maximum out of the filter.
 - **The visual's stylesheet was not reaching the package.** The focus outline of a bar and other small rules now apply.
 

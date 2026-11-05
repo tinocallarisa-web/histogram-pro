@@ -206,14 +206,14 @@
 
     <h3>3. Read the shape, then tune it</h3>
     <p>The chart starts with 10 bins and the mean and median lines. Open the <strong>Format</strong> pane to add quartiles, IQR shading,
-    a benchmark, value zones or the cumulative line, and (Pro) to change the bin count.</p>
+    or a benchmark; with Pro, value zones, the cumulative line and the bin count.</p>
 
     <h3>4. Compare groups</h3>
     <p>Drop a field such as Region or Year into <code>Small multiples</code> (Pro). You get one histogram per value, on the same
     bins and the same vertical scale, so the panels can be compared bar by bar.</p>
 
     <h3>The setup guide</h3>
-    <p>On a new visual, a short panel in the corner says which fields are missing and offers the styles. It only appears to whoever
+    <p>Once a field is in Values, a visual with no stored settings and large enough shows a short panel in the corner: which fields are missing, and the styles. It only appears to whoever
     is editing. Close it with the cross; <strong>Style template → Setup guide</strong> brings it back.</p>
   </div>
 
@@ -302,7 +302,7 @@
       <tr><td>Number of bins <span class="badge badge-pro">Pro</span></td><td>10</td><td>2 to 100. Free uses 10.</td></tr>
       <tr><td>Lower trim % / Upper trim % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Leaves out that percentage of rows from each tail, before binning. Unlike the clipped axis, trimmed rows are excluded from the statistics, and the panel says how many.</td></tr>
       <tr><td>Bar color <span class="badge badge-pro">Pro</span></td><td>From the template</td><td>Has an <strong>fx</strong> button: colour bars by a rule or a field instead of one colour.</td></tr>
-      <tr><td>Bar opacity %, Border color, Border width, Bar gap px <span class="badge badge-pro">Pro</span></td><td>80 · dark · 1 · 2</td><td>Bar styling.</td></tr>
+      <tr><td>Bar opacity %, Border color, Border width, Bar gap px <span class="badge badge-pro">Pro</span></td><td>80 · from the template · 1 · 1 (2 with Pro styling)</td><td>Bar styling.</td></tr>
     </table>
   </div>
 
@@ -334,11 +334,11 @@
       <tr><td>Show mean line, Show median line</td><td>On</td><td>Vertical reference lines, each with its own colour.</td></tr>
       <tr><td>Show P25 line, Show P75 line</td><td>Off</td><td>First and third quartiles.</td></tr>
       <tr><td>Show IQR range</td><td>Off</td><td>Shades the band between P25 and P75.</td></tr>
-      <tr><td>Label background, Label background opacity %</td><td>White · 75</td><td>The box behind line labels and zone labels, so they stay readable over bars.</td></tr>
+      <tr><td>Label background, Label background opacity %</td><td>From the template · 85</td><td>The box behind line labels and zone labels, so they stay readable over bars.</td></tr>
       <tr><td>Normal curve <span class="badge badge-pro">Pro</span></td><td>Off</td><td>Bell curve with the data's mean and σ.</td></tr>
       <tr><td>Cumulative frequency <span class="badge badge-pro">Pro</span></td><td>Off</td><td>0–100% line on its own right axis.</td></tr>
       <tr><td>Stats panel <span class="badge badge-pro">Pro</span></td><td>On</td><td>n, μ, M, σ, min, max.</td></tr>
-      <tr><td>Stats text color, Stats panel background, Stats panel opacity % <span class="badge badge-pro">Pro</span></td><td>Grey · black · 35</td><td>Panel styling — set an opaque light background on a white report.</td></tr>
+      <tr><td>Stats text color, Stats panel background, Stats panel opacity % <span class="badge badge-pro">Pro</span></td><td>From the template · 90</td><td>Panel styling — set an opaque light background on a white report.</td></tr>
     </table>
   </div>
 
@@ -348,7 +348,10 @@
       <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
       <tr><td>Show value zones</td><td>Off</td><td>Turns the three zones on. Nothing is drawn until the two cuts differ.</td></tr>
       <tr><td>First cut, Second cut</td><td>0</td><td>The boundaries, in the units of Values. Order does not matter. A value equal to a cut belongs to the lower zone.</td></tr>
-      <tr><td>Low / Middle / High zone color</td><td>Green · amber · red</td><td>Zone shading.</td></tr>
+      <tr><td>Low / Middle / High zone color</td><td>From the template</td><td>Zone shading.</td></tr>
+      <tr><td>Label background, opacity</td><td>From Statistics · 75</td><td>Behind the zone labels.</td></tr>
+      <tr><td>Label text color</td><td>Empty</td><td>Empty: the zone colour, or black or white when that cannot be read.</td></tr>
+      <tr><td>Label font size</td><td>0</td><td>0 is automatic.</td></tr>
       <tr><td>Show zone labels</td><td>On</td><td>Labels in front of the bars, shortened automatically when a zone is narrow.</td></tr>
       <tr><td>Show share of total value</td><td>On</td><td>Adds "· N% of value" to each label. Turn it off for measures where a sum means nothing (scores, durations).</td></tr>
     </table>
@@ -410,9 +413,10 @@
     <h3>The range bar</h3>
     <p>Drag the two handles, type the minimum and maximum, or focus a handle and use the arrow keys. The report is filtered when you
     release, by every row in the range; the bars outside it dim. It is limited, like a bar, to the 10,000 distinct values Power BI can
-    cross-filter at once. It needs a field in <code>Detail (rows)</code> and is not shown in drill mode or on a very small visual.
+    cross-filter at once. It needs a field in <code>Detail (rows)</code> and is not shown while that field holds a hierarchy with a level below, or on a very small visual.
     With small multiples there is one bar under the whole grid, which filters across every panel; it is left out when the panels would
     be too short to read.</p>
+    <p>With a hierarchy in Detail, the bar is selected through Power BI's selection, so the page can drill. Above 10,000 rows in a bar, the visual declines and says so rather than select part of it.</p>
     <h3>Ctrl+click</h3>
     <p>Adds bars to the selection (or takes one out). Within small multiples, Ctrl+click adds bars of the same panel; a click in another
     panel starts a new selection.</p>
@@ -471,8 +475,7 @@
   <div class="card">
     <h3>Pro preview</h3>
     <p>Turn on a Pro feature while editing without a licence and it is drawn working, on your own data, under a "Pro preview" watermark that
-    names it — together with Power BI's own notification and its link to the licence. In reading view, published reports and exports the
-    free chart is shown, without watermark or prompt.</p>
+    names it — together with Power BI's own notification and its link to the licence. In reading view and published reports the free chart is shown, with no watermark; if Pro settings are stored, Power BI may show its own licence notice to a reader without a licence. Publish to Web, embed and export show no prompt.</p>
     <div class="cta">
       <a class="btn btn-primary" href="https://appsource.microsoft.com/en-us/product/power-bi-visuals/tino_callarisa.histogram-pro-tcviz" target="_blank">Get Pro on AppSource</a>
     </div>

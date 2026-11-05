@@ -50,7 +50,7 @@ Full documentation, with search: https://tinocallarisa-web.github.io/histogram-p
 - **Legend** — show, bottom position, font size and colour, the label of each line
 - **Benchmark** — a target or SLA line with value, colour and label; colour the bars by side
 - **IBCS** — monochrome presentation following the IBCS notation
-- **Value labels (Pro)** — the count above each bar, optionally with its percentage
+- **Value labels (Pro)** — the count above each bar, or its share of all rows
 
 ---
 

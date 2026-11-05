@@ -50,10 +50,10 @@ FORMAT PANE
 - Legend -- show, bottom position, font size and colour, the label of each line
 - Benchmark -- a target or SLA line with value, colour and label; colour the bars by side
 - IBCS -- monochrome presentation following the IBCS notation
-- Value labels (Pro) -- the count above each bar, optionally with its percentage
+- Value labels (Pro) -- the count above each bar, or its share of all rows
 
 
-VALUE ZONES -- SAY WHAT THE SHAPE IMPLIES *(PRO)*
+VALUE ZONES -- SAY WHAT THE SHAPE IMPLIES (PRO)
 ------------------------------------------------
 
 A histogram of deal sizes shows a long right tail. It does not say how much of the revenue
@@ -67,7 +67,7 @@ revenue. Turn Show share of total value off for measures where a sum means nothi
 such as scores or durations.
 
 
-COMPARING GROUPS -- SMALL MULTIPLES *(PRO)*
+COMPARING GROUPS -- SMALL MULTIPLES (PRO)
 ------------------------------------------
 
 Drop Region, Year or Segment into Small multiples. Every panel uses **the same bins and
@@ -77,7 +77,7 @@ per panel. The legend is drawn once, on top or at the bottom. One range bar unde
 filters across every panel; it is left out when the panels would be too short to read.
 
 
-THE CUMULATIVE LINE *(PRO)*
+THE CUMULATIVE LINE (PRO)
 ---------------------------
 
 A 0-100% line on its own right-hand axis. Read across from 80% and down to the value axis:

@@ -35,8 +35,6 @@ const FREE_MAX_BINS = 10;
 // Filtrar un subconjunto en su lugar seria una respuesta silenciosamente falsa,
 // asi que a partir de aqui el visual declina y dice que palanca lo arregla.
 const MAX_FILTER_VALUES = 10000;
-// Solo en el camino de respaldo: los selection IDs son pesados, asi que pocos.
-const MAX_SEL_IDS_PER_BIN = 100;
 const PLAN_ID = "histogram-pro-tcviz";
 
 /**
@@ -412,6 +410,7 @@ export class Visual implements IVisual {
     private guideStep = 2;
     /** Stays open while the session lasts: choosing a style stores a property, and that must not close it. */
     private guideOpen = false;
+    private guideSig = "";
     private lastDataView: DataView | null = null;
     private lastCatCol: powerbi.DataViewCategoryColumn | null = null;
     private lastPanCol: powerbi.DataViewCategoryColumn | null = null;
@@ -469,6 +468,24 @@ export class Visual implements IVisual {
      * forth on release. A filter from outside, such as a bookmark, wins once the wait is over.
      */
     private ownFilter: { sig: string; at: number; filters: any[] } | null = null;
+    private static sameId(a: any, b: any): boolean {
+        return a === b || !!a?.equals?.(b) || !!b?.equals?.(a);
+    }
+
+    /**
+     * The selection lives in Power BI: a bookmark can announce it before the data arrives, when
+     * there are no bars to match. So it is read again after a render, once, while nothing is marked.
+     */
+    private syncSelection(options: VisualUpdateOptions): void {
+        if (this.selKeys.size || this.filterApplied || this.ownFilter) return;
+        const ids = ((this.selectionManager as any).getSelectionIds?.() ?? []) as powerbi.extensibility.ISelectionId[];
+        if (!ids.length) return;
+        for (const b of this.binIds) {
+            if (b.ids.some(id => ids.some(x => Visual.sameId(x, id)))) this.selKeys.add(b.key);
+        }
+        if (this.selKeys.size) this.render(options);
+    }
+
     /** Removing the old bar during a repaint blurs its handle: that is not the user leaving it. */
     private painting = false;
 
@@ -482,7 +499,7 @@ export class Visual implements IVisual {
         this.selectionManager.registerOnSelectCallback((ids: powerbi.extensibility.ISelectionId[]) => {
             this.selKeys.clear();
             for (const b of this.binIds) {
-                if (b.ids.some(id => ids.some(s => (s as any).equals?.(id) ?? s === id))) this.selKeys.add(b.key);
+                if (b.ids.some(id => ids.some(s => Visual.sameId(s, id)))) this.selKeys.add(b.key);
             }
             this.repaint();
         });
@@ -700,6 +717,8 @@ export class Visual implements IVisual {
             if (!obj[card]) continue;
             const v = obj[card][prop];
             if (v === undefined) continue;
+            // The stats panel defaults to on for Pro, so for it "on" is the Pro value, not the free one.
+            if (prop === "showStats") { if (v === true) found.add(label); continue; }
             // Comparar el VALOR, no la mera presencia. Power BI deja la propiedad escrita
             // para siempre una vez tocada, asi que mirar si existe dejaba la marca de agua
             // puesta aunque el usuario devolviera el ajuste a su valor gratuito.
@@ -807,7 +826,8 @@ export class Visual implements IVisual {
      * usuario, asi que la seleccion y el menu contextual se comprueban antes.
      */
     private get canInteract(): boolean {
-        return (this.host as any).allowInteractions !== false;
+        const h = this.host as any;
+        return (h.hostCapabilities?.allowInteractions ?? h.allowInteractions) !== false;
     }
 
     // ── Segment streaming ─────────────────────────────────────────────────────
@@ -880,7 +900,7 @@ export class Visual implements IVisual {
         this.svg.append("text")
             .attr("x", width - 6).attr("y", height - 4)
             .attr("text-anchor", "end")
-            .attr("fill", "#90A4AE")
+            .attr("fill", this.host.colorPalette.isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : "#90A4AE")
             .attr("font-size", 9)
             .attr("font-family", "Segoe UI, sans-serif")
             .text(this.tf("UI_Clamp", "Axis clipped to the long tail · the last bar holds everything above {0}", hiLabel));
@@ -895,7 +915,7 @@ export class Visual implements IVisual {
         this.svg.append("text")
             .attr("x", width - 6).attr("y", 12)
             .attr("text-anchor", "end")
-            .attr("fill", "#FFB300")
+            .attr("fill", this.host.colorPalette.isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : "#B26A00")
             .attr("font-size", 10)
             .attr("font-family", "Segoe UI, sans-serif")
             .text(txt);
@@ -1009,14 +1029,20 @@ export class Visual implements IVisual {
         // through the selection manager; the exact BasicFilter below never reaches the
         // drill logic, so with drill mode on a click did nothing. While the Detail field
         // has a level below (drillableRoles lists Down), select instead: that drills in
-        // drill mode and still cross-filters otherwise. Upper levels hold few members per
-        // bin, so the selection-ID cap does not bite; the last level keeps the exact filter.
+        // drill mode and still cross-filters otherwise. A mark passes all its identities:
+        // past the same cap as the filter the visual declines and says so, never a part.
         const dr = (this.lastDataView?.metadata as any)?.dataRoles;
         const canDrillDown = !dr?.isDrillDisabled
             && ((dr?.drillableRoles?.["category"] ?? []) as number[]).indexOf(2 /* DrillType.Down */) >= 0;
+        if (ids.length > MAX_FILTER_VALUES) {
+            this.oversizedSelection = ids.length;
+            this.renderOversizedNotice();
+            this.repaint();
+            return;
+        }
         if (canDrillDown && ids.length) {
             if (this.filterApplied) this.setOwnFilter(null);
-            this.selectionManager.select(ids.slice(0, MAX_SEL_IDS_PER_BIN), multi);
+            this.selectionManager.select(ids, multi);
             if (!multi) this.selKeys.clear();
             if (key) this.selKeys.add(key);
             this.repaint();
@@ -1046,8 +1072,8 @@ export class Visual implements IVisual {
             return;
         }
         // Respaldo: el modelo no da un objetivo tabla.columna. Los selection IDs
-        // siguen funcionando, con tope.
-        this.selectionManager.select(ids.slice(0, MAX_SEL_IDS_PER_BIN), multi);
+        // siguen funcionando.
+        this.selectionManager.select(ids, multi);
         if (!multi) this.selKeys.clear();
         if (key) this.selKeys.add(key);
         this.repaint();
@@ -1089,8 +1115,9 @@ export class Visual implements IVisual {
             .classed("oversized-notice", true)
             .style("position", "absolute").style("left", "0").style("right", "0")
             .style("bottom", "0").style("padding", "8px 12px")
-            .style("background", "#FDF3E7").style("border-top", "1px solid #E8A020")
-            .style("font-size", "11px").style("color", "#7A4E12")
+            .style("background", this.host.colorPalette.isHighContrast ? (this.host.colorPalette.background?.value ?? "#000000") : "#FDF3E7")
+            .style("border-top", `1px solid ${this.host.colorPalette.isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : "#E8A020"}`)
+            .style("font-size", "11px").style("color", this.host.colorPalette.isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : "#7A4E12")
             .style("line-height", "1.4");
 
         note.append("div").text(isRange
@@ -1140,7 +1167,7 @@ export class Visual implements IVisual {
      */
     private applyRange(rows: { value: number; origIndex: number }[], lo: number, hi: number, dom: number[]): void {
         if (!this.canInteract) return;
-        if (lo <= dom[0] && hi >= dom[1]) { this.clearSelection(); return; }
+        if (lo <= dom[0] && hi >= dom[1]) { this.clearSelection(); this.repaint(); return; }
         // The ends of the axis mean "everything out there": the last bar holds the long tail.
         const a = lo <= dom[0] ? -Infinity : lo, b = hi >= dom[1] ? Infinity : hi;
         const idx = rows.filter(d => d.value >= a && d.value <= b).map(d => d.origIndex);
@@ -1170,11 +1197,14 @@ export class Visual implements IVisual {
         this.events.renderingStarted(options);
         this.lastOptions = options;
         this.formatMode = !!(options as any).formatMode;
-        this.subSelectionHelper.setFormatMode(this.formatMode);
+        // An older host may have no subSelectionService: the helper throws, and without on-object
+        // formatting there is nothing for it to do. A throw here would break the 1:1 events.
+        if ((this.host as any).subSelectionService) this.subSelectionHelper.setFormatMode(this.formatMode);
         this.lastDataView = options.dataViews?.[0] ?? null;
         // viewMode 0 es vista de lectura. La previa es cosa de quien edita: un informe
         // publicado nunca debe usar una funcion que no se ha pagado.
-        this.editing = (options as any).viewMode !== 0;
+        const vm = (options as any).viewMode;
+        this.editing = typeof vm === "number" && vm !== 0;
         this.attemptedPro = this.isPro ? [] : this.attemptedProFeatures();
         this.proPreview = this.computePreview();
 
@@ -1235,7 +1265,8 @@ export class Visual implements IVisual {
         STYLES.report = reportLook(this.host);
         const styleOk = tplStored === "report" || tplStored === "classic" || this.allow("style templates");
         const settings = parseSettings(dataView, styleOk);
-        this.currentSettings = settings;
+        this.currentSettings = { ...settings };
+        const baseAxisFont = settings.axisFontSize;
         const look = (styleOk && STYLES[settings.template]) || STYLES.report;
         const baseLook: Partial<Settings> = { ...DEFAULTS, ...look.values };
         const hcOn = this.host.colorPalette.isHighContrast;
@@ -1335,6 +1366,7 @@ export class Visual implements IVisual {
         }
         type Shared = { lo: number; hi: number; rd: { lo: number; hi: number; clamped: boolean }; scaleRef: number; yMax: number; range: RangeState | null };
         const fullW = width, fullH = height;
+        const hcFg = this.host.colorPalette.foreground?.value ?? "#FFFFFF";
         // Range bar: a detail field whose values can be filtered, and on the last level when drilling.
         const dRoles = (this.lastDataView?.metadata as any)?.dataRoles;
         const drillable = !dRoles?.isDrillDisabled
@@ -1414,7 +1446,7 @@ export class Visual implements IVisual {
             // With small multiples the legend lives in a shared band outside the panels,
             // so a small panel is no reason to drop it (it vanished with six regions).
             if (!shared) settings.showLegend = false;
-            settings.axisFontSize = Math.max(8, settings.axisFontSize - 1);
+            settings.axisFontSize = Math.max(8, baseAxisFont - 1);
         }
 
         // Reserve extra margin for the horizontal legend so it never overlaps the plot
@@ -1562,7 +1594,7 @@ export class Visual implements IVisual {
         };
 
         const gap = estiloOk ? Math.max(0, settings.barGap) : 1;
-        const barOpacity = (this.isPro ? Math.min(100, Math.max(0, settings.barOpacity)) : 80) / 100;
+        const barOpacity = (this.allow("bar styling") ? Math.min(100, Math.max(0, settings.barOpacity)) : 80) / 100;
 
         if (title) {
             if ((settings.smBackground && !isHighContrast) || settings.smBorder) {
@@ -1795,7 +1827,7 @@ export class Visual implements IVisual {
                 barsG.append("text")
                     .attr("x", bx + bw / 2).attr("y", by - 3)
                     .attr("text-anchor", "middle").attr("font-size", settings.vlFontSize)
-                    .attr("fill", settings.vlColor).text(labelVal);
+                    .attr("fill", isHighContrast ? hcFg : settings.vlColor).text(labelVal);
             }
         });
 
@@ -2021,7 +2053,7 @@ export class Visual implements IVisual {
                 })
                 .curve(d3.curveBasis);
             const pts = d3.range(xDomain[0], xDomain[1], (xDomain[1] - xDomain[0]) / 200);
-            g.append("path").datum(pts).attr("fill", "none").attr("stroke", settings.normalColor).attr("stroke-width", 2).attr("d", normalLine);
+            g.append("path").datum(pts).attr("fill", "none").attr("stroke", isHighContrast ? hcFg : settings.normalColor).attr("stroke-width", 2).attr("d", normalLine);
 
             // With a long tail σ is far wider than the clipped axis, and over the visible
             // range the bell is flat: correct, but it reads as a broken line. Say why.
@@ -2034,7 +2066,7 @@ export class Visual implements IVisual {
                 withHalo(g.append("text")
                     .attr("x", tx).attr("y", Math.max(12, yScale(peakY) - 8))
                     .attr("text-anchor", tx < plotW * 0.3 ? "start" : tx > plotW * 0.7 ? "end" : "middle")
-                    .attr("fill", settings.normalColor).attr("font-size", Math.max(8, settings.axisFontSize - 1))
+                    .attr("fill", isHighContrast ? hcFg : settings.normalColor).attr("font-size", Math.max(8, settings.axisFontSize - 1))
                     .attr("pointer-events", "none")
                     .text(this.tf("UI_NormalFlat", "Normal curve flat: data far from normal (σ = {0})", formatValue(std, formatStr))), settings.normalColor);
             }
@@ -2057,7 +2089,7 @@ export class Visual implements IVisual {
                 .attr("rx", 4);
             lines.forEach((line, i) => {
                 sg.append("text").attr("x", px).attr("y", py + i * lh + settings.axisFontSize)
-                    .attr("fill", settings.statsColor).attr("font-size", settings.axisFontSize).attr("font-family", "monospace").text(line);
+                    .attr("fill", isHighContrast ? hcFg : settings.statsColor).attr("font-size", settings.axisFontSize).attr("font-family", "monospace").text(line);
             });
         }
 
@@ -2073,8 +2105,8 @@ export class Visual implements IVisual {
             if (settings.showMedian)               items.push({ label: dflt(settings.legendMedianLabel, DEFAULTS.legendMedianLabel, "UI_LegMedian"), color: effectiveMedianColor, dash: medDash,  w: 1.5,            kind: "hline" });
             if (settings.showP25)                  items.push({ label: settings.legendP25Label    || DEFAULTS.legendP25Label,    color: effectiveP25Color,    dash: "3,4",    w: 1,              kind: "hline" });
             if (settings.showP75)                  items.push({ label: settings.legendP75Label    || DEFAULTS.legendP75Label,    color: effectiveP75Color,    dash: "3,4",    w: 1,              kind: "hline" });
-            if (showCum) items.push({ label: this.t("UI_LegCum", "Cumulative"), color: settings.cumulativeColor, dash: "", w: 2, kind: "hline" });
-            if (this.isPro && settings.showNormal) items.push({ label: dflt(settings.legendNormalLabel, DEFAULTS.legendNormalLabel, "UI_LegNormal"), color: settings.normalColor, dash: "",       w: 2,              kind: "hline" });
+            if (showCum) items.push({ label: this.t("UI_LegCum", "Cumulative"), color: isHighContrast ? hcFg : settings.cumulativeColor, dash: "", w: 2, kind: "hline" });
+            if (this.allow("normal curve") && settings.showNormal) items.push({ label: dflt(settings.legendNormalLabel, DEFAULTS.legendNormalLabel, "UI_LegNormal"), color: isHighContrast ? hcFg : settings.normalColor, dash: "",       w: 2,              kind: "hline" });
             if (settings.showBenchmark)            items.push({ label: dflt(settings.benchmarkLabel, DEFAULTS.benchmarkLabel, "UI_Target"),                  color: bmColor,              dash: "",       w: ibcs ? 2.5 : 2, kind: "vline" });
 
             if (items.length > 0) {
@@ -2325,7 +2357,12 @@ export class Visual implements IVisual {
                 // Enter and the blur that follows the repaint would both fire: one edit, one filter.
                 if (done || inp.value === start) return;
                 done = true;
-                const txt = inp.value.trim().replace(",", ".");
+                // The last separator is the decimal one when both appear: 1,234.5 and 1.234,5.
+                let txt = inp.value.trim().replace(/[\s'\u00A0]/g, "");
+                if (txt.includes(",") && txt.includes(".")) {
+                    const dec = Math.max(txt.lastIndexOf(","), txt.lastIndexOf("."));
+                    txt = txt.slice(0, dec).replace(/[.,]/g, "") + "." + txt.slice(dec + 1);
+                } else txt = txt.replace(",", ".");
                 const v = Number(txt);
                 if (txt === "" || !isFinite(v)) {
                     if (side === "lo") lo = dom[0]; else hi = dom[1];
@@ -2437,7 +2474,7 @@ export class Visual implements IVisual {
                 .attr("tabindex", 0).attr("role", "button").attr("aria-pressed", on ? "true" : "false").attr("aria-label", c.name);
             const r = b.append("rect").attr("y", -2).attr("height", 18).attr("rx", 9)
                 .attr("fill", on ? o.accent : "transparent").attr("stroke", on ? o.accent : o.axisColor).attr("stroke-opacity", on ? 1 : 0.5);
-            const t = b.append("text").attr("x", 9).attr("y", 11).attr("font-size", 10).attr("fill", on ? "#FFFFFF" : o.axisColor).text(c.name);
+            const t = b.append("text").attr("x", 9).attr("y", 11).attr("font-size", 10).attr("fill", on ? (o.hc ? (this.host.colorPalette.background?.value ?? "#000000") : "#FFFFFF") : o.axisColor).text(c.name);
             if (on && !o.hc) {
                 // Text on the accent: dark when the accent is light.
                 const n = parseInt(o.accent.slice(1), 16), lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255));
@@ -2515,6 +2552,7 @@ export class Visual implements IVisual {
     // ── Landing page ──────────────────────────────────────────────────────────
 
     private showLandingPage(width: number, height: number): void {
+        const landFg = this.host.colorPalette.foreground?.value ?? "#252423";
         const cx = width / 2, cy = height / 2;
         const fakeData = [3, 7, 15, 22, 30, 25, 18, 10, 5, 2];
         const barW = Math.min(30, (width * 0.6) / fakeData.length);
@@ -2524,12 +2562,12 @@ export class Visual implements IVisual {
             this.svg.append("rect")
                 .attr("x", startX + i * barW + 1).attr("y", cy + 30 - bh)
                 .attr("width", barW - 2).attr("height", bh)
-                .attr("fill", "#00E5FF").attr("fill-opacity", 0.15).attr("rx", 2);
+                .attr("fill", this.host.colorPalette.isHighContrast ? landFg : "#2B6CB0").attr("fill-opacity", this.host.colorPalette.isHighContrast ? 0.4 : 0.18).attr("rx", 2);
         });
         this.svg.append("text").attr("x", cx).attr("y", cy - 50).attr("text-anchor", "middle")
-            .attr("font-size", 16).attr("font-weight", "600").attr("fill", "#E0E6FF").attr("font-family", "Segoe UI, sans-serif").text("Histogram Pro");
+            .attr("font-size", 16).attr("font-weight", "600").attr("fill", landFg).attr("font-family", "Segoe UI, sans-serif").text("Histogram Pro");
         this.svg.append("text").attr("x", cx).attr("y", cy - 30).attr("text-anchor", "middle")
-            .attr("font-size", 12).attr("fill", "#B0BEC5").attr("font-family", "Segoe UI, sans-serif").text(this.t("UI_Landing", "Add a numeric field to get started"));
+            .attr("font-size", 12).attr("fill", landFg).attr("fill-opacity", 0.75).attr("font-family", "Segoe UI, sans-serif").text(this.t("UI_Landing", "Add a numeric field to get started"));
     }
 
     // ── Setup guide ───────────────────────────────────────────────────────────
@@ -2549,6 +2587,11 @@ export class Visual implements IVisual {
         el.style.display = "none";
         if (!this.guideOpen || !this.editing || this.formatMode || !this.canInteract) return;
         if (!dv?.categorical?.values?.[0] || !vp || vp.width < 360 || vp.height < 260) return;
+        const sig = [this.guideStep, this.isPro, this.currentSettings?.template, this.host.colorPalette.isHighContrast,
+            ...["category", "panel", "tooltips"].map(r => this.roleBound(r))].join("|");
+        el.style.display = "block";
+        if (sig === this.guideSig && el.firstChild) return;
+        this.guideSig = sig;
         this.renderGuide();
     }
 
@@ -2580,7 +2623,7 @@ export class Visual implements IVisual {
         };
         const persist = (properties: Record<string, powerbi.DataViewPropertyValue>) =>
             this.host.persistProperties({ merge: [{ objectName: "style", selector: null as any, properties }] });
-        const finish = () => { this.guideOpen = false; this.guideStep = 2; el.style.display = "none"; persist({ guide: false }); };
+        const finish = () => { this.guideSig = ""; this.guideOpen = false; this.guideStep = 2; el.style.display = "none"; persist({ guide: false }); };
         const button = (parent: HTMLElement, text: string, primary: boolean, action: () => void) => {
             const b = add(parent, "button", primary ? "hp-g-btn hp-g-main" : "hp-g-btn", text);
             b.type = "button";
@@ -2621,7 +2664,7 @@ export class Visual implements IVisual {
                 txt.style.color = done ? muted : fg;
             }
             add(el, "div", "hp-g-note", this.t("Guide_Wells", "Drag the fields into the field wells; this list updates by itself. Only Detail is needed.")).style.color = muted;
-            button(add(el, "div", "hp-g-foot"), this.t("Guide_Next", "Next"), true, () => { this.guideStep = 3; this.renderGuide(); });
+            button(add(el, "div", "hp-g-foot"), this.t("Guide_Next", "Next"), true, () => { this.guideStep = 3; this.guideSig = ""; this.updateGuide(); });
         } else {
             add(el, "div", "hp-g-title", this.t("Guide_Style", "Pick a style"));
             const grid = add(el, "div", "hp-g-grid");
@@ -2649,7 +2692,7 @@ export class Visual implements IVisual {
                 chip.addEventListener("click", () => persist({ template: name }));
             }
             const foot = add(el, "div", "hp-g-foot");
-            button(foot, this.t("Guide_Back", "Back"), false, () => { this.guideStep = 2; this.renderGuide(); });
+            button(foot, this.t("Guide_Back", "Back"), false, () => { this.guideStep = 2; this.guideSig = ""; this.updateGuide(); });
             button(foot, this.t("Guide_Finish", "Finish"), true, finish);
         }
     }
@@ -2673,18 +2716,21 @@ export class Visual implements IVisual {
      * helper, which listens on the host element.
      */
     private afterRender(options: VisualUpdateOptions): void {
+        this.syncSelection(options);
         this.updateGuide();
         if (!this.formatMode) return;
         const root = this.svg.node() as SVGSVGElement;
         const types = "click contextmenu keydown blur mousedown mousemove mouseover mouseout pointerdown pointermove pointerup pointercancel";
         this.svg.on(types, null);
         this.svg.selectAll("*").on(types, null);
-        this.container.selectAll<HTMLElement, unknown>(".hp-range-input").style("pointer-events", "none");
+        this.container.selectAll<HTMLElement, unknown>(".hp-range-input").style("pointer-events", "none").property("disabled", true);
+        if (this.rangeTimer !== null) { window.clearTimeout(this.rangeTimer); this.rangeTimer = null; }
         for (const [sel, obj, key, fb, kind] of Visual.SUB_SELECTABLES) {
             const name = this.t(key, fb).replace(/\s*\(Pro\)\s*$/, "");
             root.querySelectorAll(sel).forEach(el => {
                 el.classList.add(HtmlSubSelectableClass);
                 el.setAttribute("pointer-events", "auto");
+                el.querySelectorAll("[pointer-events='none']").forEach(child => child.removeAttribute("pointer-events"));
                 el.setAttribute(SubSelectableObjectNameAttribute, obj);
                 el.setAttribute(SubSelectableDisplayNameAttribute, name);
                 el.setAttribute(SubSelectableTypeAttribute, String(kind === "Text" ? powerbi.visuals.SubSelectionStylesType.Text : powerbi.visuals.SubSelectionStylesType.Shape));
@@ -2793,6 +2839,8 @@ export class Visual implements IVisual {
                         ...(conditionalFormatting ? {
                             instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule,
                             selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] } as any,
+                            // A fixed colour is stored without the wildcard: the pane reads it back as such.
+                            altConstantValueSelector: null,
                         } : {})
                     },
                     value: { value: val }
@@ -2803,7 +2851,8 @@ export class Visual implements IVisual {
             const obj = uid.replace(/_card$/, "");
             const isPro = /\s\(Pro\)$/.test(displayName);
             const tr = T(`Obj_${obj}`, displayName.replace(/\s*\(Pro\)\s*$/, ""));
-            return { uid, displayName: isPro ? `${tr} (Pro)` : tr, groups: [{ uid: uid + "_g", displayName: "", slices }] };
+            return { uid, displayName: isPro ? `${tr} (Pro)` : tr, revertToDefaultDescriptors: slices.map((sl: any) => sl.control.properties.descriptor),
+                groups: [{ uid: uid + "_g", displayName: "", slices }] };
         };
         const txt = (uid: string, name: string, obj: string, prop: string, val: string) => ({
             uid, displayName: dn(obj, prop, name),
@@ -2859,7 +2908,7 @@ export class Visual implements IVisual {
                     col("normalColor", lbl("Normal color"),      "statistics", "normalColor", s.normalColor),
                     tog("showCum",     lbl("Cumulative frequency"), "statistics", "showCumulative", s.showCumulative),
                     col("cumColor",    lbl("Cumulative line color"), "statistics", "cumulativeColor", s.cumulativeColor),
-                    tog("showStats",   lbl("Stats panel"),       "statistics", "showStats",   s.showStats),
+                    tog("showStats",   lbl("Stats panel"),       "statistics", "showStats",   this.allow("statistics panel") && s.showStats),
                     col("statsColor",  lbl("Stats text color"),  "statistics", "statsColor",  s.statsColor),
                     col("statsBg",     lbl("Stats panel background"), "statistics", "statsBgColor", s.statsBgColor),
                     num("statsBgOp",   lbl("Stats panel opacity %"),  "statistics", "statsBgOpacity", s.statsBgOpacity),

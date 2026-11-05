@@ -1,6 +1,6 @@
 # Histogram Pro — TCViz Web Product Page Content
 
-Content for the four tabs of the TCViz product page. Current version: **1.5.0.0**. Publish these changes to tcviz.com only once 1.4.0.0 is live on AppSource.
+Content for the four tabs of the TCViz product page. Current version: **1.5.0.0**. Publish these changes to tcviz.com only once 1.5.0.0 is live on AppSource.
 
 **Source of truth:** this file is the draft. What tcviz.com actually serves lives in
 `src/data.jsx` of the `tcviz-web` repository — **the `.jsx`, not the `.js`**, which is
@@ -182,9 +182,8 @@ export — never prompt a paying customer to buy what they already own.
 
 ### 1.5.0.0 — November 2026
 - **Changed:** the default look follows the report's theme; Classic keeps the previous one
-- **Added:** range bar, on-object formatting, setup guide, twelve languages, more options
-  for small multiples
-- **Added (Pro):** six style templates, range shortcuts and summary, formatting of zone labels
+- **Added:** range bar, on-object formatting, setup guide, twelve languages
+- **Added (Pro):** six style templates, more options for small multiples, range shortcuts and summary, formatting of zone labels
 - **Fixed:** the last bar of a clipped axis left the rows above the axis out of the filter
 
 ### 1.4.0.0 — October 2026

@@ -10,7 +10,7 @@ field is cleared on every resubmission** — it has to be pasted again each time
 - **Range bar (free).** Two handles under the axis, typed minimum and maximum, and keyboard
   (`role="slider"`). The filter is written with `applyJsonFilter` to `general.filter` on
   release, not during the drag, on the Detail column and capped at 10,000 values. The range
-  is read back from `jsonFilters`, so bookmarks restore it. Not shown in drill mode. With
+  is read back from `jsonFilters`, so bookmarks restore it. Not shown while Detail holds a hierarchy with a level below. With
   small multiples there is one bar under the grid. Pro adds shortcuts and a summary.
 - **Style templates.** The default is *Report theme*, built from `host.colorPalette`;
   *Classic* is the previous look. Both are free. Six more are Pro, under the same preview.
@@ -20,7 +20,7 @@ field is cleared on every resubmission** — it has to be pasted again each time
   `powerbi-visuals-utils-onobjectutils`, `getSubSelectionStyles`, `getSubSelectionShortcuts`
   and `getSubSelectables`. In format mode the click, keyboard and tooltip handlers are removed
   after each render, so a click selects and never filters.
-- **Setup guide.** Opens on a visual with no stored properties, in edit mode only, not in
+- **Setup guide.** Opens on a visual with no stored properties, a field in Values and at least 360×260, in edit mode only, not in
   format mode, not with `allowInteractions` false. `persistProperties` is called only from
   the clicks on its own buttons, never from `registerOnSelectCallback`.
 - **Localization.** Twelve languages. Desktop resolves through `getDisplayName` only the keys
@@ -52,8 +52,7 @@ with `applyJsonFilter` to `general.filter`, so it is part of the bookmark state;
 `update()` the visual reads it back from `jsonFilters` and draws the same bars as
 selected. Desktop does not always return the visual's own filter in `jsonFilters`, so the
 visual also keeps its own copy, dropped as soon as no filter is stored.
-In drill mode the selection goes through the selection manager; `registerOnSelectCallback`
-maps a selection restored by a bookmark back to its bars.
+In drill mode the selection goes through the selection manager, with every identity of the bar; past 10,000 the visual declines and says so. `registerOnSelectCallback`, and `getSelectionIds` after a render, map a selection restored by a bookmark back to its bars.
 
 ### Drill-down
 
@@ -212,7 +211,7 @@ All four pages verified with a real request: HTTP 200.
   Free mode first and repaints once the licence resolves.
 - Nothing is notified before the licence resolves, because `isPro` is false at start for a
   licensed customer too.
-- No watermark and no artificial limits in the free tier.
+- No watermark and no row limit in the free tier.
 
 ## Data access & privacy
 
@@ -227,7 +226,7 @@ All four pages verified with a real request: HTTP 200.
 - The distribution over the whole table, with segment streaming
 - Mean and median lines, P25, P75 and IQR shading
 - Benchmark line with its own value, colour and label; bars coloured by benchmark side
-- Legend, at the side or along the bottom, with editable labels
+- Legend, on top or along the bottom, with editable labels
 - IBCS monochrome mode
 - Axis text and grid colours, font size, X and Y axis titles
 - Cross-filtering by the bar, Ctrl+click multi-select, visible selection, bookmarks,

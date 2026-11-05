@@ -2,7 +2,6 @@ node_modules/
 dist/
 .tmp/
 webpack.statistics.*.html
-package-lock.json
 *.pbiviz
 
 # Infografía: se regenera desde docs/infographic.html, no se versiona el render

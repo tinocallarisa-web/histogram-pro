@@ -47,8 +47,8 @@ bands, test and survey scores, manufacturing tolerances, claim amounts.
 
 ## Quick start
 
-1. Drop the visual on the page and put a numeric measure in **Values**.
-2. Optionally add a dimension to **Detail (rows)** for row-level data and drilldown.
+1. Drop the visual on the page and put the field that identifies one row (Order ID, Customer, Ticket) in **Detail (rows)**.
+2. Put the number to distribute in **Values**.
 3. Tune the bin count, overlays and colours in the **Format** pane.
 4. To compare groups, drop a field into **Small multiples** (Pro).
 
@@ -116,6 +116,12 @@ that notation.
 
 ---
 
+## Range bar and styles
+
+**Range bar.** Two handles under the axis filter the report by a range of values: drag them, type the minimum and maximum, or use the keyboard. With small multiples, one bar under the grid filters every panel. Shortcuts by quartile, No outliers and Top 10%, and a summary of what the range holds, are Pro.
+
+**Style templates.** The default look follows the report's theme, and Classic keeps the look of earlier versions; both are free. Boardroom, Ledger, Editorial, Signal, Aurora and Terrace are Pro. New visuals show a short setup guide, and the visual can be formatted on the canvas.
+
 ## Power BI integration
 
 - **Report tooltip pages** — attach your own tooltip page, not just the default tooltip.
@@ -142,7 +148,6 @@ that notation.
 | Rows | **Your whole table.** Power BI hands a visual 30,000 rows at a time; the visual asks for the following segments and combines them. Verified at 500,000. |
 | Bins | 10 in Free, **2 to 100** with Pro |
 | Cross-filter | **Up to 10,000 distinct values in one click** |
-| Tooltips | Up to 10 measures |
 
 Power BI Desktop is the exception on row count: it cannot stream data segments to a
 custom visual, so it draws the first 30,000 and says so on the chart. Publish to the
@@ -177,7 +182,7 @@ cross-filtering, bookmarks, drilldown, keyboard navigation and high contrast.
 - Value labels on bars
 - Custom bar colour, conditional formatting (fx), opacity, border and gap
 
-Every install starts with a 30-day Pro trial. No card required.
+The Pro plan has a 30-day free trial through Microsoft, which asks for a payment method at checkout.
 
 ---
 

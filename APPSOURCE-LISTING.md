@@ -18,7 +18,7 @@ Histogram with value zones, small multiples, mean, median and quartiles. No DAX.
 
 ## Long description
 
-*(3637 characters; limit 5,000)*
+*(3923 characters; limit 5,000)*
 
 ```
 Every other visual on the page tells you how much. A histogram tells you how it is spread
@@ -37,13 +37,15 @@ WHAT YOU GET
 
 • The distribution over your whole table, not a sample — Power BI hands a visual 30,000
   rows at a time, and Histogram Pro asks for the following segments and combines them.
-  Verified at 500,000 rows.
+  Verified at 500,000 rows. Power BI Desktop cannot stream segments, so there it draws the
+  first 30,000 rows and says so on the chart.
 • An axis built for skewed data: one extreme value no longer pushes every other row into
   the first bar. The axis focuses on where the data lives, and every row is still counted.
 • Mean and median lines, quartiles and IQR shading, without a line of DAX
 • A benchmark line for a target or SLA, with the bars coloured by which side they fall on
 • Range bar: drag two handles or type a minimum and maximum, and the whole report filters
-  to that stretch of the distribution. With small multiples, one bar filters every panel.
+  to that stretch of the distribution, up to 10,000 distinct values. With small multiples,
+  one bar filters every panel.
 • Cross-filtering by the bar: one click filters the report by every row behind it, up to
   10,000 distinct values at once. Ctrl+click adds bars; the selection stays visible and
   bookmarks restore it.
@@ -70,12 +72,13 @@ FREE AND PRO
 
 The free tier is the histogram itself, over your whole dataset, with no watermark and no
 row limit of ours: ten bins, mean and median, quartiles and IQR, the benchmark, the
-legend, the range bar, the report's theme, cross-filtering, bookmarks, drilldown, IBCS
-mode, keyboard and high contrast.
+legend, the range bar, the report's theme and the Classic style, on-object formatting,
+cross-filtering, bookmarks, drilldown, IBCS mode, keyboard and high contrast.
 
 Turn on a Pro feature while editing and it is drawn working on your own data, under a
 "Pro preview" watermark that names it. Every paid setting says (Pro) in the format pane
-and is never hidden.
+and is never hidden. To see Pro in a published report, each reader needs a licence;
+without one, they see the free chart.
 
 PRIVACY
 
@@ -103,7 +106,7 @@ Support: support@tcviz.com
 • The default look now follows the report's theme. Classic keeps the previous one.
 • Six style templates (Pro), drawn at once on your data while you choose.
 • On-object formatting and a setup guide for new visuals.
-• Small multiples: title alignment, space between panels, panel background and border.
+• Small multiples (Pro): title alignment, space between panels, panel background and border.
 • Zone labels (Pro): their own background, text colour and size.
 • Twelve languages.
 • Fixed: clicking the last bar of a clipped axis left the rows above the axis out of the filter.
