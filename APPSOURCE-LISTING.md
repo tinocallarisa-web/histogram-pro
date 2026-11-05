@@ -134,7 +134,7 @@ chart is called a histogram, which is a real share of the audience.
 | Terms of use | https://tinocallarisa-web.github.io/histogram-pro/terms.html |
 | Case study | https://tinocallarisa-web.github.io/histogram-pro/use-case.html |
 | Repository (certification branch) | https://github.com/tinocallarisa-web/histogram-pro/tree/certification |
-| Demo video | https://www.youtube.com/watch?v=elLjSnxd8tw |
+| Demo video | https://www.youtube.com/watch?v=pZE87CZfaUo |
 
 **The repository slug is `histogram-pro`, lowercase and hyphenated** — not `HistogramPro`,
 which is the local folder name and the GUID prefix. A URL built from the folder name 404s.

@@ -18,7 +18,7 @@ localization (12 languages) · IBCS mode · data streaming past 30,000 rows.
 [Documentation](https://tinocallarisa-web.github.io/histogram-pro/support.html) ·
 [Case study](https://tinocallarisa-web.github.io/histogram-pro/use-case.html) ·
 [Changelog](CHANGELOG.md) ·
-[Video](https://www.youtube.com/watch?v=elLjSnxd8tw) ·
+[Video](https://www.youtube.com/watch?v=pZE87CZfaUo) ·
 [Report an issue](https://github.com/tinocallarisa-web/histogram-pro/issues)
 
 ![Histogram Pro: binned distribution with mean and median lines and a statistics panel](assets/Screenshot_1.png)
@@ -190,7 +190,7 @@ The Pro plan has a 30-day free trial through Microsoft, which asks for a payment
 
 - **[Full documentation](https://tinocallarisa-web.github.io/histogram-pro/support.html)** — quick start, reading the chart, field wells, every format setting, accessibility, limits and FAQ, with search.
 - **[Case study](https://tinocallarisa-web.github.io/histogram-pro/use-case.html)** — reading a retail sales distribution end to end, from raw spread to the outliers that explained it.
-- **[Video walkthrough](https://www.youtube.com/watch?v=elLjSnxd8tw)**.
+- **[Video walkthrough](https://www.youtube.com/watch?v=pZE87CZfaUo)**.
 - **[Issues](https://github.com/tinocallarisa-web/histogram-pro/issues)** — please use the templates; they ask for the bin count, value range and row count, which is what makes a distribution bug reproducible.
 - **[Discussions](https://github.com/tinocallarisa-web/histogram-pro/discussions)** — questions and ideas.
 - **Licence and billing** — <support@tcviz.com>.

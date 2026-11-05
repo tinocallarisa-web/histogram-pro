@@ -198,7 +198,7 @@ which is the local folder name and the GUID prefix.
 | Terms of Use | https://tinocallarisa-web.github.io/histogram-pro/terms.html |
 | Support | https://tinocallarisa-web.github.io/histogram-pro/support.html |
 | Case study | https://tinocallarisa-web.github.io/histogram-pro/use-case.html |
-| Demo video | https://www.youtube.com/watch?v=elLjSnxd8tw |
+| Demo video | https://www.youtube.com/watch?v=pZE87CZfaUo |
 
 All four pages verified with a real request: HTTP 200.
 
