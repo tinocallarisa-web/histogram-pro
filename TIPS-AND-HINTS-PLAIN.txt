@@ -129,7 +129,7 @@ Bin count also decides how much one click filters: more bins means fewer rows pe
 
 
 THE RANGE BAR
-
+-------------
 Two handles under the axis filter the report by a range of values. Drag them, type the
 minimum and maximum, or focus a handle and use the arrow keys. The report filters on release
 and the bars outside the range dim. With Pro, Q1 to Q4, No outliers and Top 10% set it in one
