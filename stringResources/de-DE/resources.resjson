@@ -180,5 +180,12 @@
   "Prop_smallMultiples_border": "Feldrahmen",
   "Prop_smallMultiples_borderColor": "Farbe des Feldrahmens",
   "Enum_al_left": "Links",
-  "Enum_al_center": "Mitte"
+  "Enum_al_center": "Mitte",
+  "Obj_accessibility": "Barrierefreiheit",
+  "Prop_accessibility_highContrast": "Hoher Kontrast",
+  "Enum_hc_auto": "Automatisch (Windows-Einstellung)",
+  "Enum_hc_on": "Ein",
+  "Prop_accessibility_focusColor": "Fokusfarbe",
+  "Prop_accessibility_focusWidth": "Fokusbreite",
+  "Prop_accessibility_minTextSize": "Minimale Textgröße"
 }

@@ -180,5 +180,12 @@
   "Prop_smallMultiples_border": "面板边框",
   "Prop_smallMultiples_borderColor": "面板边框颜色",
   "Enum_al_left": "左",
-  "Enum_al_center": "居中"
+  "Enum_al_center": "居中",
+  "Obj_accessibility": "辅助功能",
+  "Prop_accessibility_highContrast": "高对比度",
+  "Enum_hc_auto": "自动 (Windows 设置)",
+  "Enum_hc_on": "开",
+  "Prop_accessibility_focusColor": "焦点颜色",
+  "Prop_accessibility_focusWidth": "焦点宽度",
+  "Prop_accessibility_minTextSize": "最小文本大小"
 }

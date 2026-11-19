@@ -16,6 +16,8 @@ import ServicePlanState = powerbi.ServicePlanState;
 import DataView = powerbi.DataView;
 import ILocalizationManager = powerbi.extensibility.ILocalizationManager;
 import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
+import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
+import { createProWatermark, renderProWatermark } from "./comun/watermark";
 import {
     HtmlSubSelectableClass, HtmlSubSelectionHelper, SubSelectableDisplayNameAttribute,
     SubSelectableObjectNameAttribute, SubSelectableTypeAttribute,
@@ -314,6 +316,22 @@ function parseSettings(dv: DataView, styleOk: boolean): Settings {
     };
 }
 
+// ─── Accessibility (1.6) ──────────────────────────────────────────────────────
+
+interface A11y { hcMode: string; focusColor: string; focusWidth: number; minText: number; }
+const A11Y_DEFAULTS: A11y = { hcMode: "auto", focusColor: "#1A73E8", focusWidth: 2, minText: 6 };
+
+function readA11y(dv: DataView): A11y {
+    const obj = dv?.metadata?.objects;
+    const n = (p: string, def: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Number(getValue<number>(obj, "accessibility", p, def)) || def));
+    return {
+        hcMode: String(getValue<string>(obj, "accessibility", "highContrast", A11Y_DEFAULTS.hcMode)) === "on" ? "on" : "auto",
+        focusColor: getColor(obj, "accessibility", "focusColor", A11Y_DEFAULTS.focusColor),
+        focusWidth: n("focusWidth", A11Y_DEFAULTS.focusWidth, 1, 6),
+        minText: n("minTextSize", A11Y_DEFAULTS.minText, 6, 24),
+    };
+}
+
 // ─── Contrast ─────────────────────────────────────────────────────────────────
 
 function luminance(hex: string): number {
@@ -455,6 +473,38 @@ export class Visual implements IVisual {
     /** Un unico color en categories[0].objects = color plano del usuario, no una regla fx. */
     private uniformBarColor: string | null = null;
     private currentSettings: Settings = { ...DEFAULTS } as Settings;
+    /** Tarjeta Accesibilidad (1.6). */
+    private a11y: A11y = { ...A11Y_DEFAULTS };
+    private watermarkEl: HTMLDivElement;
+
+    /**
+     * Paleta efectiva: la de Power BI, o alto contraste forzado desde Accesibilidad ("On", negro sobre blanco) cuando
+     * Windows no lo tiene puesto. Todo el visual lee los colores de alto contraste de aquí, así que forzarlo es esto.
+     */
+    private pal(): any {
+        const p: any = this.host.colorPalette;
+        if (p?.isHighContrast || this.a11y.hcMode !== "on") return p;
+        return Object.assign(Object.create(p), {
+            isHighContrast: true, foreground: { value: "#000000" }, background: { value: "#FFFFFF" },
+            foregroundSelected: { value: "#000000" }, foregroundNeutralSecondary: { value: "#000000" },
+            backgroundLight: { value: "#FFFFFF" }, backgroundDark: { value: "#FFFFFF" }, hyperlink: { value: "#000000" },
+        });
+    }
+
+    /** Fuente fija del visual con el tamaño mínimo de Accesibilidad. */
+    private fz(px: number): number { return Math.max(this.a11y.minText, px); }
+
+    /** Cadena de formato de una columna: la dinámica común a todas sus filas, si la hay; si no, la de la columna. */
+    private colFormat(col: powerbi.DataViewValueColumn | undefined): string {
+        if (!col) return "";
+        const objs = (col as any).objects as any[] | undefined;
+        if (objs?.length) {
+            const set = new Set<string>();
+            for (const o of objs) { const f = o?.general?.formatString; if (typeof f === "string" && f) set.add(f); }
+            if (set.size === 1) return Array.from(set)[0];
+        }
+        return col.source?.format ?? "";
+    }
     /** A range shortcut was used in this editing session: it draws as Pro preview. */
     private shortcutTried = false;
     /** Which range handle holds the keyboard, to give the focus back after a repaint. */
@@ -522,6 +572,7 @@ export class Visual implements IVisual {
 
         this.svg = this.container.append("svg");
         this.guideEl = (this.container.node() as HTMLElement).appendChild(document.createElement("div"));
+        this.watermarkEl = createProWatermark(this.container.node() as HTMLElement);
         this.guideEl.className = "hp-guide";
         this.checkLicense();
     }
@@ -900,8 +951,8 @@ export class Visual implements IVisual {
         this.svg.append("text")
             .attr("x", width - 6).attr("y", height - 4)
             .attr("text-anchor", "end")
-            .attr("fill", this.host.colorPalette.isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : "#90A4AE")
-            .attr("font-size", 9)
+            .attr("fill", this.pal().isHighContrast ? (this.pal().foreground?.value ?? "#FFFFFF") : "#90A4AE")
+            .attr("font-size", this.fz(9))
             .attr("font-family", "Segoe UI, sans-serif")
             .text(this.tf("UI_Clamp", "Axis clipped to the long tail · the last bar holds everything above {0}", hiLabel));
     }
@@ -915,8 +966,8 @@ export class Visual implements IVisual {
         this.svg.append("text")
             .attr("x", width - 6).attr("y", 12)
             .attr("text-anchor", "end")
-            .attr("fill", this.host.colorPalette.isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : "#B26A00")
-            .attr("font-size", 10)
+            .attr("fill", this.pal().isHighContrast ? (this.pal().foreground?.value ?? "#FFFFFF") : "#B26A00")
+            .attr("font-size", this.fz(10))
             .attr("font-family", "Segoe UI, sans-serif")
             .text(txt);
     }
@@ -1115,9 +1166,9 @@ export class Visual implements IVisual {
             .classed("oversized-notice", true)
             .style("position", "absolute").style("left", "0").style("right", "0")
             .style("bottom", "0").style("padding", "8px 12px")
-            .style("background", this.host.colorPalette.isHighContrast ? (this.host.colorPalette.background?.value ?? "#000000") : "#FDF3E7")
-            .style("border-top", `1px solid ${this.host.colorPalette.isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : "#E8A020"}`)
-            .style("font-size", "11px").style("color", this.host.colorPalette.isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : "#7A4E12")
+            .style("background", this.pal().isHighContrast ? (this.pal().background?.value ?? "#000000") : "#FDF3E7")
+            .style("border-top", `1px solid ${this.pal().isHighContrast ? (this.pal().foreground?.value ?? "#FFFFFF") : "#E8A020"}`)
+            .style("font-size", this.fz(11) + "px").style("color", this.pal().isHighContrast ? (this.pal().foreground?.value ?? "#FFFFFF") : "#7A4E12")
             .style("line-height", "1.4");
 
         note.append("div").text(isRange
@@ -1252,6 +1303,7 @@ export class Visual implements IVisual {
         this.restoreFocus = this.keyboardNav && !!active && (this.container.node() as HTMLElement).contains(active);
         this.painting = true;
         this.svg.selectAll("*").remove();
+        renderProWatermark(this.watermarkEl, null);   // la marca es HTML: no se va con el SVG
         this.container.selectAll(".hp-range-input").remove();
         this.painting = false;
         this.svg.attr("width", width).attr("height", height).style("font-family", "'Segoe UI', sans-serif");
@@ -1261,15 +1313,26 @@ export class Visual implements IVisual {
             return;
         }
 
+        this.a11y = readA11y(dataView);
         const tplStored = String(dataView.metadata?.objects?.["style"]?.["template"] ?? DEFAULTS.template);
         STYLES.report = reportLook(this.host);
         const styleOk = tplStored === "report" || tplStored === "classic" || this.allow("style templates");
         const settings = parseSettings(dataView, styleOk);
+        // Tamaño mínimo de texto (Accesibilidad, 1.6): las fuentes que elige el usuario no bajan de él; las fijas pasan por fz().
+        const mt = this.a11y.minText;
+        settings.axisFontSize = Math.max(mt, settings.axisFontSize);
+        settings.vlFontSize = Math.max(mt, settings.vlFontSize);
+        settings.smTitleSize = Math.max(mt, settings.smTitleSize);
+        if (settings.legendFontSize) settings.legendFontSize = Math.max(mt, settings.legendFontSize);
+        if (settings.zLabelSize > 0) settings.zLabelSize = Math.max(mt, settings.zLabelSize);
         this.currentSettings = { ...settings };
+        const host = this.container.node() as HTMLElement;
+        host.style.setProperty("--hp-focus", this.pal().isHighContrast ? (this.pal().foregroundSelected?.value ?? "#FFFF00") : this.a11y.focusColor);
+        host.style.setProperty("--hp-focus-w", this.a11y.focusWidth + "px");
         const baseAxisFont = settings.axisFontSize;
         const look = (styleOk && STYLES[settings.template]) || STYLES.report;
         const baseLook: Partial<Settings> = { ...DEFAULTS, ...look.values };
-        const hcOn = this.host.colorPalette.isHighContrast;
+        const hcOn = this.pal().isHighContrast;
         if (!hcOn && (look.bg || look.grad)) {
             let fill = look.bg ?? "none";
             if (look.grad) {
@@ -1281,8 +1344,10 @@ export class Visual implements IVisual {
             this.svg.append("rect").attr("width", width).attr("height", height).attr("fill", fill).attr("pointer-events", "none");
         }
 
-        // Dynamic format string — read from the measure's Power BI format setting
-        const formatStr = dataView.categorical.values[0].source.format ?? "";
+        // Formato de la medida (1.6, dynamic format strings): con general.formatString declarado, Power BI manda la cadena
+        // de cada fila en objects[i]. Un histograma mezcla filas en cada intervalo, así que manda la cadena común si todas
+        // las filas la comparten (moneda elegida en el informe, calculation groups); si difieren, la de la columna.
+        const formatStr = this.colFormat(dataView.categorical.values.find(v => v.source.roles?.["measure"]) ?? dataView.categorical.values[0]);
 
         const effectiveBins = this.allow("bin count")
             ? Math.max(2, Math.min(100, settings.bins || DEFAULTS.bins))
@@ -1366,7 +1431,7 @@ export class Visual implements IVisual {
         }
         type Shared = { lo: number; hi: number; rd: { lo: number; hi: number; clamped: boolean }; scaleRef: number; yMax: number; range: RangeState | null };
         const fullW = width, fullH = height;
-        const hcFg = this.host.colorPalette.foreground?.value ?? "#FFFFFF";
+        const hcFg = this.pal().foreground?.value ?? "#FFFFFF";
         // Range bar: a detail field whose values can be filtered, and on the last level when drilling.
         const dRoles = (this.lastDataView?.metadata as any)?.dataRoles;
         const drillable = !dRoles?.isDrillDisabled
@@ -1450,7 +1515,7 @@ export class Visual implements IVisual {
         }
 
         // Reserve extra margin for the horizontal legend so it never overlaps the plot
-        const legendFs  = Math.max(6, settings.legendFontSize || Math.max(8, settings.axisFontSize - 1));
+        const legendFs  = Math.max(this.fz(6), settings.legendFontSize || Math.max(8, settings.axisFontSize - 1));
         const legendRowH = settings.showLegend ? legendFs + 12 : 0;  // line height + padding
         const marginL = settings.showYLabel ? 52 : 38;
         // Room for the cumulative axis on the right when the line is on.
@@ -1497,7 +1562,7 @@ export class Visual implements IVisual {
         // value label was hidden.
         const refFs = settings.axisFontSize;
         const zoneLabelsOn = this.allow("value zones") && settings.zShow && settings.zLabels && settings.zCut1 !== settings.zCut2;
-        const zoneFs = settings.zLabelSize > 0 ? Math.max(6, settings.zLabelSize) : Math.max(8, settings.axisFontSize - 1);
+        const zoneFs = settings.zLabelSize > 0 ? Math.max(6, settings.zLabelSize) : Math.max(this.fz(8), settings.axisFontSize - 1);
         const zoneBand = zoneLabelsOn ? zoneFs + 8 : 0;
         const refRows = [settings.showMean, settings.showMedian, settings.showP25, settings.showP75].filter(Boolean).length;
         const vlBand = this.allow("value labels") && settings.showValueLabels ? settings.vlFontSize + 4 : 0;
@@ -1554,7 +1619,7 @@ export class Visual implements IVisual {
         const highlightBins = hasHighlights ? highlightBinner(highlightedData.map(clampToAxis)) : [];
 
         // Effective colors: user settings → IBCS override → high contrast override
-        const isHighContrast = this.host.colorPalette.isHighContrast;
+        const isHighContrast = this.pal().isHighContrast;
         const ibcs = settings.ibcsMode;
 
         const estiloOk = this.allow("bar styling");
@@ -1563,22 +1628,22 @@ export class Visual implements IVisual {
         const _userBorderColor = estiloOk ? settings.borderColor : (baseLook.borderColor as string);
 
         const barColor = isHighContrast
-            ? (this.host.colorPalette.foreground?.value ?? _userBarColor)
+            ? (this.pal().foreground?.value ?? _userBarColor)
             : (ibcs ? IBCS.bar : _userBarColor);
         const borderColor = isHighContrast
-            ? (this.host.colorPalette.foregroundSelected?.value ?? _userBorderColor)
+            ? (this.pal().foregroundSelected?.value ?? _userBorderColor)
             : (ibcs ? IBCS.bar : _userBorderColor);
         const borderWidth = ibcs ? 0 : (estiloOk ? settings.borderWidth : (baseLook.borderWidth as number));
         const effectiveAxisColor = isHighContrast
-            ? (this.host.colorPalette.foreground?.value ?? settings.axisColor)
+            ? (this.pal().foreground?.value ?? settings.axisColor)
             : (ibcs ? IBCS.axis : settings.axisColor);
         const effectiveGridColor = isHighContrast
-            ? (this.host.colorPalette.backgroundLight?.value ?? settings.gridColor)
+            ? (this.pal().backgroundLight?.value ?? settings.gridColor)
             : (ibcs ? IBCS.grid : settings.gridColor);
 
         // Pre-compute benchmark color so it's available for the legend
         const bmColor = isHighContrast
-            ? (this.host.colorPalette.foregroundSelected?.value ?? settings.benchmarkColor)
+            ? (this.pal().foregroundSelected?.value ?? settings.benchmarkColor)
             : (ibcs ? IBCS.benchmark : settings.benchmarkColor);
 
         // Fill precedence: high contrast → IBCS → benchmark colours → a plain colour
@@ -1598,7 +1663,7 @@ export class Visual implements IVisual {
 
         if (title) {
             if ((settings.smBackground && !isHighContrast) || settings.smBorder) {
-                const fgHc = this.host.colorPalette.foreground?.value ?? "#FFFFFF";
+                const fgHc = this.pal().foreground?.value ?? "#FFFFFF";
                 this.svg.append("rect").attr("class", "hp-sm-panel").attr("pointer-events", "none")
                     .attr("x", ox + 0.5).attr("y", oy + 0.5).attr("width", Math.max(0, width - 1)).attr("height", Math.max(0, cellH - 1))
                     .attr("fill", settings.smBackground && !isHighContrast ? settings.smBackground : "none")
@@ -1609,7 +1674,7 @@ export class Visual implements IVisual {
                 .attr("x", centred ? ox + width / 2 : ox + 4 + titlePad).attr("y", oy + titlePad + Math.max(9, settings.smTitleSize))
                 .attr("text-anchor", centred ? "middle" : "start")
                 .attr("font-size", Math.max(9, settings.smTitleSize)).attr("font-weight", settings.smTitleBold ? "600" : "400")
-                .attr("fill", isHighContrast ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : settings.smTitleColor)
+                .attr("fill", isHighContrast ? (this.pal().foreground?.value ?? "#FFFFFF") : settings.smTitleColor)
                 .attr("font-family", "Segoe UI, sans-serif")
                 .text(title);
         }
@@ -1629,7 +1694,7 @@ export class Visual implements IVisual {
             const iqrW = xScale(p75) - xScale(p25);
             if (iqrW > 0) {
                 const iqrFill = isHighContrast
-                    ? (this.host.colorPalette.foreground?.value ?? settings.iqrColor)
+                    ? (this.pal().foreground?.value ?? settings.iqrColor)
                     : (ibcs ? IBCS.iqr : settings.iqrColor);
                 g.append("rect")
                     .attr("x", iqrX).attr("y", 0)
@@ -1661,7 +1726,7 @@ export class Visual implements IVisual {
                 this.tf("UI_ZoneHigh", "> {0}", fc2),
             ];
             const cols = isHighContrast
-                ? [0, 1, 2].map(() => this.host.colorPalette.foreground?.value ?? "#FFFFFF")
+                ? [0, 1, 2].map(() => this.pal().foreground?.value ?? "#FFFFFF")
                 : (ibcs ? ["#D9D9D9", "#A6A6A6", "#595959"] : [settings.zColor1, settings.zColor2, settings.zColor3]);
             zones = [0, 1, 2].map(k => ({
                 lo: k === 0 ? xDomain[0] : k === 1 ? c1 : c2,
@@ -1791,7 +1856,7 @@ export class Visual implements IVisual {
                         const avg = vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
                         return {
                             displayName: tc.source.displayName,
-                            value: avg != null ? formatValue(avg, tc.source.format ?? "") : this.t("UI_Blank", "(blank)")
+                            value: avg != null ? formatValue(avg, this.colFormat(tc)) : this.t("UI_Blank", "(blank)")
                         };
                     });
                     this.tooltipService.show({
@@ -1876,7 +1941,7 @@ export class Visual implements IVisual {
             outColor: this.allow("bar styling") && !isHighContrast ? settings.rangeOutColor : "",
             barOpacity, dim: look.dim ?? 0.25, rLo, rHi, rActLo, rActHi, rActive, shortcutsOn, step: (xDomain[1] - xDomain[0]) / effectiveBins, stroke: borderColor, strokeW: borderWidth,
             hc: isHighContrast, axisColor: effectiveAxisColor, gridColor: effectiveGridColor,
-            accent: isHighContrast ? (this.host.colorPalette.foregroundSelected?.value ?? "#FFFF00") : (settings.rangeColor || look.accent),
+            accent: isHighContrast ? (this.pal().foregroundSelected?.value ?? "#FFFF00") : (settings.rangeColor || look.accent),
             fmt: (v: number) => formatValue(v, formatStr), fs: settings.axisFontSize,
         };
         if (rangeOn) this.drawRange(g, rangeArgs);
@@ -1901,17 +1966,17 @@ export class Visual implements IVisual {
         }
 
         // Mean line
-        const effectiveMeanColor   = isHighContrast ? (this.host.colorPalette.foreground?.value ?? settings.meanColor)   : (ibcs ? IBCS.mean   : settings.meanColor);
-        const effectiveMedianColor = isHighContrast ? (this.host.colorPalette.foregroundSelected?.value ?? settings.medianColor) : (ibcs ? IBCS.median : settings.medianColor);
-        const effectiveP25Color    = isHighContrast ? (this.host.colorPalette.foreground?.value ?? settings.p25Color)    : (ibcs ? IBCS.p25    : settings.p25Color);
-        const effectiveP75Color    = isHighContrast ? (this.host.colorPalette.foreground?.value ?? settings.p75Color)    : (ibcs ? IBCS.p75    : settings.p75Color);
+        const effectiveMeanColor   = isHighContrast ? (this.pal().foreground?.value ?? settings.meanColor)   : (ibcs ? IBCS.mean   : settings.meanColor);
+        const effectiveMedianColor = isHighContrast ? (this.pal().foregroundSelected?.value ?? settings.medianColor) : (ibcs ? IBCS.median : settings.medianColor);
+        const effectiveP25Color    = isHighContrast ? (this.pal().foreground?.value ?? settings.p25Color)    : (ibcs ? IBCS.p25    : settings.p25Color);
+        const effectiveP75Color    = isHighContrast ? (this.pal().foreground?.value ?? settings.p75Color)    : (ibcs ? IBCS.p75    : settings.p75Color);
 
 
         // A background box behind every label drawn over the plot — reference lines and
         // value zones. They sit over bars and shaded zones, where a coloured label alone
         // cannot be read. Colour and opacity are in Statistics → Label background; a
         // halo picked from the text colour looked heavy on light report backgrounds.
-        const labelBg = isHighContrast ? (this.host.colorPalette.background?.value ?? "#000000") : settings.labelBgColor;
+        const labelBg = isHighContrast ? (this.pal().background?.value ?? "#000000") : settings.labelBgColor;
         const labelBgOp = isHighContrast ? 1 : Math.min(100, Math.max(0, settings.labelBgOpacity)) / 100;
         const withHalo = (sel: d3.Selection<SVGTextElement, unknown, null, undefined>, _c?: string, bg = labelBg, bgOp = labelBgOp) => {
             const node = sel.node();
@@ -1931,7 +1996,7 @@ export class Visual implements IVisual {
             const zBg = isHighContrast ? labelBg : (settings.zLabelBg || labelBg);
             const zOp = isHighContrast ? 1 : Math.min(100, Math.max(0, settings.zLabelBgOpacity)) / 100;
             // Con poco fondo propio, el texto se lee sobre lo que hay detrás: el fondo del visual.
-            const behind = zOp >= 0.5 ? zBg : (look.bg ?? look.grad?.[1] ?? this.host.colorPalette.background?.value ?? "#FFFFFF");
+            const behind = zOp >= 0.5 ? zBg : (look.bg ?? look.grad?.[1] ?? this.pal().background?.value ?? "#FFFFFF");
             const zl = g.append("g").attr("class", "zone-labels").attr("pointer-events", "none");
             for (const zl0 of zoneLabels) {
                 const avail = zl0.x1 - zl0.x0 - 8;
@@ -2016,7 +2081,7 @@ export class Visual implements IVisual {
         // own 0–100% axis at the right. Read with the value zones it answers "how many
         // deals are below 10K" without counting bars.
         if (showCum) {
-            const cumColor = isHighContrast ? (this.host.colorPalette.foreground?.value ?? settings.cumulativeColor)
+            const cumColor = isHighContrast ? (this.pal().foreground?.value ?? settings.cumulativeColor)
                 : (ibcs ? "#262626" : settings.cumulativeColor);
             const yC = d3.scaleLinear().domain([0, 100]).range([plotH, headroom]);
             let acc = 0;
@@ -2066,7 +2131,7 @@ export class Visual implements IVisual {
                 withHalo(g.append("text")
                     .attr("x", tx).attr("y", Math.max(12, yScale(peakY) - 8))
                     .attr("text-anchor", tx < plotW * 0.3 ? "start" : tx > plotW * 0.7 ? "end" : "middle")
-                    .attr("fill", isHighContrast ? hcFg : settings.normalColor).attr("font-size", Math.max(8, settings.axisFontSize - 1))
+                    .attr("fill", isHighContrast ? hcFg : settings.normalColor).attr("font-size", Math.max(this.fz(8), settings.axisFontSize - 1))
                     .attr("pointer-events", "none")
                     .text(this.tf("UI_NormalFlat", "Normal curve flat: data far from normal (σ = {0})", formatValue(std, formatStr))), settings.normalColor);
             }
@@ -2084,7 +2149,7 @@ export class Visual implements IVisual {
             const lh = settings.axisFontSize + 3;
             const sg = g.append("g").attr("class", "hp-stats");
             sg.append("rect").attr("x", px - 6).attr("y", py - 4).attr("width", 116).attr("height", lines.length * lh + 6)
-                .attr("fill", isHighContrast ? (this.host.colorPalette.background?.value ?? "#000000") : settings.statsBgColor)
+                .attr("fill", isHighContrast ? (this.pal().background?.value ?? "#000000") : settings.statsBgColor)
                 .attr("fill-opacity", isHighContrast ? 1 : Math.min(100, Math.max(0, settings.statsBgOpacity)) / 100)
                 .attr("rx", 4);
             lines.forEach((line, i) => {
@@ -2110,7 +2175,7 @@ export class Visual implements IVisual {
             if (settings.showBenchmark)            items.push({ label: dflt(settings.benchmarkLabel, DEFAULTS.benchmarkLabel, "UI_Target"),                  color: bmColor,              dash: "",       w: ibcs ? 2.5 : 2, kind: "vline" });
 
             if (items.length > 0) {
-                const fs      = Math.max(6, settings.legendFontSize || Math.max(8, settings.axisFontSize - 1));
+                const fs      = Math.max(this.fz(6), settings.legendFontSize || Math.max(8, settings.axisFontSize - 1));
                 const iconW   = 16;   // width of icon area
                 const iconH   = fs;   // height of icon area (matches text cap height)
                 const gap     = 5;    // icon → text
@@ -2137,7 +2202,7 @@ export class Visual implements IVisual {
                         : -(legendRowH + 8);                   // above plot with breathing room
 
                 const textFill = isHighContrast
-                    ? (this.host.colorPalette.foreground?.value ?? effectiveAxisColor)
+                    ? (this.pal().foreground?.value ?? effectiveAxisColor)
                     : settings.legendColor;
 
                 let cx = lx0;
@@ -2223,7 +2288,7 @@ export class Visual implements IVisual {
             // Bands outside the grid: the shared legend on top, and room at the bottom for
             // the clipped-axis notice so it does not sit on the last panel's axis title.
             legendBand = settings.showLegend
-                ? Math.max(6, settings.legendFontSize || Math.max(8, settings.axisFontSize - 1)) + 18 : 0;
+                ? Math.max(this.fz(6), settings.legendFontSize || Math.max(8, settings.axisFontSize - 1)) + 18 : 0;
             const bottomBand = rd.clamped ? 14 : 0;
             bottomBandG = bottomBand;
             // One range bar for the grid, if the panels keep a readable height without its band.
@@ -2307,7 +2372,7 @@ export class Visual implements IVisual {
 
         const handle = (side: "lo" | "hi", aria: string) => rg.append("rect")
             .attr("class", `hp-handle hp-handle-${side}`).attr("y", -7).attr("width", 10).attr("height", 14).attr("rx", 4)
-            .attr("fill", o.hc ? (this.host.colorPalette.background?.value ?? "#000000") : "#FFFFFF")
+            .attr("fill", o.hc ? (this.pal().background?.value ?? "#000000") : "#FFFFFF")
             .attr("stroke", o.accent).attr("stroke-width", 2).attr("pointer-events", "none")
             .attr("tabindex", 0).attr("role", "slider").attr("aria-label", aria)
             .attr("aria-valuemin", dom[0]).attr("aria-valuemax", dom[1]);
@@ -2347,7 +2412,7 @@ export class Visual implements IVisual {
                 .attr("type", "text").attr("inputmode", "decimal").attr("aria-label", aria).attr("placeholder", side === "lo" ? this.t("UI_Min", "Min") : this.t("UI_Max", "Max"))
                 .style("position", "absolute").style("left", `${o.left + x}px`).style("top", `${o.top + o.y + 13}px`)
                 .style("width", "62px").style("height", "20px").style("padding", "0 4px").style("box-sizing", "border-box")
-                .style("font-size", "11px").style("font-family", "inherit").style("color", o.axisColor).style("background", "transparent")
+                .style("font-size", this.fz(11) + "px").style("font-family", "inherit").style("color", o.axisColor).style("background", "transparent")
                 .style("border", `1px solid ${o.axisColor}`).style("border-radius", "4px")
                 .style("text-align", side === "lo" ? "left" : "right").node() as HTMLInputElement;
             inp.value = on ? value : "";
@@ -2474,7 +2539,7 @@ export class Visual implements IVisual {
                 .attr("tabindex", 0).attr("role", "button").attr("aria-pressed", on ? "true" : "false").attr("aria-label", c.name);
             const r = b.append("rect").attr("y", -2).attr("height", 18).attr("rx", 9)
                 .attr("fill", on ? o.accent : "transparent").attr("stroke", on ? o.accent : o.axisColor).attr("stroke-opacity", on ? 1 : 0.5);
-            const t = b.append("text").attr("x", 9).attr("y", 11).attr("font-size", 10).attr("fill", on ? (o.hc ? (this.host.colorPalette.background?.value ?? "#000000") : "#FFFFFF") : o.axisColor).text(c.name);
+            const t = b.append("text").attr("x", 9).attr("y", 11).attr("font-size", this.fz(10)).attr("fill", on ? (o.hc ? (this.pal().background?.value ?? "#000000") : "#FFFFFF") : o.axisColor).text(c.name);
             if (on && !o.hc) {
                 // Text on the accent: dark when the accent is light.
                 const n = parseInt(o.accent.slice(1), 16), lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255));
@@ -2499,60 +2564,29 @@ export class Visual implements IVisual {
                 this.tf("UI_ZoneRows", "{0} of rows", this.pct(100 * inRange.length / Math.max(1, o.rows.length)))];
             if (o.sum > 0 && sum >= 0) parts.push(this.tf("UI_ZoneValue", "{0} of value", this.pct(100 * sum / o.sum)));
             const line = g.append("text").attr("x", plotW).attr("y", o.y + 55).attr("text-anchor", "end")
-                .attr("font-size", 10).attr("font-weight", "600").attr("fill", o.axisColor).text(parts.join(" · "));
+                .attr("font-size", this.fz(10)).attr("font-weight", "600").attr("fill", o.axisColor).text(parts.join(" · "));
             if (((line.node() as SVGTextElement).getComputedTextLength?.() ?? 0) > plotW - cx - 8) line.text(parts.slice(1).join(" · "));
             if (((line.node() as SVGTextElement).getComputedTextLength?.() ?? 0) > plotW - cx - 8) line.remove();
         }
     }
 
     /**
-     * "Pro preview" sobre el lienzo, y debajo las funciones que la han encendido.
-     *
-     * Solo mientras se edita sin licencia y con una funcion Pro activa: en vista de
-     * lectura no se dibuja, porque ahi tampoco se dibuja la funcion. Blanco con contorno
-     * oscuro -SVG no tiene text-shadow, asi que se hace con stroke y paint-order- para que
-     * se lea igual sobre barras claras y oscuras.
+     * "Pro preview" con las funciones que la han encendido: la pieza común de la cartera (src/comun/watermark.ts, 1.6).
+     * Solo mientras se edita sin licencia y con una función Pro activa; en lectura no se dibuja.
      */
     private renderWatermark(width: number, height: number): void {
-        if (!this.proPreview || this.attemptedPro.length === 0) return;
-
-        const cx = width / 2, cy = height / 2;
-        const fs = Math.round(Math.max(24, Math.min(88, width / 7.5, height / 3.5)));
-
-        const g = this.svg.append("g")
-            .attr("class", "pro-watermark")
-            .attr("transform", `rotate(-20 ${cx} ${cy})`)
-            .attr("aria-hidden", "true")
-            .attr("pointer-events", "none")
-            .attr("opacity", 0.72);
-
-        const comun = (sel: any, size: number, peso: string) => sel
-            .attr("x", cx).attr("text-anchor", "middle").attr("dominant-baseline", "middle")
-            .style("font-family", "'Segoe UI', sans-serif")
-            .style("font-size", `${size}px`).style("font-weight", peso)
-            .style("letter-spacing", "0.06em")
-            .style("fill", "#FFFFFF")
-            .style("stroke", "#0B1437").style("stroke-width", Math.max(2, size / 14))
-            .style("paint-order", "stroke");
-
-        // Con mas de dos, la lista tapa el grafico que se quiere ensenar.
-        const nombres = this.attemptedPro.map(a => this.featName(a));
-        const etiquetas = nombres.length <= 2
-            ? nombres
-            : nombres.slice(0, 2).concat([`+${nombres.length - 2}`]);
-
-        comun(g.append("text"), fs, "700")
-            .attr("y", cy - fs * 0.22)
-            .text(this.t("UI_ProPreview", "Pro preview"));
-        comun(g.append("text"), Math.round(fs * 0.32), "600")
-            .attr("y", cy + fs * 0.45)
-            .text(etiquetas.join(" · "));
+        const on = this.proPreview && this.attemptedPro.length > 0;
+        const p = this.pal();
+        renderProWatermark(this.watermarkEl, on ? {
+            width, height, title: this.t("UI_ProPreview", "Pro preview"), features: this.attemptedPro.map(a => this.featName(a)),
+            highContrast: p.isHighContrast ? { foreground: p.foreground?.value ?? "#FFFFFF", background: p.background?.value ?? "#000000" } : null,
+        } : null);
     }
 
     // ── Landing page ──────────────────────────────────────────────────────────
 
     private showLandingPage(width: number, height: number): void {
-        const landFg = this.host.colorPalette.foreground?.value ?? "#252423";
+        const landFg = this.pal().foreground?.value ?? "#252423";
         const cx = width / 2, cy = height / 2;
         const fakeData = [3, 7, 15, 22, 30, 25, 18, 10, 5, 2];
         const barW = Math.min(30, (width * 0.6) / fakeData.length);
@@ -2562,12 +2596,12 @@ export class Visual implements IVisual {
             this.svg.append("rect")
                 .attr("x", startX + i * barW + 1).attr("y", cy + 30 - bh)
                 .attr("width", barW - 2).attr("height", bh)
-                .attr("fill", this.host.colorPalette.isHighContrast ? landFg : "#2B6CB0").attr("fill-opacity", this.host.colorPalette.isHighContrast ? 0.4 : 0.18).attr("rx", 2);
+                .attr("fill", this.pal().isHighContrast ? landFg : "#2B6CB0").attr("fill-opacity", this.pal().isHighContrast ? 0.4 : 0.18).attr("rx", 2);
         });
         this.svg.append("text").attr("x", cx).attr("y", cy - 50).attr("text-anchor", "middle")
-            .attr("font-size", 16).attr("font-weight", "600").attr("fill", landFg).attr("font-family", "Segoe UI, sans-serif").text("Histogram Pro");
+            .attr("font-size", this.fz(16)).attr("font-weight", "600").attr("fill", landFg).attr("font-family", "Segoe UI, sans-serif").text("Histogram Pro");
         this.svg.append("text").attr("x", cx).attr("y", cy - 30).attr("text-anchor", "middle")
-            .attr("font-size", 12).attr("fill", landFg).attr("fill-opacity", 0.75).attr("font-family", "Segoe UI, sans-serif").text(this.t("UI_Landing", "Add a numeric field to get started"));
+            .attr("font-size", this.fz(12)).attr("fill", landFg).attr("fill-opacity", 0.75).attr("font-family", "Segoe UI, sans-serif").text(this.t("UI_Landing", "Add a numeric field to get started"));
     }
 
     // ── Setup guide ───────────────────────────────────────────────────────────
@@ -2587,7 +2621,7 @@ export class Visual implements IVisual {
         el.style.display = "none";
         if (!this.guideOpen || !this.editing || this.formatMode || !this.canInteract) return;
         if (!dv?.categorical?.values?.[0] || !vp || vp.width < 360 || vp.height < 260) return;
-        const sig = [this.guideStep, this.isPro, this.currentSettings?.template, this.host.colorPalette.isHighContrast,
+        const sig = [this.guideStep, this.isPro, this.currentSettings?.template, this.pal().isHighContrast,
             ...["category", "panel", "tooltips"].map(r => this.roleBound(r))].join("|");
         el.style.display = "block";
         if (sig === this.guideSig && el.firstChild) return;
@@ -2602,11 +2636,11 @@ export class Visual implements IVisual {
     private renderGuide(): void {
         const el = this.guideEl;
         while (el.firstChild) el.removeChild(el.firstChild);
-        const hc = this.host.colorPalette.isHighContrast;
-        const main = hc ? (this.host.colorPalette.foregroundSelected?.value ?? "#FFFF00") : "#2B6CB0";
-        const fg = hc ? (this.host.colorPalette.foreground?.value ?? "#FFFFFF") : "#252423";
+        const hc = this.pal().isHighContrast;
+        const main = hc ? (this.pal().foregroundSelected?.value ?? "#FFFF00") : "#2B6CB0";
+        const fg = hc ? (this.pal().foreground?.value ?? "#FFFFFF") : "#252423";
         const muted = hc ? fg : "#605E5C";
-        const bg = hc ? (this.host.colorPalette.background?.value ?? "#000000") : "#FFFFFF";
+        const bg = hc ? (this.pal().background?.value ?? "#000000") : "#FFFFFF";
         el.style.display = "block";
         el.style.background = bg;
         el.style.borderColor = main;
@@ -2838,7 +2872,8 @@ export class Visual implements IVisual {
                         propertyName: prop,
                         ...(conditionalFormatting ? {
                             instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule,
-                            selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] } as any,
+                            // 1.6: el selector se crea con la función de Microsoft (OKviz solo reconoce el fx así).
+                            selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals) as any,
                             // A fixed colour is stored without the wildcard: the pane reads it back as such.
                             altConstantValueSelector: null,
                         } : {})
@@ -2859,9 +2894,9 @@ export class Visual implements IVisual {
             control: { type: powerbi.visuals.FormattingComponent.TextInput, properties: { descriptor: { objectName: obj, propertyName: prop }, value: val } }
         });
 
-        const dropdown = (uid: string, name: string, obj: string, prop: string, val: string, items: [string, string, string][]) => {
+        const dropdown = (uid: string, name: string, obj: string, prop: string, val: string, items: [string, string, string][], free = false) => {
             const list = items.map(([value, key, f]) => ({ value,
-                displayName: value === "report" || value === "classic" ? T(key, f) : lbl(T(key, f)) }));
+                displayName: free || value === "report" || value === "classic" ? T(key, f) : lbl(T(key, f)) }));
             return { uid, displayName: dn(obj, prop, name), control: { type: powerbi.visuals.FormattingComponent.Dropdown,
                 properties: { descriptor: { objectName: obj, propertyName: prop }, value: list.find(x => x.value === val) ?? list[0], items: list } as any } };
         };
@@ -2976,6 +3011,14 @@ export class Visual implements IVisual {
                     col("sm_bg",    lbl("Panel background"),         "smallMultiples", "background", s.smBackground),
                     tog("sm_bord",  lbl("Panel border"),             "smallMultiples", "border", s.smBorder),
                     col("sm_bcol",  lbl("Panel border color"),       "smallMultiples", "borderColor", s.smBorderColor),
+                ]),
+                // Accesibilidad (1.6): la misma tarjeta que Box & Whisker, Radar y Bullet.
+                card("accessibility_card", "Accessibility", [
+                    dropdown("acc_hc", "High contrast", "accessibility", "highContrast", this.a11y.hcMode,
+                        [["auto", "Enum_hc_auto", "Automatic (Windows setting)"], ["on", "Enum_hc_on", "On"]], true),
+                    col("acc_fc", "Focus color", "accessibility", "focusColor", this.a11y.focusColor),
+                    num("acc_fw", "Focus width", "accessibility", "focusWidth", this.a11y.focusWidth),
+                    num("acc_mt", "Minimum text size", "accessibility", "minTextSize", this.a11y.minText),
                 ]),
             ]
         };

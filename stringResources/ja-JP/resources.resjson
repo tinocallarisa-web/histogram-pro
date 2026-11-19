@@ -180,5 +180,12 @@
   "Prop_smallMultiples_border": "パネルの枠線",
   "Prop_smallMultiples_borderColor": "パネルの枠線の色",
   "Enum_al_left": "左",
-  "Enum_al_center": "中央"
+  "Enum_al_center": "中央",
+  "Obj_accessibility": "アクセシビリティ",
+  "Prop_accessibility_highContrast": "ハイ コントラスト",
+  "Enum_hc_auto": "自動 (Windows の設定)",
+  "Enum_hc_on": "オン",
+  "Prop_accessibility_focusColor": "フォーカスの色",
+  "Prop_accessibility_focusWidth": "フォーカスの幅",
+  "Prop_accessibility_minTextSize": "最小のテキスト サイズ"
 }

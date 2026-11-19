@@ -180,5 +180,12 @@
   "Prop_smallMultiples_border": "Bordo del pannello",
   "Prop_smallMultiples_borderColor": "Colore bordo pannello",
   "Enum_al_left": "Sinistra",
-  "Enum_al_center": "Centro"
+  "Enum_al_center": "Centro",
+  "Obj_accessibility": "Accessibilità",
+  "Prop_accessibility_highContrast": "Contrasto elevato",
+  "Enum_hc_auto": "Automatico (impostazione di Windows)",
+  "Enum_hc_on": "Attivato",
+  "Prop_accessibility_focusColor": "Colore del focus",
+  "Prop_accessibility_focusWidth": "Spessore del focus",
+  "Prop_accessibility_minTextSize": "Dimensione minima del testo"
 }

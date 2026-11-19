@@ -180,5 +180,12 @@
   "Prop_smallMultiples_border": "패널 테두리",
   "Prop_smallMultiples_borderColor": "패널 테두리 색",
   "Enum_al_left": "왼쪽",
-  "Enum_al_center": "가운데"
+  "Enum_al_center": "가운데",
+  "Obj_accessibility": "접근성",
+  "Prop_accessibility_highContrast": "고대비",
+  "Enum_hc_auto": "자동(Windows 설정)",
+  "Enum_hc_on": "켜기",
+  "Prop_accessibility_focusColor": "포커스 색",
+  "Prop_accessibility_focusWidth": "포커스 두께",
+  "Prop_accessibility_minTextSize": "최소 텍스트 크기"
 }

@@ -180,5 +180,12 @@
   "Prop_smallMultiples_border": "Paneelrand",
   "Prop_smallMultiples_borderColor": "Kleur paneelrand",
   "Enum_al_left": "Links",
-  "Enum_al_center": "Midden"
+  "Enum_al_center": "Midden",
+  "Obj_accessibility": "Toegankelijkheid",
+  "Prop_accessibility_highContrast": "Hoog contrast",
+  "Enum_hc_auto": "Automatisch (Windows-instelling)",
+  "Enum_hc_on": "Aan",
+  "Prop_accessibility_focusColor": "Kleur focus",
+  "Prop_accessibility_focusWidth": "Breedte focus",
+  "Prop_accessibility_minTextSize": "Minimale tekstgrootte"
 }

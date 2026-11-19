@@ -180,5 +180,12 @@
   "Prop_smallMultiples_border": "Obramowanie panelu",
   "Prop_smallMultiples_borderColor": "Kolor obramowania panelu",
   "Enum_al_left": "Do lewej",
-  "Enum_al_center": "Do środka"
+  "Enum_al_center": "Do środka",
+  "Obj_accessibility": "Ułatwienia dostępu",
+  "Prop_accessibility_highContrast": "Wysoki kontrast",
+  "Enum_hc_auto": "Automatycznie (ustawienie systemu Windows)",
+  "Enum_hc_on": "Włączone",
+  "Prop_accessibility_focusColor": "Kolor fokusu",
+  "Prop_accessibility_focusWidth": "Grubość fokusu",
+  "Prop_accessibility_minTextSize": "Minimalny rozmiar tekstu"
 }
