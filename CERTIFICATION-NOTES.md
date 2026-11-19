@@ -1,9 +1,31 @@
-# Certification Notes — Histogram Pro v1.5.0.0
+# Certification Notes — Histogram Pro v1.6.0.0
 
 The short version to paste into Partner Center is
 [`docs/CERTIFICATION-NOTES-SHORT.txt`](./docs/CERTIFICATION-NOTES-SHORT.txt), written to fit the
 2,500-character limit of that field, which truncates without warning and mid-word. **That
 field is cleared on every resubmission** — it has to be pasted again each time.
+
+## What changed in 1.6.0.0
+
+- **Dynamic format strings.** `general.formatString` is declared in `capabilities.json`, so
+  Power BI sends each row's format string in the column's `objects`. A bin mixes rows, so the
+  visual uses that string only when every row of the measure shares it (a currency chosen in
+  the report, a calculation group); otherwise it uses `source.format`. The axis, the bin
+  ranges in the tooltip, the mean, median and quartile lines, the statistics panel and the
+  labels use the result. Measures in the Tooltips role follow the same rule.
+- **Conditional formatting (fx) on Bar color.** No change for the user. The selector is now
+  created with `createDataViewWildcardSelector` (`InstancesAndTotals`, from
+  `powerbi-visuals-utils-dataviewutils`), with `altConstantValueSelector: null` so a fixed
+  colour is stored without the wildcard.
+- **Accessibility card** (last card of the format pane, free). *High contrast*: Automatic
+  follows `colorPalette.isHighContrast`; On applies a black-on-white palette without the
+  Windows theme. *Focus color* and *Focus width* (1–6 px) of the keyboard focus on a bar;
+  under a Windows contrast theme the theme's `foregroundSelected` is used. *Minimum text
+  size* (6–24, default 6) is a floor for every font the visual draws.
+- **Pro preview watermark.** The common TCViz piece, `src/comun/watermark.ts` and
+  `style/comun/watermark.less`: an HTML overlay, `textContent` only, `aria-hidden`,
+  `pointer-events: none`, centred. Shown only while editing without a licence.
+- `npx eslint .` and `npm audit`: 0 problems, 0 vulnerabilities (run on branch `v1.6`).
 
 ## What changed in 1.5.0.0
 
@@ -261,7 +283,7 @@ All four pages verified with a real request: HTTP 200.
       while editing, on a Pro feature the user turned on
 - [x] No licensing UI of the visual's own
 - [x] `package.json` declares `typescript`, per policy 1200.1.1.4
-- [x] Version in `pbiviz.json` (1.5.0.0) is above the published 1.4.0.0
+- [x] Version in `pbiviz.json` (1.6.0.0) is above the published 1.5.0.0
 
 ### Known gaps, declared openly
 

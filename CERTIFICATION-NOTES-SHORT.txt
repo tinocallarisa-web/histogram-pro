@@ -1,44 +1,41 @@
-Histogram Pro 1.5.0.0 - GUID HistogramPro38A7C1D94E2B4F6D8A0E5B3C9F1D2E4A
+Histogram Pro 1.6.0.0 - GUID HistogramPro38A7C1D94E2B4F6D8A0E5B3C9F1D2E4A
 
 SOURCE CODE
-github.com/tinocallarisa-web/histogram-pro, branch "certification".
-PUBLIC: no credentials needed, none included here.
+github.com/tinocallarisa-web/histogram-pro, branch "certification". Public, no credentials.
+
+NEW IN 1.6.0.0
+1. general.formatString declared (dynamic format strings): the row format string is used
+   when all rows of the measure share it, else the column format. Tooltip measures too.
+2. Bar color fx: selector created with createDataViewWildcardSelector
+   (InstancesAndTotals), altConstantValueSelector null. Behaviour unchanged.
+3. Format pane > Accessibility (last card, free): High contrast Automatic/On (On = black
+   on white without the Windows theme), focus colour and width, minimum text size.
+4. Pro preview watermark: common TCViz piece (src/comun/watermark.ts), textContent only,
+   aria-hidden, pointer-events none.
 
 TESTING THE PREMIUM FEATURES - NO KEY NEEDED
-There is no activation key: Pro is granted by the AppSource plan through
-IVisualLicenseManager. The submitted package already renders every premium feature:
-open a report in EDIT mode without a licence and turn on any Pro setting - it is drawn
-WORKING under a "Pro preview" watermark naming it. Reading view, Publish to Web, embed
-and export show the free result, no watermark. Without the watermark: npm install,
-then node build-test.js (isPro forced true, GUID + "_test"; never submitted).
-
-WHAT CHANGED IN 1.5.0.0
-1. Range bar (free): two handles, typed values, keyboard. Filters with applyJsonFilter on
-   release, on the Detail column, capped at 10,000 values. Pro: shortcuts and summary.
-2. Style templates. Default is Report theme (colorPalette); Classic is the old look.
-   Six more are Pro.
-3. On-object formatting: supportsOnObjectFormatting, onobjectutils. In format mode a
-   click selects and never filters.
-4. Setup guide in edit mode only; persistProperties only from its button clicks.
-5. Small multiples: new options, one range bar for the grid. 12 languages; text outside
-   capabilities.json travels in src/strings.ts.
-6. FIXED: last bar of a clipped axis now filters the rows above the axis too.
-
-RENDERING EVENTS: one started/finished-or-failed pair per update(); click repaints
-do not call update().
-PRIVACY: no network calls, no telemetry. privileges [].
+Pro comes from the AppSource plan via IVisualLicenseManager. In EDIT mode without a
+licence any Pro setting is drawn WORKING under a "Pro preview" watermark naming it.
+Reading view, Publish to Web, embed and export show the free result.
+Without the watermark: npm install, then node build-test.js (isPro forced true, GUID + "_test"; never submitted).
 
 FREE: 10 bins, mean, median, P25/P75, IQR, benchmark, legend, IBCS, range bar, Report
-theme, Classic, cross-filtering, bookmarks, drilldown, high contrast.
+theme, Classic, cross-filtering, bookmarks, drilldown, high contrast, Accessibility card.
 PRO: bins, trimming, zones, small multiples, cumulative line, styles, range shortcuts,
 bar styling and fx, statistics panel, normal curve, value labels.
 
 WHAT TO CHECK
 1. Values = numeric measure, Detail (rows) = row-level field: 10 bins, range bar.
-2. Drag a handle: page filters on release, bars outside dim.
-3. Editing, no licence: Style template = Aurora - drawn under the watermark, a banner
-   names it, then the Upgrade bar. Back to Report theme: both clear.
-4. Click a bar: page filters. Save a bookmark, clear, apply it.
-5. On-object mode: click bars and axes; nothing filters.
+2. Measure with a dynamic format (e.g. currency switch): axis and tooltip use it.
+3. Accessibility > High contrast = On: black on white. Minimum text size 12: small
+   texts grow. Tab to a bar (focus ring), arrows move, Enter selects, Esc clears.
+4. Editing, no licence: Style template = Aurora - watermark, banner, then Upgrade bar.
+5. Click a bar: page filters. Save a bookmark, clear, apply it.
 
-Support: tinocallarisa-web.github.io/histogram-pro/support.html
+RENDERING EVENTS: one started/finished-or-failed pair per update(); repaints do not
+call update(). PRIVACY: no network calls, no telemetry. privileges [].
+eslint 0, npm audit 0.
+
+Support: https://tinocallarisa-web.github.io/histogram-pro/support.html
+Privacy: https://tinocallarisa-web.github.io/histogram-pro/privacy.html
+Terms: https://tinocallarisa-web.github.io/histogram-pro/terms.html

@@ -176,13 +176,13 @@
 
 <div class="wrap">
 
-  <div class="verpill">Visual v1.5.0.0 &nbsp;·&nbsp; docs updated Nov 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+  <div class="verpill">Visual v1.6.0.0 &nbsp;·&nbsp; docs updated Nov 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
 
   <p class="lead">Supported Power BI features: <strong>small multiples</strong> · <strong>conditional formatting (fx)</strong>
   on bar colour · drilldown on a hierarchy in Detail · cross-filtering by the whole bar, <strong>Ctrl+click
   multi-select</strong> and <strong>highlighting</strong> · <strong>bookmarks</strong> (the selected bars are restored and
   shown) · standard and <strong>report page tooltips</strong> · context menu · keyboard navigation with ARIA labels ·
-  high contrast · <strong>number formats from the model</strong> · <strong>localization</strong> (12 languages) ·
+  high contrast, forced or automatic · <strong>dynamic format strings</strong> · <strong>localization</strong> (12 languages) ·
   IBCS mode · data streaming past 30,000 rows. Analysis: mean, median, quartiles and IQR, a benchmark line,
   <strong>value zones</strong> with the share of rows and of value in each, a <strong>cumulative frequency</strong>
   line, a normal curve and a statistics panel.</p>
@@ -191,6 +191,22 @@
   <div class="video-wrap">
     <iframe src="https://www.youtube.com/embed/pZE87CZfaUo" title="Histogram Pro walkthrough"
             allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+
+  <!-- What's new -->
+  <h2 id="whats-new">What's new in 1.6.0.0</h2>
+  <div class="card">
+    <ul>
+      <li><strong>Dynamic format strings.</strong> When every row of the measure carries the same format string — the currency chosen in
+      the report, a calculation group — the axis, the bin ranges in the tooltip, the mean, median and quartile lines, the statistics panel
+      and the labels use it. When the rows carry different strings, the column's format is used. Measures in Tooltips follow the same rule.</li>
+      <li><strong>Accessibility card</strong> (last card of the format pane, free): high contrast <em>Automatic</em> or <em>On</em>, the colour
+      and width of the keyboard focus, and a minimum text size. See <a href="#accessibility" style="color:var(--acc);">Accessibility</a>.</li>
+      <li><strong>Pro preview watermark.</strong> The common TCViz watermark: "Pro preview" and the Pro features in use, centred, never
+      covering the data. Only while editing without a licence.</li>
+          <li><strong>Statistics panel in small tiles (Pro).</strong> It no longer covers the bars: in a short tile it shows n, &mu; and M, and in a very small one it is not drawn &mdash; the tooltip of each bar still gives the figures.</li>
+    </ul>
+    <p>Full history in the <a href="changelog.html" style="color:var(--acc);">changelog</a>.</p>
   </div>
 
   <!-- Quick Start -->
@@ -273,10 +289,10 @@
   <h2 id="fields">Field Wells</h2>
   <table>
     <tr><th>Field well</th><th>Accepts</th><th>What it does</th></tr>
-    <tr><td><strong>Values</strong></td><td>One numeric field</td><td>The number to distribute. Required. Its format string from the model (currency, percent, decimals) is used on the axis, the labels, the tooltip and the statistics panel.</td></tr>
+    <tr><td><strong>Values</strong></td><td>One numeric field</td><td>The number to distribute. Required. Its format string from the model (currency, percent, decimals) is used on the axis, the labels, the tooltip and the statistics panel. With a dynamic format string, the string shared by all the rows is used; if the rows carry different strings, the column's format.</td></tr>
     <tr><td><strong>Detail (rows)</strong></td><td>One or more grouping fields</td><td>What one row is. The histogram counts one row per value of this field. With a hierarchy here, the drill-up / drill-down buttons in the visual header work as in any native chart.</td></tr>
     <tr><td><strong>Small multiples</strong> <span class="badge badge-pro">Pro</span></td><td>One grouping field</td><td>One histogram per value, on shared bins and a shared vertical scale.</td></tr>
-    <tr><td><strong>Tooltips</strong></td><td>Measures</td><td>Extra measures shown when you hover a bar, as the average over the rows in that bin. Report page tooltips are supported too.</td></tr>
+    <tr><td><strong>Tooltips</strong></td><td>Measures</td><td>Extra measures shown when you hover a bar, as the average over the rows in that bin, each in its own format (dynamic formats follow the same rule as Values). Report page tooltips are supported too.</td></tr>
   </table>
 
   <!-- Format pane -->
@@ -404,6 +420,17 @@
     mean, dashed grey median, greyscale zones. It overrides the colour settings while it is on.</p>
   </div>
 
+  <div class="card">
+    <h3>Accessibility</h3>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td>High contrast</td><td>Automatic</td><td><strong>Automatic</strong> follows the Windows contrast theme. <strong>On</strong> draws the chart black on white even when Windows has no contrast theme on.</td></tr>
+      <tr><td>Focus color</td><td>Blue</td><td>The outline around the bar that has the keyboard focus. Under a contrast theme the theme's colour is used.</td></tr>
+      <tr><td>Focus width</td><td>2</td><td>Width of that outline, 1 to 6 px.</td></tr>
+      <tr><td>Minimum text size</td><td>6</td><td>6 to 24. Axis, labels, legend, statistics panel, zone labels, small-multiple titles and the visual's own small texts are never drawn smaller, whatever their own size setting.</td></tr>
+    </table>
+  </div>
+
   <!-- Interaction -->
   <h2 id="interaction">Selection &amp; filtering</h2>
   <div class="card">
@@ -437,7 +464,12 @@
       Enter or Space to select, Ctrl+Enter to add to the selection, Esc to clear, Shift+F10 or the context-menu key for the menu.</li>
       <li><strong>Screen readers:</strong> each bar is announced with its range, count and share of total, and whether it is selected.</li>
       <li><strong>High contrast:</strong> under a Windows high-contrast theme bars, lines, zones and text take the theme's colours;
-      zones become dashed outlines instead of fills.</li>
+      zones become dashed outlines instead of fills. <em>Format → Accessibility → High contrast → On</em> applies the same black-on-white
+      treatment without the Windows theme — for a projector, a printout or a reader who needs it on one report.</li>
+      <li><strong>Focus:</strong> the bar that holds the keyboard focus gets an outline; its colour and width are set in
+      <em>Accessibility → Focus color / Focus width</em>.</li>
+      <li><strong>Minimum text size:</strong> <em>Accessibility → Minimum text size</em> (default 6) is a floor for every text the visual draws —
+      axis, labels, legend, statistics panel, zone labels, small-multiple titles and its own notes.</li>
       <li><strong>Language:</strong> the format pane and every label on the chart follow Power BI's language, in 12: English, Spanish, Portuguese (Brazil and Portugal), French, German, Italian, Dutch, Polish, Japanese, Chinese (Simplified) and Korean.</li>
     </ul>
   </div>
@@ -475,7 +507,7 @@
   <div class="card">
     <h3>Pro preview</h3>
     <p>Turn on a Pro feature while editing without a licence and it is drawn working, on your own data, under a "Pro preview" watermark that
-    names it — together with Power BI's own notification and its link to the licence. In reading view and published reports the free chart is shown, with no watermark; if Pro settings are stored, Power BI may show its own licence notice to a reader without a licence. Publish to Web, embed and export show no prompt.</p>
+    names it — the common TCViz watermark, centred and never covering the data — together with Power BI's own notification and its link to the licence. In reading view and published reports the free chart is shown, with no watermark; if Pro settings are stored, Power BI may show its own licence notice to a reader without a licence. Publish to Web, embed and export show no prompt.</p>
     <div class="cta">
       <a class="btn btn-primary" href="https://appsource.microsoft.com/en-us/product/power-bi-visuals/tino_callarisa.histogram-pro-tcviz" target="_blank">Get Pro on AppSource</a>
     </div>
@@ -546,6 +578,27 @@
   </details>
 
   <details>
+    <summary>Why doesn't the axis show my currency when I mix formats?</summary>
+    <div class="faq-body"><p>A bar of a histogram holds many rows. With a dynamic format string, the visual uses the rows' format only when
+    every row carries the same one — for example the currency picked in a slicer or a calculation group. If the rows carry different
+    strings (euros and dollars in the same chart), no single format is true for a bar or for the mean, so the column's own format is used.
+    Filter the page to one currency and the rows share a format again.</p></div>
+  </details>
+
+  <details>
+    <summary>How do I force high contrast without changing Windows?</summary>
+    <div class="faq-body"><p><em>Format → Accessibility → High contrast → On</em>. The chart is drawn black on white, with zones as dashed
+    outlines, whatever the Windows setting. <em>Automatic</em> (the default) follows the Windows contrast theme. While it is on, style
+    templates and your own colours give way to black and white.</p></div>
+  </details>
+
+  <details>
+    <summary>My font size setting is ignored: the text stays bigger</summary>
+    <div class="faq-body"><p><em>Format → Accessibility → Minimum text size</em> is a floor for every text the visual draws (6 by default). A
+    smaller size in Axes, Legend, Value labels, zones or small multiples is raised to it. Lower the minimum if you need smaller text.</p></div>
+  </details>
+
+  <details>
     <summary>Does the visual send my data anywhere?</summary>
     <div class="faq-body"><p>No. It makes no network calls; it only reads the fields you bind, and its settings are stored in the report. The licence is
     checked through Power BI's own licensing API. See the <a href="privacy.html" style="color:var(--acc);">privacy policy</a>.</p></div>
@@ -565,7 +618,8 @@
     <div>
       <h3>Need help?</h3>
       <p>For bug reports, feature requests, and licensing questions:<br>
-      <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
+      <a href="mailto:support@tcviz.com">support@tcviz.com</a><br>
+      Every message is read and answered by a person.</p>
     </div>
   </div>
 

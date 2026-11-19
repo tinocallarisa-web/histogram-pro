@@ -1,4 +1,4 @@
-# Histogram Pro — Tips & Hints (v1.5.0.0)
+# Histogram Pro — Tips & Hints (v1.6.0.0)
 
 A histogram answers one question: **where does my data actually sit?** Not the total, not
 the ranking — the shape. This page is the short version of everything worth knowing.
@@ -24,7 +24,7 @@ Full documentation, with search: https://tinocallarisa-web.github.io/histogram-p
 
 | Well | Kind | What it does |
 |---|---|---|
-| **Values** | Measure | The numeric field to distribute. Required. Its format string is used everywhere. |
+| **Values** | Measure | The numeric field to distribute. Required. Its format string is used everywhere, dynamic formats included. |
 | **Detail (rows)** | Grouping | The row-level field. Enables per-row counting, cross-filtering and drill-down. |
 | **Small multiples** *(Pro)* | Grouping | One histogram per value, on shared bins and a shared vertical scale. |
 | **Tooltips** | Measure | Extra measures on hover, shown as averages over the bin. |
@@ -51,6 +51,27 @@ Full documentation, with search: https://tinocallarisa-web.github.io/histogram-p
 - **Benchmark** — a target or SLA line with value, colour and label; colour the bars by side
 - **IBCS** — monochrome presentation following the IBCS notation
 - **Value labels (Pro)** — the count above each bar, or its share of all rows
+- **Accessibility** — high contrast Automatic or On, keyboard focus colour and width,
+  minimum text size
+
+---
+
+## New in 1.6 — dynamic formats and the Accessibility card
+
+**Dynamic format strings.** A measure with a dynamic format — a currency picked in a slicer,
+a calculation group — now shows that format on the axis, the bin ranges in the tooltip, the
+mean, median and quartile lines, the statistics panel and the labels. A bar mixes many rows,
+so the visual uses the row format only when **every row shares it**; when the rows carry
+different strings it falls back to the column's format. Tooltip measures work the same way.
+
+**Accessibility** (last card of the format pane, free):
+
+- **High contrast → On** draws the chart black on white even without a Windows contrast
+  theme: useful on a projector, a printout or for one reader. *Automatic* follows Windows.
+- **Focus color / Focus width** — the outline around the bar that has the keyboard focus.
+- **Minimum text size** (default 6) — no text the visual draws goes below it: axis, labels,
+  legend, statistics panel, zone labels and panel titles. Raise it to 10 or 12 for a report
+  read on a wall screen.
 
 ---
 
@@ -150,7 +171,8 @@ Detail (rows) and is not shown in drill mode.
   the highlighted bars. In Desktop, Ctrl+click a bookmark button while editing.
 - **Drill-down** — with a hierarchy in *Detail (rows)*, enable drill mode and click a bar.
 - **Keyboard** — Tab into the chart, arrows to move, Enter or Space to select, Ctrl+Enter
-  to add, Escape to clear, Shift+F10 for the context menu.
+  to add, Escape to clear, Shift+F10 for the context menu. The focus outline takes the
+  colour and width set in *Accessibility*.
 
 When a bar holds more than 10,000 distinct values the visual says so instead of filtering
 part of it. Raise the bin count so each bar covers fewer rows.
@@ -164,7 +186,7 @@ part of it. Raise the bin count so each bar covers fewer rows.
 | The distribution, over the whole table | ✓ | ✓ |
 | Mean, median, quartiles and IQR shading | ✓ | ✓ |
 | Benchmark line and bar colouring by benchmark | ✓ | ✓ |
-| Legend, IBCS mode, high contrast, keyboard | ✓ | ✓ |
+| Legend, IBCS mode, high contrast, keyboard, Accessibility card | ✓ | ✓ |
 | Cross-filtering, Ctrl+click, bookmarks, drill-down | ✓ | ✓ |
 | Range bar | ✓ | ✓ |
 | Report theme and Classic styles, on-object formatting | ✓ | ✓ |
@@ -198,6 +220,13 @@ it, with Power BI's own notification and its link. In reading view the free char
 - **The zones do not appear** — both cuts start at 0; zones draw only when they differ.
 - **Ctrl+click in another panel replaced the selection** — by design: a selection lives in
   one panel of the small multiples.
+- **The axis does not show my currency** — the rows of the measure carry different format
+  strings (for example euros and dollars together), so no single format is true for a bar
+  and the column's format is used. Filter the page to one currency.
+- **The chart turned black and white** — *Accessibility → High contrast* is set to *On*.
+  Set it back to *Automatic* to follow Windows and get your colours and style back.
+- **A smaller font size has no effect** — *Accessibility → Minimum text size* is a floor
+  for every text. Lower it (6 is the smallest).
 - **The statistics are not what my report shows** — check that *Detail (rows)* holds a
   field that is unique per row. If it groups, the visual distributes the grouped values.
 

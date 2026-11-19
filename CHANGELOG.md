@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.6.0.0] — 2026-11
+
+### Added
+
+- **Dynamic format strings.** Power BI now hands the visual the format string of each row. A histogram mixes rows in every bin, so when all the rows share the same string — the currency chosen in a report, a calculation group — the axis, the bin ranges in the tooltip, the mean, median and quartile lines, the statistics panel and the labels use it. When the rows carry different strings, the column's format is used. Measures in the *Tooltips* well follow the same rule. Free.
+- **Accessibility card.** A new last card in the format pane, free:
+  - *High contrast*: **Automatic** follows the Windows contrast theme; **On** draws black on white even without it.
+  - *Focus color* and *Focus width* of the keyboard focus around a bar.
+  - *Minimum text size* (default 6): axis, labels, legend, statistics panel, zone labels, small-multiple titles and the visual's own small texts are never drawn smaller.
+
+### Changed
+
+- **Pro preview watermark.** It is now the common TCViz watermark: *"Pro preview"* and the Pro features in use, centred, never covering the data. As before, it only appears while editing without a licence.
+- **Statistics panel in small tiles (Pro).** It no longer covers the bars: when the six lines would take more than 40 % of the chart height it shows n, μ and M only, and in very small tiles it is not drawn (the tooltip of each bar still gives the figures).
+
+---
+
 ## [1.5.0.0] — 2026-11-05
 
 ### Changed

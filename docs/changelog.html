@@ -160,6 +160,20 @@
   <p class="lead">Every version published to Microsoft AppSource, newest first. Versions since 1.2 are tagged in the
   <a href="https://github.com/tinocallarisa-web/histogram-pro" target="_blank">GitHub repository</a>.</p>
 
+  <h2 id="v1.6.0.0">1.6.0.0 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-11</span></h2>
+  <div class="card">
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Dynamic format strings.</strong> Power BI now hands the visual the format string of each row. A histogram mixes rows in every bin, so when all the rows share the same string — the currency chosen in a report, a calculation group — the axis, the bin ranges in the tooltip, the mean, median and quartile lines, the statistics panel and the labels use it. When the rows carry different strings, the column's format is used. Measures in the <em>Tooltips</em> well follow the same rule. Free.</li>
+      <li><strong>Accessibility card.</strong> A new last card in the format pane, free: <em>High contrast</em> (<strong>Automatic</strong> follows the Windows contrast theme; <strong>On</strong> draws black on white even without it), <em>Focus color</em> and <em>Focus width</em> of the keyboard focus around a bar, and <em>Minimum text size</em> (default 6): axis, labels, legend, statistics panel, zone labels, small-multiple titles and the visual's own small texts are never drawn smaller.</li>
+    </ul>
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Pro preview watermark.</strong> It is now the common TCViz watermark: <em>"Pro preview"</em> and the Pro features in use, centred, never covering the data. As before, it only appears while editing without a licence.</li>
+      <li><strong>Statistics panel in small tiles (Pro).</strong> It no longer covers the bars: when the six lines would take more than 40&nbsp;% of the chart height it shows n, &mu; and M only, and in very small tiles it is not drawn (the tooltip of each bar still gives the figures).</li>
+    </ul>
+  </div>
+
   <h2 id="v1.5.0.0">1.5.0.0 <span style="font-weight:400;color:var(--t3);font-size:13px;">· 2026-11-05</span></h2>
   <div class="card">
     <h3>Changed</h3>
