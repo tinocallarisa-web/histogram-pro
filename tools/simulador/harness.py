@@ -93,10 +93,22 @@ TICKS = "() => Array.from(document.querySelectorAll('svg text')).map(t => t.text
 
 
 async def ficha(b):
+    """Imágenes de la ficha (1.6): build de prueba con Pro forzado (sin marca de agua)."""
     async def shot(name, data, W, H):
         pg = await page(b, "sim_pro", data, W, H, name=name)
         await pg.close()
-    await shot("60_central", dv(), 852, 354)
+    free = {"statistics": {"showStats": False}, "rangeBar": {"show": False}}
+    await shot("60_central", dv(free), 852, 354)
+    await shot("60_free", dv(free), 760, 500)
+    await shot("60_pro", dv({"histogram": {"bins": 24}, "statistics": {"showNormal": True, "showStats": True}, "rangeBar": {"show": False},
+                             "smallMultiples": {"columns": 1}}, panel=True), 760, 500)
+    await shot("60_hero", dv({"histogram": {"bins": 30}, "statistics": {"showStats": True},
+                              "benchmark": {"show": True, "value": 25, "label": "Truck-efficient drop"},
+                              "zones": {"show": True, "cut1": 10, "cut2": 25, "showLabels": True, "showValueShare": True}}), 900, 600)
+    for k, (w, hh) in {"l": (900, 520), "m": (520, 330), "s": (340, 190)}.items():
+        await shot("61_size_" + k, dv(free), w, hh)
+    for k in ("boardroom", "ledger", "editorial", "signal", "aurora", "terrace"):
+        await shot("62_style_" + k, dv({"style": {"template": k}, "statistics": {"showStats": False}, "rangeBar": {"show": False}}), 760, 480)
 
 
 async def main():
