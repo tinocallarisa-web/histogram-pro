@@ -2138,15 +2138,21 @@ export class Visual implements IVisual {
         }
 
         // Stats panel (Pro only)
-        if (this.allow("statistics panel") && settings.showStats && plotW >= 260) {
-            const lines = [
+        // 1.6: el panel no puede tapar el gráfico. Si las seis líneas ocupan más del 40 % del alto, se queda con n, μ y M;
+        // si ni así cabe (mosaicos pequeños), no se dibuja: las cifras siguen en el tooltip de cada barra.
+        const statsLh = settings.axisFontSize + 3;
+        const statsFull = 6 * statsLh + 6 <= plotH * 0.4;
+        const statsShort = !statsFull && 3 * statsLh + 6 <= plotH * 0.4;
+        if (this.allow("statistics panel") && settings.showStats && plotW >= 260 && (statsFull || statsShort)) {
+            const all = [
                 `n = ${fmtNum(nFiltered)}${n > nFiltered ? ` (${this.tf("UI_Trimmed", "{0} trimmed", fmtNum(n - nFiltered))})` : ""}`,
                 `μ = ${formatValue(mean, formatStr)}`, `M = ${formatValue(median, formatStr)}`,
                 `σ = ${formatValue(std, formatStr)}`,
                 `min = ${formatValue(dMin, formatStr)}`, `max = ${formatValue(dMax, formatStr)}`,
             ];
+            const lines = statsFull ? all : all.slice(0, 3);
             const px = plotW - 110, py = 8 + refTop;
-            const lh = settings.axisFontSize + 3;
+            const lh = statsLh;
             const sg = g.append("g").attr("class", "hp-stats");
             sg.append("rect").attr("x", px - 6).attr("y", py - 4).attr("width", 116).attr("height", lines.length * lh + 6)
                 .attr("fill", isHighContrast ? (this.pal().background?.value ?? "#000000") : settings.statsBgColor)

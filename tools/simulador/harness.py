@@ -139,6 +139,13 @@ async def main():
         check("foco: color y grosor de la tarjeta", st.strip() == "#D00000 5px", st)
         await pg.close()
 
+        print("Panel de estadísticas según el tamaño")
+        for nm, (W, H, esperado) in {"mosaico": (340, 130, 0), "pequeno": (360, 170, 3), "grande": (900, 520, 6)}.items():
+            pg = await page(b, "sim_pro", dv({"statistics": {"showStats": True}}), W, H, name=f"11_stats_{nm}")
+            nl = await pg.evaluate("() => document.querySelectorAll('.hp-stats text').length")
+            check(f"panel de estadísticas en {W}x{H}: {esperado} líneas (no tapa el gráfico)", nl == esperado, str(nl))
+            await pg.close()
+
         print("Panel de formato y fx")
         pg = await page(b, "sim_pro", dv())
         fm = await pg.evaluate("""() => { const m = __v.getFormattingModel(); const acc = m.cards.find(c => c.uid === 'accessibility_card');
