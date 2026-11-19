@@ -13,3 +13,7 @@ docs/generate_png.py
 # Capturas de trabajo (Screenshot_1 y _2 sí están versionadas: son las de AppSource)
 assets/Screenshot_3.png
 assets/Screenshot_4.png
+
+# Simulador (1.6)
+tools/simulador/capturas/
+tools/simulador/__pycache__/
