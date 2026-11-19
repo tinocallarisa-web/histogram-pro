@@ -16,3 +16,4 @@ assets/Screenshot_4.png
 # Simulador (1.6)
 tools/simulador/capturas/
 tools/simulador/__pycache__/
+!_releases/*.pbiviz
